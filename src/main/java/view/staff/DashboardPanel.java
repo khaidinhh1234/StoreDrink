@@ -5,6 +5,7 @@ import model.Order;
 import model.OrderDetail;
 import service.DrinkService;
 import service.OrderService;
+import view.layout.UITheme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,14 +32,14 @@ public class DashboardPanel extends JPanel {
     public DashboardPanel(String titleText) {
 
         setBackground(
-                new Color(245, 247, 250));
+                UITheme.BACKGROUND);
 
         setLayout(new BorderLayout());
 
         JLabel title = new JLabel(titleText);
 
-        title.setFont(
-                new Font("Arial", Font.BOLD, 28));
+        title.setForeground(UITheme.TEXT);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 26));
 
         title.setBorder(
                 BorderFactory.createEmptyBorder(
@@ -46,7 +47,7 @@ public class DashboardPanel extends JPanel {
 
         add(title, BorderLayout.NORTH);
 
-        content.setBackground(new Color(245, 247, 250));
+        content.setBackground(UITheme.BACKGROUND);
         add(content, BorderLayout.CENTER);
         loadStatistics();
     }
@@ -115,9 +116,9 @@ public class DashboardPanel extends JPanel {
 
     private JPanel createStatisticsView(Stats stats) {
         JPanel wrapper = new JPanel(new BorderLayout(0, 15));
-        wrapper.setBackground(new Color(245, 247, 250));
+        wrapper.setBackground(UITheme.BACKGROUND);
         JPanel cards = new JPanel(new GridLayout(2, 4, 15, 15));
-        cards.setBackground(new Color(245, 247, 250));
+        cards.setBackground(UITheme.BACKGROUND);
         cards.setBorder(BorderFactory.createEmptyBorder(10, 30, 0, 30));
         cards.add(createCard("Doanh thu hôm nay", money(stats.dailyRevenue)));
         cards.add(createCard("Tiền mặt hôm nay", money(stats.dailyCash)));
@@ -130,7 +131,7 @@ public class DashboardPanel extends JPanel {
         wrapper.add(cards, BorderLayout.NORTH);
 
         JPanel rankings = new JPanel(new GridLayout(1, 2, 15, 15));
-        rankings.setBackground(new Color(245, 247, 250));
+        rankings.setBackground(UITheme.BACKGROUND);
         rankings.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
         rankings.add(createRanking("Đồ uống bán chạy hôm nay", stats.dailyTop));
         rankings.add(createRanking("Đồ uống bán chạy trong tuần", stats.weeklyTop));
@@ -141,8 +142,12 @@ public class DashboardPanel extends JPanel {
     private JPanel createRanking(String title, List<String> rows) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createTitledBorder(title));
-        panel.setBackground(Color.WHITE);
-        panel.add(new JScrollPane(new JList<>(rows.toArray(String[]::new))), BorderLayout.CENTER);
+        panel.setBackground(UITheme.CARD);
+        panel.setForeground(UITheme.TEXT);
+        JList<String> list = new JList<>(rows.toArray(String[]::new));
+        list.setBackground(UITheme.CARD);
+        list.setForeground(UITheme.TEXT);
+        panel.add(new JScrollPane(list), BorderLayout.CENTER);
         return panel;
     }
 
@@ -180,7 +185,7 @@ public class DashboardPanel extends JPanel {
 
         JPanel panel = new JPanel();
 
-        panel.setBackground(new Color(25, 35, 50));
+        panel.setBackground(UITheme.CARD);
 
         panel.setBorder(
                 BorderFactory.createEmptyBorder(
@@ -192,10 +197,10 @@ public class DashboardPanel extends JPanel {
                         BoxLayout.Y_AXIS));
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setForeground(UITheme.MUTED);
 
         JLabel valueLabel = new JLabel(value);
-        valueLabel.setForeground(Color.WHITE);
+        valueLabel.setForeground(UITheme.TEXT);
 
         valueLabel.setFont(
                 new Font(

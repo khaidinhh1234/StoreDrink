@@ -5,6 +5,7 @@ import model.OrderDetail;
 import model.User;
 import service.DrinkService;
 import service.OrderService;
+import view.layout.UITheme;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+import javax.swing.border.TitledBorder;
 
 public class CustomerShopPanel extends JPanel {
     private final User user;
@@ -59,30 +61,33 @@ public class CustomerShopPanel extends JPanel {
         this.guestOrder = guestOrder;
         this.tableId = tableId;
         setLayout(new BorderLayout(12, 12));
-        setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
-        setBackground(new Color(245, 247, 250));
+        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        setBackground(UITheme.BACKGROUND);
 
         JLabel title = new JLabel(guestOrder
                 ? "Đặt món tại bàn " + String.format("%02d", tableId)
-                : staffTakeaway ? "Tạo đơn mang về cho khách hàng" : "Chọn đồ uống và đặt hàng");
-        title.setFont(new Font("Arial", Font.BOLD, 24));
+                : staffTakeaway ? "Tạo đơn cho khách hàng" : "Chọn đồ uống và đặt hàng");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        title.setForeground(UITheme.TEXT);
         add(title, BorderLayout.NORTH);
 
         if (staffTakeaway || guestOrder) {
             JPanel customerInfo = new JPanel(new GridLayout(1, 4, 8, 0));
-            customerInfo.setBorder(BorderFactory.createTitledBorder("Thông tin khách hàng"));
+            customerInfo.setBorder(panelBorder("Thông tin khách hàng"));
+            customerInfo.setBackground(UITheme.CARD);
             customerNameField = new JTextField();
             customerPhoneField = new JTextField();
             customerInfo.add(new JLabel("Tên khách:"));
             customerInfo.add(customerNameField);
             customerInfo.add(new JLabel("Số điện thoại (không bắt buộc):"));
             customerInfo.add(customerPhoneField);
+            UITheme.styleTree(customerInfo);
             add(customerInfo, BorderLayout.SOUTH);
         }
 
-        drinkModel = tableModel(new Object[] {"ID", "Tên đồ uống", "Giá", "Còn lại"});
+        drinkModel = tableModel(new Object[] { "ID", "Tên đồ uống", "Giá", "Còn lại" });
         drinkTable = new JTable(drinkModel);
-        drinkTable.setRowHeight(30);
+        drinkTable.setRowHeight(42);
         drinkTable.getSelectionModel().addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting() && drinkTable.getSelectedRow() >= 0) {
                 drinkVisual.setDrink(drinks.get(drinkTable.getSelectedRow()));
@@ -98,22 +103,23 @@ public class CustomerShopPanel extends JPanel {
         JPanel drinkPanel = section("Đồ uống đang bán", drinkContent,
                 addButton, reloadButton);
 
-        cartModel = tableModel(new Object[] {"Tên đồ uống", "SL", "Đơn giá", "Thành tiền"});
+        cartModel = tableModel(new Object[] { "Tên đồ uống", "SL", "Đơn giá", "Thành tiền" });
         cartTable = new JTable(cartModel);
-        cartTable.setRowHeight(30);
+        cartTable.setRowHeight(42);
         JButton removeButton = new JButton("Xóa khỏi giỏ");
         removeButton.addActionListener(e -> removeSelectedItem());
         JButton testReceiptButton = new JButton("In hóa đơn thử");
         testReceiptButton.addActionListener(e -> showReceipt(false));
-        JButton payButton = new JButton(guestOrder ? "Gửi order" : "Thanh toán và in hóa đơn");
+        JButton payButton = new JButton("Gửi order");
         payButton.addActionListener(e -> {
             if (guestOrder) {
                 sendGuestOrder();
             } else {
-                payAndPrint();
+                sendStaffOrder();
             }
         });
         totalLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        totalLabel.setForeground(UITheme.TEXT);
         JPanel cartActions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         cartActions.setOpaque(false);
         cartActions.add(totalLabel);
@@ -124,7 +130,17 @@ public class CustomerShopPanel extends JPanel {
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, drinkPanel, cartPanel);
         splitPane.setResizeWeight(0.5);
+        splitPane.setOpaque(false);
+        splitPane.setBorder(BorderFactory.createEmptyBorder());
+        splitPane.setDividerSize(8);
+        splitPane.setBackground(UITheme.BACKGROUND);
         add(splitPane, BorderLayout.CENTER);
+        UITheme.styleTree(this);
+        styleActionButton(addButton, UITheme.PRIMARY);
+        styleActionButton(reloadButton, new Color(48, 58, 92));
+        styleActionButton(removeButton, new Color(240, 68, 56));
+        styleActionButton(testReceiptButton, new Color(48, 58, 92));
+        styleActionButton(payButton, new Color(0, 168, 143));
         loadDrinks();
         updateCart();
     }
@@ -132,19 +148,48 @@ public class CustomerShopPanel extends JPanel {
     private DefaultTableModel tableModel(Object[] columns) {
         return new DefaultTableModel(columns, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) { return false; }
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
         };
     }
 
     private JPanel section(String title, JComponent content, Component... actions) {
         JPanel panel = new JPanel(new BorderLayout(6, 6));
-        panel.setBorder(BorderFactory.createTitledBorder(title));
+        panel.setBackground(UITheme.CARD);
+        panel.setBorder(panelBorder(title));
+        if (content instanceof JScrollPane scrollPane) {
+            scrollPane.setBorder(BorderFactory.createEmptyBorder());
+            scrollPane.getViewport().setBackground(UITheme.CARD);
+        }
         panel.add(content, BorderLayout.CENTER);
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         footer.setOpaque(false);
-        for (Component action : actions) footer.add(action);
+        for (Component action : actions)
+            footer.add(action);
         panel.add(footer, BorderLayout.SOUTH);
         return panel;
+    }
+
+    private TitledBorder panelBorder(String title) {
+        return BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(48, 48, 71)),
+                title,
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Segoe UI", Font.BOLD, 14),
+                UITheme.MUTED);
+    }
+
+    private void styleActionButton(JButton button, Color background) {
+        button.setBackground(background);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(background.darker()),
+                BorderFactory.createEmptyBorder(9, 16, 9, 16)));
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     }
 
     private void loadDrinks() {
@@ -155,8 +200,8 @@ public class CustomerShopPanel extends JPanel {
                     .collect(Collectors.toList()));
             drinkModel.setRowCount(0);
             for (Drink drink : drinks) {
-                drinkModel.addRow(new Object[] {drink.getId(), drink.getName(),
-                        formatMoney(drink.getPrice()), drink.getQuantity()});
+                drinkModel.addRow(new Object[] { drink.getId(), drink.getName(),
+                        formatMoney(drink.getPrice()), drink.getQuantity() });
             }
             if (!drinks.isEmpty()) {
                 drinkTable.setRowSelectionInterval(0, 0);
@@ -177,8 +222,10 @@ public class CustomerShopPanel extends JPanel {
         Drink drink = drinks.get(row);
         CartItem item = cart.stream().filter(entry -> entry.drink.getId() == drink.getId())
                 .findFirst().orElse(null);
-        if (item == null) cart.add(new CartItem(drink, 1));
-        else if (item.quantity < drink.getQuantity()) item.quantity++;
+        if (item == null)
+            cart.add(new CartItem(drink, 1));
+        else if (item.quantity < drink.getQuantity())
+            item.quantity++;
         else {
             showMessage("Số lượng trong giỏ không được vượt quá tồn kho.");
             return;
@@ -188,15 +235,16 @@ public class CustomerShopPanel extends JPanel {
 
     private void removeSelectedItem() {
         int row = cartTable.getSelectedRow();
-        if (row >= 0) cart.remove(row);
+        if (row >= 0)
+            cart.remove(row);
         updateCart();
     }
 
     private void updateCart() {
         cartModel.setRowCount(0);
         for (CartItem item : cart) {
-            cartModel.addRow(new Object[] {item.drink.getName(), item.quantity,
-                    formatMoney(item.drink.getPrice()), formatMoney(item.subtotal())});
+            cartModel.addRow(new Object[] { item.drink.getName(), item.quantity,
+                    formatMoney(item.drink.getPrice()), formatMoney(item.subtotal()) });
         }
         totalLabel.setText("Tổng: " + formatMoney(total()) + " đ");
     }
@@ -224,18 +272,14 @@ public class CustomerShopPanel extends JPanel {
         }
     }
 
-    private void payAndPrint() {
+    private void sendStaffOrder() {
         if (cart.isEmpty()) {
             showMessage("Giỏ hàng đang trống.");
             return;
         }
-        String payment = (String) JOptionPane.showInputDialog(this, "Chọn phương thức thanh toán:",
-                "Thanh toán", JOptionPane.PLAIN_MESSAGE, null,
-                new String[] {"CASH", "TRANSFER"}, "CASH");
-        if (payment == null) return;
         try {
-            List<OrderDetail> details = cart.stream().map(item ->
-                    new OrderDetail(0, 0, item.drink.getId(), item.quantity, item.drink.getPrice()))
+            List<OrderDetail> details = cart.stream()
+                    .map(item -> new OrderDetail(0, 0, item.drink.getId(), item.quantity, item.drink.getPrice()))
                     .collect(Collectors.toList());
             String customerName = staffTakeaway ? customerNameField.getText().trim() : user.getFullName();
             String customerPhone = staffTakeaway ? customerPhoneField.getText().trim() : null;
@@ -245,16 +289,14 @@ public class CustomerShopPanel extends JPanel {
             }
 
             var order = orderService.createOrder(user.getId(), null, customerName, customerPhone,
-                    total(), payment, staffTakeaway ? "TAKEAWAY" : "DINE_IN", details);
-            for (CartItem item : cart) {
-                item.drink.setQuantity(item.drink.getQuantity() - item.quantity);
-                drinkService.update(item.drink);
-            }
-            order.setStatus("COMPLETED");
-            orderService.updateStatus(order, "COMPLETED");
-            receiptArea.setText(buildReceipt("ĐÃ THANH TOÁN - " + payment + " - MÃ ĐƠN " + order.getId()));
-            printReceipt();
+                    total(), "UNPAID", "TAKEAWAY", details);
+            receiptArea.setText(buildReceipt("ĐÃ GỬI ORDER - CHỜ XÁC NHẬN - MÃ ĐƠN " + order.getId()));
+            JOptionPane.showMessageDialog(this,
+                    "Đã gửi order. Đơn hàng đang chờ xác nhận và thanh toán.",
+                    "Gửi order thành công", JOptionPane.INFORMATION_MESSAGE);
             cart.clear();
+            customerNameField.setText("");
+            customerPhoneField.setText("");
             updateCart();
             loadDrinks();
         } catch (Exception exception) {
@@ -274,8 +316,8 @@ public class CustomerShopPanel extends JPanel {
             return;
         }
         try {
-            List<OrderDetail> details = cart.stream().map(item ->
-                    new OrderDetail(0, 0, item.drink.getId(), item.quantity, item.drink.getPrice()))
+            List<OrderDetail> details = cart.stream()
+                    .map(item -> new OrderDetail(0, 0, item.drink.getId(), item.quantity, item.drink.getPrice()))
                     .collect(Collectors.toList());
             var order = orderService.createOrder(0, tableId, customerName, customerPhone,
                     total(), "UNPAID", "DINE_IN", details);
@@ -284,6 +326,7 @@ public class CustomerShopPanel extends JPanel {
                     "Đã gửi order. Nhân viên sẽ xác nhận đơn hàng của bạn.",
                     "Gửi order thành công", JOptionPane.INFORMATION_MESSAGE);
             cart.clear();
+
             updateCart();
             loadDrinks();
         } catch (Exception exception) {
@@ -297,7 +340,8 @@ public class CustomerShopPanel extends JPanel {
         receipt.append("          HÓA ĐƠN\n");
         receipt.append("--------------------------------\n");
         String receiptCustomer = guestOrder || staffTakeaway
-                ? customerNameField.getText().trim() : user.getFullName();
+                ? customerNameField.getText().trim()
+                : user.getFullName();
         receipt.append("Khách hàng: ").append(receiptCustomer).append("\n");
         if (tableId != null) {
             receipt.append("Bàn: ").append(String.format("%02d", tableId)).append("\n");
@@ -318,7 +362,8 @@ public class CustomerShopPanel extends JPanel {
     private void printReceipt() throws PrinterException {
         PrinterJob job = PrinterJob.getPrinterJob();
         job.setPrintable((graphics, pageFormat, pageIndex) -> {
-            if (pageIndex > 0) return java.awt.print.Printable.NO_SUCH_PAGE;
+            if (pageIndex > 0)
+                return java.awt.print.Printable.NO_SUCH_PAGE;
             graphics.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 10));
             int y = 40;
             for (String line : receiptArea.getText().split("\\R")) {
@@ -333,8 +378,14 @@ public class CustomerShopPanel extends JPanel {
         }
     }
 
-    private String formatMoney(double value) { return currency.format(value); }
-    private void showMessage(String message) { JOptionPane.showMessageDialog(this, message); }
+    private String formatMoney(double value) {
+        return currency.format(value);
+    }
+
+    private void showMessage(String message) {
+        JOptionPane.showMessageDialog(this, message);
+    }
+
     private void showError(String message, Exception exception) {
         exception.printStackTrace();
         JOptionPane.showMessageDialog(this, message + ": " + exception.getMessage(),
@@ -344,8 +395,15 @@ public class CustomerShopPanel extends JPanel {
     private static class CartItem {
         private final Drink drink;
         private int quantity;
-        private CartItem(Drink drink, int quantity) { this.drink = drink; this.quantity = quantity; }
-        private double subtotal() { return drink.getPrice() * quantity; }
+
+        private CartItem(Drink drink, int quantity) {
+            this.drink = drink;
+            this.quantity = quantity;
+        }
+
+        private double subtotal() {
+            return drink.getPrice() * quantity;
+        }
     }
 
     private static class DrinkVisual extends JPanel {
@@ -394,8 +452,9 @@ public class CustomerShopPanel extends JPanel {
             int height = getHeight();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            Color background = drink == null ? new Color(230, 236, 244) : categoryColor(drink.getCategoryId());
-            g.setPaint(new GradientPaint(0, 0, background.brighter(), width, height, background.darker()));
+            Color background = drink == null ? new Color(27, 31, 61) : categoryColor(drink.getCategoryId());
+            g.setPaint(new GradientPaint(0, 0, background, width, height,
+                    new Color(17, 17, 38)));
             g.fillRoundRect(2, 2, width - 4, height - 4, 18, 18);
 
             if (drink != null) {
@@ -408,7 +467,7 @@ public class CustomerShopPanel extends JPanel {
                 g.setFont(new Font("Arial", Font.BOLD, 16));
                 g.drawString(drink.getName(), 18, 27);
             } else {
-                g.setColor(new Color(70, 82, 98));
+                g.setColor(UITheme.MUTED);
                 g.setFont(new Font("Arial", Font.BOLD, 16));
                 g.drawString("Chọn một món để xem hình minh họa", 18, 30);
             }

@@ -32,4 +32,8 @@ public class UserService {
     public void update(User user) throws Exception {
         ApiClient.put("/users/" + user.getId(), gson.toJson(user));
     }
+
+    public void create(User user) throws Exception {
+        ApiClient.post("/users", gson.toJson(user));
+    }
 }

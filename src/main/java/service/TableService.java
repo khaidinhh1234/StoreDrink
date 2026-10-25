@@ -16,4 +16,8 @@ public class TableService {
     public void update(StoreTable table) throws Exception {
         ApiClient.put("/tables/" + table.getId(), gson.toJson(table));
     }
+
+    public void create(StoreTable table) throws Exception {
+        ApiClient.post("/tables", gson.toJson(table));
+    }
 }

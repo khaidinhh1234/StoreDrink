@@ -26,10 +26,10 @@
     },
     {
       "id": 4,
-      "username": "customer01",
+      "username": "admin2",
       "password": "123456",
-      "fullName": "Khách hàng 01",
-      "role": "CUSTOMER",
+      "fullName": "Nguyễn Đình Khải",
+      "role": "ADMIN",
       "active": true
     }
   ],
@@ -78,6 +78,48 @@
       "name": "Bàn 03",
       "qrCode": "TABLE-03",
       "status": "Đang hoạt động"
+    },
+    {
+      "id": 4,
+      "name": "Bàn 04",
+      "qrCode": "TABLE-04",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 5,
+      "name": "Bàn 05",
+      "qrCode": "TABLE-05",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 6,
+      "name": "Bàn 06",
+      "qrCode": "TABLE-06",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 7,
+      "name": "Bàn 07",
+      "qrCode": "TABLE-07",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 8,
+      "name": "Bàn 08",
+      "qrCode": "TABLE-08",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 9,
+      "name": "Bàn 09",
+      "qrCode": "TABLE-09",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 10,
+      "name": "Bàn 10",
+      "qrCode": "TABLE-10",
+      "status": "Đang hoạt động"
     }
   ],
   "drinks": [
@@ -85,7 +127,7 @@
       "id": 2,
       "name": "Cà phê sữa",
       "price": 25000,
-      "quantity": 89,
+      "quantity": 82,
       "active": true,
       "categoryId": 1,
       "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857648/hinh-anh-ly-ca-phe-dep-nhat-13_bzbbun.jpg"
@@ -155,12 +197,12 @@
     },
     {
       "id": 11,
-      "categoryId": 4,
       "name": "Sinh tố dâu",
       "price": 35000,
       "quantity": 50,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg",
-      "active": true
+      "active": true,
+      "categoryId": 4,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg"
     },
     {
       "id": 12,
@@ -192,218 +234,53 @@
   ],
   "orders": [
     {
-      "id": 1001,
-      "userId": 4,
-      "createdByUserId": 4,
-      "total": 80000,
-      "paymentMethod": "CASH",
-      "status": "CANCELLED",
-      "createdAt": "2026-10-01T08:30:00"
-    },
-    {
       "id": 1002,
-      "userId": 4,
-      "createdByUserId": 4,
-      "total": 90000,
-      "paymentMethod": "CASH",
+      "userId": 2,
+      "createdByUserId": 2,
+      "customerName": "rthfgbgfbf",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 75000,
+      "paymentMethod": "TRANSFER",
       "status": "COMPLETED",
-      "createdAt": "2026-10-01T09:00:00"
+      "createdAt": "2026-10-02T19:18:03"
     },
     {
       "id": 1003,
       "userId": 2,
       "createdByUserId": 2,
-      "total": 75000,
+      "customerName": "nam",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 145000,
       "paymentMethod": "CASH",
       "status": "COMPLETED",
-      "createdAt": "2026-10-01T09:15:00"
+      "createdAt": "2026-10-02T19:24:49"
     },
     {
       "id": 1004,
-      "userId": 4,
-      "createdByUserId": 4,
-      "total": 225000,
-      "paymentMethod": "CASH",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-01T19:13:45"
+      "userId": 2,
+      "createdByUserId": 2,
+      "customerName": "ầvaveef",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 75000,
+      "paymentMethod": "UNPAID",
+      "status": "PENDING",
+      "createdAt": "2026-10-02T19:42:26"
     },
     {
       "id": 1005,
-      "userId": 4,
-      "createdByUserId": 4,
-      "total": 225000,
-      "paymentMethod": "CASH",
-      "status": "CANCELLED",
-      "createdAt": "2026-10-01T19:13:51"
-    },
-    {
-      "id": 1006,
-      "userId": 4,
-      "createdByUserId": 4,
-      "total": 225000,
-      "paymentMethod": "CASH",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-01T19:13:54"
-    },
-    {
-      "id": 1007,
-      "userId": 4,
-      "createdByUserId": 4,
-      "total": 225000,
-      "paymentMethod": "CASH",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-01T19:14:21"
-    },
-    {
-      "id": 1008,
-      "userId": 4,
-      "createdByUserId": 4,
-      "total": 75000,
-      "paymentMethod": "CASH",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-01T19:37:41"
-    },
-    {
-      "id": 1009,
-      "userId": 4,
-      "createdByUserId": 4,
-      "total": 55000,
-      "paymentMethod": "TRANSFER",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-01T19:38:54"
-    },
-    {
-      "id": 1010,
-      "userId": 4,
-      "createdByUserId": 4,
-      "total": 75000,
-      "paymentMethod": "CASH",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-02T00:37:12"
-    },
-    {
-      "id": 1011,
-      "userId": 4,
-      "createdByUserId": 4,
-      "orderType": "DINE_IN",
-      "total": 80000,
-      "paymentMethod": "TRANSFER",
-      "status": "CANCELLED",
-      "createdAt": "2026-10-02T01:11:35"
-    },
-    {
-      "id": 1012,
       "userId": 0,
       "createdByUserId": 0,
       "tableId": 1,
-      "customerName": "Nguyễn Đình Khải",
-      "customerPhone": "0974943593",
+      "customerName": "khai",
+      "customerPhone": "",
       "orderType": "DINE_IN",
-      "total": 170000,
-      "paymentMethod": "UNPAID",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-02T01:18:21"
-    },
-    {
-      "id": 1013,
-      "userId": 0,
-      "createdByUserId": 0,
-      "tableId": 1,
-      "customerName": "vũ việt",
-      "customerPhone": "0989873245",
-      "orderType": "DINE_IN",
-      "total": 175000,
+      "total": 130000,
       "paymentMethod": "UNPAID",
       "status": "PENDING",
-      "createdAt": "2026-10-02T01:29:05"
-    },
-    {
-      "id": 1014,
-      "userId": 2,
-      "createdByUserId": 2,
-      "customerName": "thu ngan",
-      "customerPhone": "121234234",
-      "orderType": "TAKEAWAY",
-      "total": 120000,
-      "paymentMethod": "TRANSFER",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-02T01:33:53"
-    },
-    {
-      "id": 1015,
-      "userId": 0,
-      "createdByUserId": 0,
-      "tableId": 1,
-      "customerName": "khai",
-      "customerPhone": "098875656",
-      "orderType": "DINE_IN",
-      "total": 25000,
-      "paymentMethod": "UNPAID",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-02T01:35:56"
-    },
-    {
-      "id": 1016,
-      "userId": 0,
-      "createdByUserId": 0,
-      "tableId": 1,
-      "customerName": "adnfjsdgf",
-      "customerPhone": "1234567",
-      "orderType": "DINE_IN",
-      "total": 25000,
-      "paymentMethod": "UNPAID",
-      "status": "PENDING",
-      "createdAt": "2026-10-02T01:51:40"
-    },
-    {
-      "id": 1017,
-      "userId": 2,
-      "createdByUserId": 2,
-      "customerName": "dfgdfg",
-      "customerPhone": "456456456",
-      "orderType": "TAKEAWAY",
-      "total": 60000,
-      "paymentMethod": "CASH",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-02T01:52:12"
-    },
-    {
-      "id": 1018,
-      "userId": 2,
-      "createdByUserId": 2,
-      "customerName": "adrfsgfd",
-      "customerPhone": "sdfsdfsf",
-      "orderType": "TAKEAWAY",
-      "total": 50000,
-      "paymentMethod": "CASH",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-02T01:56:41"
-    },
-    {
-      "id": 1019,
-      "userId": 0,
-      "createdByUserId": 0,
-      "tableId": 1,
-      "customerName": "khai",
-      "customerPhone": "09876543434",
-      "orderType": "DINE_IN",
-      "total": 85000,
-      "paymentMethod": "CASH",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-02T02:22:51"
-    },
-    {
-      "id": 1020,
-      "userId": 0,
-      "createdByUserId": 0,
-      "tableId": 1,
-      "customerName": "khai",
-      "customerPhone": "09876543434",
-      "orderType": "DINE_IN",
-      "total": 85000,
-      "paymentMethod": "CASH",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-02T02:23:02"
+      "createdAt": "2026-10-13T18:46:35"
     }
   ],
   "orderDetails": [
@@ -448,268 +325,68 @@
       "subtotal": 35000
     },
     {
-      "id": 8,
+      "id": 47,
+      "orderId": 1001,
+      "drinkId": 2,
+      "quantity": 3,
+      "price": 25000,
+      "subtotal": 75000
+    },
+    {
+      "id": 48,
+      "orderId": 1002,
+      "drinkId": 2,
+      "quantity": 3,
+      "price": 25000,
+      "subtotal": 75000
+    },
+    {
+      "id": 49,
       "orderId": 1003,
-      "drinkId": 5,
-      "quantity": 1,
-      "price": 20000,
-      "subtotal": 20000
-    },
-    {
-      "id": 9,
-      "orderId": 1004,
-      "drinkId": 4,
-      "quantity": 1,
-      "price": 30000
-    },
-    {
-      "id": 10,
-      "orderId": 1004,
-      "drinkId": 5,
-      "quantity": 1,
-      "price": 20000
-    },
-    {
-      "id": 11,
-      "orderId": 1005,
-      "drinkId": 4,
-      "quantity": 1,
-      "price": 30000
-    },
-    {
-      "id": 12,
-      "orderId": 1005,
-      "drinkId": 5,
-      "quantity": 1,
-      "price": 20000
-    },
-    {
-      "id": 13,
-      "orderId": 1005,
-      "drinkId": 6,
-      "quantity": 1,
-      "price": 20000
-    },
-    {
-      "id": 14,
-      "orderId": 1006,
-      "drinkId": 4,
-      "quantity": 1,
-      "price": 30000
-    },
-    {
-      "id": 15,
-      "orderId": 1007,
-      "drinkId": 4,
-      "quantity": 1,
-      "price": 30000
-    },
-    {
-      "id": 16,
-      "orderId": 1007,
-      "drinkId": 5,
-      "quantity": 1,
-      "price": 20000
-    },
-    {
-      "id": 17,
-      "orderId": 1008,
-      "drinkId": 2,
-      "quantity": 3,
-      "price": 25000,
-      "subtotal": 75000
-    },
-    {
-      "id": 18,
-      "orderId": 1009,
-      "drinkId": 2,
-      "quantity": 1,
-      "price": 25000,
-      "subtotal": 25000
-    },
-    {
-      "id": 19,
-      "orderId": 1009,
-      "drinkId": 4,
-      "quantity": 1,
-      "price": 30000,
-      "subtotal": 30000
-    },
-    {
-      "id": 20,
-      "orderId": 1010,
-      "drinkId": 2,
-      "quantity": 3,
-      "price": 25000,
-      "subtotal": 75000
-    },
-    {
-      "id": 21,
-      "orderId": 1011,
       "drinkId": 2,
       "quantity": 2,
       "price": 25000,
       "subtotal": 50000
     },
     {
-      "id": 22,
-      "orderId": 1011,
-      "drinkId": 4,
-      "quantity": 1,
-      "price": 30000,
-      "subtotal": 30000
-    },
-    {
-      "id": 23,
-      "orderId": 1012,
+      "id": 50,
+      "orderId": 1004,
       "drinkId": 2,
-      "quantity": 4,
+      "quantity": 3,
       "price": 25000,
-      "subtotal": 100000
+      "subtotal": 75000
     },
     {
-      "id": 24,
-      "orderId": 1012,
+      "id": 51,
+      "orderId": 1003,
+      "drinkId": 4,
+      "quantity": 2,
+      "price": 30000,
+      "subtotal": 60000
+    },
+    {
+      "id": 52,
+      "orderId": 1005,
       "drinkId": 4,
       "quantity": 1,
       "price": 30000,
       "subtotal": 30000
     },
     {
-      "id": 25,
-      "orderId": 1012,
-      "drinkId": 5,
-      "quantity": 1,
-      "price": 20000,
-      "subtotal": 20000
-    },
-    {
-      "id": 26,
-      "orderId": 1012,
-      "drinkId": 6,
-      "quantity": 1,
-      "price": 20000,
-      "subtotal": 20000
-    },
-    {
-      "id": 27,
-      "orderId": 1013,
-      "drinkId": 4,
-      "quantity": 1,
-      "price": 30000,
-      "subtotal": 30000
-    },
-    {
-      "id": 28,
-      "orderId": 1013,
-      "drinkId": 7,
-      "quantity": 1,
-      "price": 35000,
-      "subtotal": 35000
-    },
-    {
-      "id": 29,
-      "orderId": 1013,
-      "drinkId": 10,
-      "quantity": 1,
-      "price": 35000,
-      "subtotal": 35000
-    },
-    {
-      "id": 30,
-      "orderId": 1013,
-      "drinkId": 13,
-      "quantity": 1,
-      "price": 45000,
-      "subtotal": 45000
-    },
-    {
-      "id": 31,
-      "orderId": 1013,
+      "id": 53,
+      "orderId": 1005,
       "drinkId": 8,
       "quantity": 1,
       "price": 30000,
       "subtotal": 30000
     },
     {
-      "id": 32,
-      "orderId": 1014,
-      "drinkId": 4,
-      "quantity": 4,
-      "price": 30000,
-      "subtotal": 120000
-    },
-    {
-      "id": 33,
-      "orderId": 1015,
-      "drinkId": 2,
-      "quantity": 1,
-      "price": 25000,
-      "subtotal": 25000
-    },
-    {
-      "id": 34,
-      "orderId": 1016,
-      "drinkId": 2,
-      "quantity": 1,
-      "price": 25000,
-      "subtotal": 25000
-    },
-    {
-      "id": 35,
-      "orderId": 1017,
-      "drinkId": 5,
-      "quantity": 3,
-      "price": 20000,
-      "subtotal": 60000
-    },
-    {
-      "id": 36,
-      "orderId": 1018,
-      "drinkId": 2,
+      "id": 54,
+      "orderId": 1005,
+      "drinkId": 7,
       "quantity": 2,
-      "price": 25000,
-      "subtotal": 50000
-    },
-    {
-      "id": 37,
-      "orderId": 1019,
-      "drinkId": 2,
-      "quantity": 1,
-      "price": 25000,
-      "subtotal": 25000
-    },
-    {
-      "id": 38,
-      "orderId": 1019,
-      "drinkId": 5,
-      "quantity": 1,
-      "price": 20000,
-      "subtotal": 20000
-    },
-    {
-      "id": 39,
-      "orderId": 1020,
-      "drinkId": 2,
-      "quantity": 1,
-      "price": 25000,
-      "subtotal": 25000
-    },
-    {
-      "id": 40,
-      "orderId": 1020,
-      "drinkId": 5,
-      "quantity": 1,
-      "price": 20000,
-      "subtotal": 20000
-    },
-    {
-      "id": 41,
-      "orderId": 1020,
-      "drinkId": 6,
-      "quantity": 2,
-      "price": 20000,
-      "subtotal": 40000
+      "price": 35000,
+      "subtotal": 70000
     }
   ]
 }

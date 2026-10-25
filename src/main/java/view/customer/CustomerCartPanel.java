@@ -4,6 +4,7 @@ import model.OrderDetail;
 import model.User;
 import service.DrinkService;
 import service.OrderService;
+import view.layout.UITheme;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -27,11 +28,13 @@ public class CustomerCartPanel extends JPanel {
         this.user = user;
         setLayout(new BorderLayout(12, 12));
         setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
-        setBackground(new Color(245, 247, 250));
+        setBackground(UITheme.BACKGROUND);
         JLabel title = new JLabel("GIỎ HÀNG CỦA BẠN");
         title.setFont(new Font("Arial", Font.BOLD, 26));
+        title.setForeground(UITheme.TEXT);
         add(title, BorderLayout.NORTH);
-        table.setRowHeight(38);
+        table.setRowHeight(44);
+        UITheme.styleTable(table);
         add(new JScrollPane(table), BorderLayout.CENTER);
 
         JButton remove = new JButton("Xóa món");
@@ -39,6 +42,7 @@ public class CustomerCartPanel extends JPanel {
         JButton pay = new JButton("Thanh toán và in hóa đơn");
         pay.addActionListener(e -> pay());
         total.setFont(new Font("Arial", Font.BOLD, 18));
+        total.setForeground(UITheme.TEXT);
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottom.setOpaque(false);
         bottom.add(total);

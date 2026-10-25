@@ -55,16 +55,30 @@ public class OrderService {
                 paymentMethod, "PENDING", orderType, LocalDateTime.now().withNano(0).toString(),
                 createdByUserId);
         order.setUserId(createdByUserId);
-        ApiClient.post("/orders", gson.toJson(order));
+        postAndConfirm("/orders", gson.toJson(order), "/orders/" + orderId);
 
         int detailId = nextDetailId();
         for (OrderDetail detail : details) {
             detail.setId(detailId++);
             detail.setOrderId(orderId);
             detail.setSubtotal(detail.getQuantity() * detail.getPrice());
-            ApiClient.post("/orderDetails", gson.toJson(detail));
+            postAndConfirm("/orderDetails", gson.toJson(detail),
+                    "/orderDetails/" + detail.getId());
         }
         return order;
+    }
+
+    private void postAndConfirm(String endpoint, String body, String resourceEndpoint) throws Exception {
+        try {
+            ApiClient.post(endpoint, body);
+        } catch (Exception postException) {
+            try {
+                ApiClient.get(resourceEndpoint);
+            } catch (Exception verificationException) {
+                postException.addSuppressed(verificationException);
+                throw postException;
+            }
+        }
     }
 
     private int nextDetailId() throws Exception {

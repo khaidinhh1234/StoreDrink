@@ -4,6 +4,7 @@ import model.User;
 import service.UserService;
 import view.customer.GuestOrderFrame;
 import view.layout.MainView;
+import view.layout.UITheme;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,11 +17,13 @@ public class LoginFrame extends JFrame {
     private final UserService userService = new UserService();
 
     public LoginFrame() {
+        UITheme.install();
         setTitle("Store Drink - Đăng nhập");
         setSize(440, 320);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         buildView();
+        UITheme.styleTree(getContentPane());
     }
 
     private void buildView() {

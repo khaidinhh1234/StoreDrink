@@ -25,11 +25,13 @@ public class MainView extends JFrame {
 
         public MainView(User user) {
                 this.user = user;
+                UITheme.install();
 
                 setTitle("Store Drink - " + user.getRole());
                 setSize(1200, 700);
                 setLocationRelativeTo(null);
                 setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                getContentPane().setBackground(UITheme.BACKGROUND);
 
                 // =========================
                 // CARD LAYOUT
@@ -50,7 +52,7 @@ public class MainView extends JFrame {
                 if (admin) {
                         contentPanel.add(new DrinkPanel(), "DRINK");
                         contentPanel.add(new CategoryPanel(), "CATEGORY");
-                        contentPanel.add(new EmployeePanel(), "EMPLOYEE");
+                        contentPanel.add(new EmployeePanel(user), "EMPLOYEE");
                         contentPanel.add(new TablePanel(), "TABLE");
                         contentPanel.add(new CustomerPanel(), "CUSTOMER");
                 }
@@ -65,6 +67,7 @@ public class MainView extends JFrame {
                 if (staff) {
                         contentPanel.add(new CustomerShopPanel(user, true), COUNTER_ORDER);
                 }
+                UITheme.styleTree(contentPanel);
 
                 // =========================
                 // SIDEBAR
@@ -81,15 +84,16 @@ public class MainView extends JFrame {
                 add(sidebar, BorderLayout.WEST);
                 add(contentPanel, BorderLayout.CENTER);
 
-                cardLayout.show(contentPanel, customer ? "DRINK" : staff ? "ORDER" : "DASHBOARD");
+                showPage(customer ? "DRINK" : staff ? "ORDER" : "DASHBOARD");
         }
 
         private JPanel createSidebar() {
 
                 JPanel sidebar = new JPanel();
 
-                sidebar.setPreferredSize(new Dimension(220, 0));
-                sidebar.setBackground(new Color(25, 35, 50));
+                sidebar.setPreferredSize(new Dimension(236, 0));
+                sidebar.setBackground(UITheme.SIDEBAR);
+                sidebar.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, UITheme.BORDER));
 
                 sidebar.setLayout(new BorderLayout());
 
@@ -100,9 +104,10 @@ public class MainView extends JFrame {
                 JLabel logo = new JLabel("  Store Drink");
 
                 logo.setForeground(Color.WHITE);
-                logo.setFont(new Font("Arial", Font.BOLD, 20));
+                logo.setFont(new Font("Segoe UI", Font.BOLD, 20));
 
                 logo.setPreferredSize(new Dimension(220, 70));
+                logo.setBorder(BorderFactory.createEmptyBorder(0, 18, 0, 0));
 
                 sidebar.add(logo, BorderLayout.NORTH);
 
@@ -112,7 +117,7 @@ public class MainView extends JFrame {
 
                 JPanel menuPanel = new JPanel();
 
-                menuPanel.setBackground(new Color(25, 35, 50));
+                menuPanel.setBackground(UITheme.SIDEBAR);
 
                 menuPanel.setLayout(
                                 new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
@@ -169,12 +174,12 @@ public class MainView extends JFrame {
                 // =========================
 
                 JButton logoutButton = createMenuButton("  Đăng xuất");
+                logoutButton.setForeground(new Color(255, 125, 125));
 
                 JPanel bottom = new JPanel(
                                 new BorderLayout());
 
-                bottom.setBackground(
-                                new Color(25, 35, 50));
+                bottom.setBackground(UITheme.SIDEBAR);
 
                 bottom.add(
                                 logoutButton,
@@ -214,33 +219,71 @@ public class MainView extends JFrame {
                 JButton button = new JButton(text);
 
                 button.setMaximumSize(
-                                new Dimension(220, 50));
+                                new Dimension(236, 50));
 
                 button.setPreferredSize(
-                                new Dimension(220, 50));
+                                new Dimension(236, 50));
 
                 button.setHorizontalAlignment(
                                 SwingConstants.LEFT);
 
                 button.setForeground(Color.WHITE);
 
-                button.setBackground(
-                                new Color(25, 35, 50));
+                button.setBackground(UITheme.SIDEBAR);
 
                 button.setBorderPainted(false);
 
                 button.setFocusPainted(false);
 
                 button.setFont(
-                                new Font("Arial", Font.PLAIN, 15));
+                                new Font("Segoe UI", Font.PLAIN, 14));
+                button.setBorder(BorderFactory.createEmptyBorder(0, 18, 0, 10));
+                button.setOpaque(true);
+                button.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                                if (!button.getBackground().equals(UITheme.PRIMARY)) button.setBackground(UITheme.SURFACE_HOVER);
+                        }
+                        @Override public void mouseExited(java.awt.event.MouseEvent e) {
+                                if (!button.getBackground().equals(UITheme.PRIMARY)) button.setBackground(UITheme.SIDEBAR);
+                        }
+                });
 
                 return button;
         }
 
         private void showPage(String page) {
-
+                for (Component component : getContentPane().getComponents()) {
+                        if (component instanceof JPanel panel && panel.getBackground().equals(UITheme.SIDEBAR)) {
+                                markMenuSelection(panel, page);
+                        }
+                }
                 cardLayout.show(
                                 contentPanel,
                                 page);
+        }
+
+        private void markMenuSelection(Container container, String page) {
+                String selectedLabel = switch (page) {
+                        case "DASHBOARD" -> "Dashboard";
+                        case "DRINK" -> "Đồ uống";
+                        case "CATEGORY" -> "Danh mục";
+                        case "EMPLOYEE" -> "Nhân viên";
+                        case "TABLE" -> "Bàn";
+                        case "ORDER" -> "Đơn hàng";
+                        case COUNTER_ORDER -> "Tạo đơn tại quầy";
+                        case "CART" -> "Giỏ hàng";
+                        default -> "Khách hàng";
+                };
+                for (Component component : container.getComponents()) {
+                        if (component instanceof JButton button) {
+                                boolean selected = button.getText().trim().equals(selectedLabel)
+                                        || (selectedLabel.equals("Dashboard") && button.getText().trim().equals("Trang chủ"))
+                                        || (selectedLabel.equals("Dashboard") && button.getText().trim().equals("Thống kê"));
+                                button.setBackground(selected ? UITheme.PRIMARY : UITheme.SIDEBAR);
+                                button.setFont(new Font("Segoe UI", selected ? Font.BOLD : Font.PLAIN, 14));
+                        } else if (component instanceof Container child) {
+                                markMenuSelection(child, page);
+                        }
+                }
         }
 }

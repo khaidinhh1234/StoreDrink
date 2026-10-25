@@ -2,6 +2,7 @@ package view.admin;
 
 import model.Category;
 import service.CategoryService;
+import view.layout.UITheme;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -12,16 +13,20 @@ public class CategoryPanel extends JPanel {
             new Object[] {"ID", "Tên danh mục", "Mô tả"}, 0);
     public CategoryPanel() {
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 247, 250));
+        setBackground(UITheme.BACKGROUND);
         JLabel title = new JLabel("Quản lý danh mục");
-        title.setFont(new Font("Arial", Font.BOLD, 24));
+        title.setForeground(UITheme.TEXT);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
         JButton add = new JButton("Thêm danh mục");
         add.addActionListener(e -> addCategory());
         JPanel header = new JPanel(new BorderLayout());
-        header.setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
+        header.setBackground(UITheme.BACKGROUND);
+        header.setBorder(BorderFactory.createEmptyBorder(24, 28, 18, 28));
         header.add(title, BorderLayout.WEST); header.add(add, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
-        add(new JScrollPane(new JTable(model)), BorderLayout.CENTER);
+        JTable table = new JTable(model);
+        add(new JScrollPane(table), BorderLayout.CENTER);
+        UITheme.styleTree(this);
         load();
     }
     private void load() {
