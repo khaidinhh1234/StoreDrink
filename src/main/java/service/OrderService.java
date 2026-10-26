@@ -1,15 +1,20 @@
 package service;
 
+import java.lang.reflect.Type;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
+import model.Drink;
 import model.Order;
 import model.OrderDetail;
 import utils.ApiClient;
-
-import java.time.LocalDateTime;
-import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.List;
 
 public class OrderService {
     private final Gson gson = new Gson();
@@ -21,12 +26,41 @@ public class OrderService {
     }
 
     public void updateStatus(Order order, String status) throws Exception {
-        if ("COMPLETED".equalsIgnoreCase(status)
-                && !"CONFIRMED".equalsIgnoreCase(order.getStatus())) {
-            throw new IllegalStateException("Đơn hàng phải được xác nhận trước khi thanh toán");
+        String previousStatus = normalizeStatus(order.getStatus());
+        String nextStatus = normalizeStatus(status);
+        Boolean previousStockDeducted = order.getStockDeducted();
+        List<StockChange> stockChanges = List.of();
+
+        if ("CONFIRMED".equals(nextStatus)) {
+            if (!"PENDING".equals(previousStatus)) {
+                throw new IllegalStateException("Chỉ đơn đang chờ duyệt mới được xác nhận");
+            }
+            stockChanges = applyOrderStock(order.getId(), -1);
+            order.setStockDeducted(true);
+        } else if ("CANCELLED".equals(nextStatus)) {
+            if ("PENDING".equals(previousStatus)) {
+                // Pending orders have not reserved or deducted inventory.
+            } else if ("CONFIRMED".equals(previousStatus)) {
+                if (Boolean.TRUE.equals(previousStockDeducted)) {
+                    stockChanges = applyOrderStock(order.getId(), 1);
+                }
+                order.setStockDeducted(false);
+            } else {
+                throw new IllegalStateException("Chỉ đơn chờ duyệt hoặc đã duyệt mới được hủy");
+            }
+        } else {
+            throw new IllegalArgumentException("Trạng thái chuyển đổi không hợp lệ: " + status);
         }
-        order.setStatus(status);
-        ApiClient.put("/orders/" + order.getId(), gson.toJson(order));
+
+        order.setStatus(nextStatus);
+        try {
+            ApiClient.put("/orders/" + order.getId(), gson.toJson(order));
+        } catch (Exception exception) {
+            order.setStatus(previousStatus);
+            order.setStockDeducted(previousStockDeducted);
+            rollbackStock(stockChanges, exception);
+            throw exception;
+        }
     }
 
     public void completePayment(Order order, String paymentMethod) throws Exception {
@@ -37,10 +71,82 @@ public class OrderService {
                 && !"TRANSFER".equalsIgnoreCase(paymentMethod)) {
             throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ");
         }
+        String previousPaymentMethod = order.getPaymentMethod();
         order.setPaymentMethod(paymentMethod);
         order.setStatus("COMPLETED");
-        ApiClient.put("/orders/" + order.getId(), gson.toJson(order));
+        try {
+            // Inventory was deducted at confirmation; completing payment never deducts it again.
+            ApiClient.put("/orders/" + order.getId(), gson.toJson(order));
+        } catch (Exception exception) {
+            order.setPaymentMethod(previousPaymentMethod);
+            order.setStatus("CONFIRMED");
+            throw exception;
+        }
     }
+
+    private String normalizeStatus(String status) {
+        return status == null ? "" : status.trim().toUpperCase(java.util.Locale.ROOT);
+    }
+
+    /** direction -1 deducts stock; +1 returns stock for a cancelled confirmed order. */
+    private List<StockChange> applyOrderStock(int orderId, int direction) throws Exception {
+        Map<Integer, Integer> quantitiesByDrink = new HashMap<>();
+        for (OrderDetail detail : getDetails(orderId)) {
+            if (detail.getQuantity() <= 0) {
+                throw new IllegalStateException("Số lượng món trong order không hợp lệ");
+            }
+            quantitiesByDrink.merge(detail.getDrinkId(), detail.getQuantity(), Integer::sum);
+        }
+        if (quantitiesByDrink.isEmpty()) {
+            throw new IllegalStateException("Order không có món để xử lý kho");
+        }
+
+        Map<Integer, Drink> drinksById = new HashMap<>();
+        for (Drink drink : new DrinkService().getAll()) {
+            drinksById.put(drink.getId(), drink);
+        }
+
+        List<StockChange> changes = new ArrayList<>();
+        for (Map.Entry<Integer, Integer> entry : quantitiesByDrink.entrySet()) {
+            Drink drink = drinksById.get(entry.getKey());
+            if (drink == null) {
+                throw new IllegalStateException("Không tìm thấy đồ uống có mã " + entry.getKey());
+            }
+            int newQuantity = drink.getQuantity() + direction * entry.getValue();
+            if (newQuantity < 0) {
+                throw new IllegalStateException(drink.getName() + " chỉ còn " + drink.getQuantity()
+                        + " cốc trong kho, không đủ cho order này");
+            }
+            changes.add(new StockChange(drink, drink.getQuantity(), newQuantity));
+        }
+
+        List<StockChange> applied = new ArrayList<>();
+        try {
+            for (StockChange change : changes) {
+                change.drink.setQuantity(change.newQuantity);
+                new DrinkService().update(change.drink);
+                applied.add(change);
+            }
+        } catch (Exception exception) {
+            rollbackStock(applied, exception);
+            throw exception;
+        }
+        return applied;
+    }
+
+    private void rollbackStock(List<StockChange> changes, Exception originalException) {
+        for (int index = changes.size() - 1; index >= 0; index--) {
+            StockChange change = changes.get(index);
+            try {
+                change.drink.setQuantity(change.previousQuantity);
+                new DrinkService().update(change.drink);
+            } catch (Exception rollbackException) {
+                originalException.addSuppressed(rollbackException);
+            }
+        }
+    }
+
+    private record StockChange(Drink drink, int previousQuantity, int newQuantity) { }
 
     public Order createOrder(int userId, double total, String paymentMethod,
             List<OrderDetail> details) throws Exception {

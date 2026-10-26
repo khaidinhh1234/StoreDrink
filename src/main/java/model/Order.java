@@ -4,6 +4,7 @@ public class Order {
     private int id;
     private int userId;
     private int createdByUserId;
+    private int processedByUserId;
     private Integer tableId;
     private String customerName;
     private String customerPhone;
@@ -12,6 +13,8 @@ public class Order {
     private String paymentMethod;
     private String status;
     private String createdAt;
+    // null marks older orders created before inventory tracking was enabled.
+    private Boolean stockDeducted;
 
     public Order() {
     }
@@ -48,9 +51,11 @@ public class Order {
 
     public void setUserId(int userId) { this.userId = userId; }
     public void setCreatedByUserId(int createdByUserId) { this.createdByUserId = createdByUserId; }
+    public void setProcessedByUserId(int processedByUserId) { this.processedByUserId = processedByUserId; }
     public void setTotal(double total) { this.total = total; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
+    public void setStockDeducted(Boolean stockDeducted) { this.stockDeducted = stockDeducted; }
 
     public void setId(int id) {
         this.id = id;
@@ -58,6 +63,8 @@ public class Order {
 
     public int getUserId() { return userId; }
     public int getCreatedByUserId() { return createdByUserId; }
+    public int getProcessedByUserId() { return processedByUserId; }
+    public Boolean getStockDeducted() { return stockDeducted; }
     public Integer getTableId() { return tableId; }
     public String getCustomerName() { return customerName; }
     public String getCustomerPhone() { return customerPhone; }

@@ -108,7 +108,7 @@ public final class UITheme {
         header.setReorderingAllowed(false);
         header.setDefaultRenderer(new javax.swing.table.DefaultTableCellRenderer() {
             {
-                setHorizontalAlignment(SwingConstants.LEFT);
+                setHorizontalAlignment(SwingConstants.CENTER);
                 setBorder(BorderFactory.createEmptyBorder(0, 14, 0, 14));
             }
 
@@ -126,6 +126,7 @@ public final class UITheme {
         javax.swing.table.DefaultTableCellRenderer bodyRenderer =
                 new javax.swing.table.DefaultTableCellRenderer() {
                     {
+                        setHorizontalAlignment(SwingConstants.CENTER);
                         setBorder(BorderFactory.createEmptyBorder(0, 14, 0, 14));
                     }
 
@@ -144,11 +145,21 @@ public final class UITheme {
                     }
                 };
         for (int column = 0; column < table.getColumnCount(); column++) {
+            if (isActionColumn(table, column)
+                    && table.getColumnModel().getColumn(column).getCellRenderer() != null) {
+                continue;
+            }
             table.getColumnModel().getColumn(column).setCellRenderer(bodyRenderer);
             if (isStatusColumn(table, column)) {
                 table.getColumnModel().getColumn(column).setCellRenderer(new StatusCellRenderer());
             }
         }
+    }
+
+    private static boolean isActionColumn(JTable table, int column) {
+        Object headerValue = table.getColumnModel().getColumn(column).getHeaderValue();
+        return headerValue != null && headerValue.toString().toLowerCase(java.util.Locale.ROOT)
+                .contains("thao tác");
     }
 
     private static boolean isStatusColumn(JTable table, int column) {
@@ -178,7 +189,7 @@ public final class UITheme {
 
         private StatusCellRenderer() {
             setOpaque(true);
-            setLayout(new FlowLayout(FlowLayout.LEFT, 14, 0));
+            setLayout(new FlowLayout(FlowLayout.CENTER, 14, 0));
             badge.setOpaque(true);
             badge.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
             add(badge);

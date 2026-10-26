@@ -27,7 +27,7 @@
     {
       "id": 4,
       "username": "admin2",
-      "password": "123456",
+      "password": "122223456",
       "fullName": "Nguyễn Đình Khải",
       "role": "ADMIN",
       "active": true
@@ -120,6 +120,12 @@
       "name": "Bàn 10",
       "qrCode": "TABLE-10",
       "status": "Đang hoạt động"
+    },
+    {
+      "id": 11,
+      "name": "TABLE-11",
+      "qrCode": "A1",
+      "status": "Đang hoạt động"
     }
   ],
   "drinks": [
@@ -130,7 +136,7 @@
       "quantity": 82,
       "active": true,
       "categoryId": 1,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857648/hinh-anh-ly-ca-phe-dep-nhat-13_bzbbun.jpg"
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/t_caphesua/cach-pha-ca-phe-sua-tuoi-removebg-preview_dloyz1.png"
     },
     {
       "id": 4,
@@ -139,7 +145,7 @@
       "quantity": 74,
       "active": true,
       "categoryId": 2,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg"
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/t_caphesua/TraDao-removebg-preview_f01tcg.png"
     },
     {
       "id": 5,
@@ -148,7 +154,7 @@
       "quantity": 77,
       "active": true,
       "categoryId": 2,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg"
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/t_caphesua/tra_tac-removebg-preview_h2j9wi.png"
     },
     {
       "id": 6,
@@ -156,7 +162,7 @@
       "name": "Trà chanh",
       "price": 20000,
       "quantity": 80,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg",
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/t_caphesua/nguyen-tac-pha-tra-chanh-co-ban-removebg-preview_pevfqu.png",
       "active": true
     },
     {
@@ -165,7 +171,7 @@
       "name": "Nước cam",
       "price": 35000,
       "quantity": 60,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg",
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_500,w_500/cong-dung-cua-nuoc-cam-tuoi-va-cach-bao-quan-nuoc-cam-tot-nhat-6-removebg-preview_t5jl7r.png",
       "active": true
     },
     {
@@ -174,7 +180,7 @@
       "name": "Nước ép dưa hấu",
       "price": 30000,
       "quantity": 60,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg",
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_700,w_700/nuoc_ep_dua_hau_co_tac_dung_gi_1_a452bc1181-removebg-preview_in5sbx.png",
       "active": true
     },
     {
@@ -183,7 +189,7 @@
       "name": "Nước ép thơm",
       "price": 30000,
       "quantity": 60,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg",
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/cach-lam-nuoc-ep-dua-thom-ngon-removebg-preview_pfdmxy.png",
       "active": true
     },
     {
@@ -192,7 +198,7 @@
       "name": "Sinh tố xoài",
       "price": 35000,
       "quantity": 50,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg",
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_700,w_700/cach-lam-sinh-to-xoai-sua-dac-removebg-preview_jtkf5p.png",
       "active": true
     },
     {
@@ -202,7 +208,7 @@
       "quantity": 50,
       "active": true,
       "categoryId": 4,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg"
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_700,w_700/pngtree-cherry-strawberry-vanilla-smoothie-with-a-solid-png-image_15781151-removebg-preview_svwsvj.png"
     },
     {
       "id": 12,
@@ -210,7 +216,7 @@
       "name": "Sinh tố bơ",
       "price": 40000,
       "quantity": 50,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg",
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_600,w_600/images-removebg-preview_ymaq32.png",
       "active": true
     },
     {
@@ -219,17 +225,17 @@
       "name": "Đá xay matcha",
       "price": 45000,
       "quantity": 40,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg",
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_600,w_600/9e72797a32e724fcab79f17bc7764d5c-removebg-preview_l2iir8.png",
       "active": true
     },
     {
       "id": 14,
-      "categoryId": 5,
       "name": "Đá xay chocolate",
       "price": 45000,
       "quantity": 40,
-      "image": "https://res.cloudinary.com/khaidinhh/image/upload/v1790857440/concept-chup-anh-do-uong-2023-0011_zvenee.jpg",
-      "active": true
+      "active": true,
+      "categoryId": 5,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/cong-thuc-socola-da-xay-removebg-preview_cirnnx.png"
     }
   ],
   "orders": [
@@ -264,42 +270,76 @@
       "customerName": "ầvaveef",
       "customerPhone": "",
       "orderType": "TAKEAWAY",
-      "total": 75000,
-      "paymentMethod": "UNPAID",
-      "status": "PENDING",
+      "total": 4115000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
       "createdAt": "2026-10-02T19:42:26"
     },
     {
-      "id": 1005,
-      "userId": 0,
-      "createdByUserId": 0,
-      "tableId": 1,
+      "id": 1006,
+      "userId": 2,
+      "createdByUserId": 2,
+      "customerName": "nhsn vien",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 85000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-26T23:00:55"
+    },
+    {
+      "id": 1007,
+      "userId": 2,
+      "createdByUserId": 2,
+      "processedByUserId": 0,
+      "customerName": "ĐÀO XUÂN VIỆT",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 195000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-27T01:39:17"
+    },
+    {
+      "id": 1008,
+      "userId": 2,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
       "customerName": "khai",
       "customerPhone": "",
-      "orderType": "DINE_IN",
-      "total": 130000,
+      "orderType": "TAKEAWAY",
+      "total": 135000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-27T01:43:22"
+    },
+    {
+      "id": 1009,
+      "userId": 2,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "customerName": "kháhc",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 25000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-27T01:43:41"
+    },
+    {
+      "id": 1010,
+      "userId": 2,
+      "createdByUserId": 2,
+      "customerName": "áddasfdd ádasd",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 125000,
       "paymentMethod": "UNPAID",
-      "status": "PENDING",
-      "createdAt": "2026-10-13T18:46:35"
+      "status": "CANCELLED",
+      "createdAt": "2026-10-27T01:44:10"
     }
   ],
   "orderDetails": [
-    {
-      "id": 1,
-      "orderId": 1001,
-      "drinkId": 2,
-      "quantity": 2,
-      "price": 25000,
-      "subtotal": 50000
-    },
-    {
-      "id": 2,
-      "orderId": 1001,
-      "drinkId": 4,
-      "quantity": 1,
-      "price": 30000,
-      "subtotal": 30000
-    },
     {
       "id": 4,
       "orderId": 1002,
@@ -323,14 +363,6 @@
       "quantity": 1,
       "price": 35000,
       "subtotal": 35000
-    },
-    {
-      "id": 47,
-      "orderId": 1001,
-      "drinkId": 2,
-      "quantity": 3,
-      "price": 25000,
-      "subtotal": 75000
     },
     {
       "id": 48,
@@ -368,9 +400,9 @@
       "id": 52,
       "orderId": 1005,
       "drinkId": 4,
-      "quantity": 1,
+      "quantity": 2,
       "price": 30000,
-      "subtotal": 30000
+      "subtotal": 60000
     },
     {
       "id": 53,
@@ -387,6 +419,142 @@
       "quantity": 2,
       "price": 35000,
       "subtotal": 70000
+    },
+    {
+      "id": 55,
+      "orderId": 1006,
+      "drinkId": 5,
+      "quantity": 3,
+      "price": 20000,
+      "subtotal": 60000
+    },
+    {
+      "id": 56,
+      "orderId": 1006,
+      "drinkId": 4,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 57,
+      "orderId": 1006,
+      "drinkId": 7,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 58,
+      "orderId": 1005,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 25000,
+      "subtotal": 25000
+    },
+    {
+      "id": 59,
+      "orderId": 1005,
+      "drinkId": 4,
+      "quantity": 3,
+      "price": 30000,
+      "subtotal": 90000
+    },
+    {
+      "id": 60,
+      "orderId": 1006,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 25000,
+      "subtotal": 25000
+    },
+    {
+      "id": 61,
+      "orderId": 1006,
+      "drinkId": 4,
+      "quantity": 2,
+      "price": 30000,
+      "subtotal": 60000
+    },
+    {
+      "id": 62,
+      "orderId": 1004,
+      "drinkId": 5,
+      "quantity": 202,
+      "price": 20000,
+      "subtotal": 4040000
+    },
+    {
+      "id": 63,
+      "orderId": 1007,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 25000,
+      "subtotal": 25000
+    },
+    {
+      "id": 64,
+      "orderId": 1007,
+      "drinkId": 4,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 65,
+      "orderId": 1007,
+      "drinkId": 5,
+      "quantity": 1,
+      "price": 20000,
+      "subtotal": 20000
+    },
+    {
+      "id": 66,
+      "orderId": 1007,
+      "drinkId": 6,
+      "quantity": 6,
+      "price": 20000,
+      "subtotal": 120000
+    },
+    {
+      "id": 67,
+      "orderId": 1008,
+      "drinkId": 9,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 69,
+      "orderId": 1010,
+      "drinkId": 2,
+      "quantity": 5,
+      "price": 25000,
+      "subtotal": 125000
+    },
+    {
+      "id": 70,
+      "orderId": 1008,
+      "drinkId": 2,
+      "quantity": 3,
+      "price": 25000,
+      "subtotal": 75000
+    },
+    {
+      "id": 71,
+      "orderId": 1008,
+      "drinkId": 8,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 72,
+      "orderId": 1009,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 25000,
+      "subtotal": 25000
     }
   ]
 }

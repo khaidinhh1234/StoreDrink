@@ -2,7 +2,6 @@ package view.layout;
 
 import model.User;
 import view.auth.LoginFrame;
-import view.admin.CategoryPanel;
 import view.admin.EmployeePanel;
 import view.admin.TablePanel;
 import view.customer.CustomerCartPanel;
@@ -46,18 +45,19 @@ public class MainView extends JFrame {
                 boolean admin = "ADMIN".equalsIgnoreCase(user.getRole());
 
                 if (admin || staff) {
-                        contentPanel.add(new DashboardPanel(admin ? "Dashboard quản trị" : "Thống kê vận hành"), "DASHBOARD");
+                        contentPanel.add(new DashboardPanel(admin ? "Dashboard quản trị" : "Thống kê vận hành", user), "DASHBOARD");
+                }
+                if (staff) {
                         contentPanel.add(new OrderPanel(user), "ORDER");
                 }
                 if (admin) {
                         contentPanel.add(new DrinkPanel(), "DRINK");
-                        contentPanel.add(new CategoryPanel(), "CATEGORY");
                         contentPanel.add(new EmployeePanel(user), "EMPLOYEE");
                         contentPanel.add(new TablePanel(), "TABLE");
                         contentPanel.add(new CustomerPanel(), "CUSTOMER");
                 }
                 if (customer) {
-                        contentPanel.add(new DashboardPanel("Trang chủ"), "DASHBOARD");
+                        contentPanel.add(new DashboardPanel("Trang chủ", user), "DASHBOARD");
                         contentPanel.add(new CustomerDrinkPanel(), "DRINK");
                 }
                 if ("CUSTOMER".equalsIgnoreCase(user.getRole())) {
@@ -125,7 +125,6 @@ public class MainView extends JFrame {
                 JButton dashboardButton = createMenuButton("  Dashboard");
                 JButton customerButton = createMenuButton("  Khách hàng");
                 JButton drinkButton = createMenuButton("  Đồ uống");
-                JButton categoryButton = createMenuButton("  Danh mục");
                 JButton employeeButton = createMenuButton("  Nhân viên");
                 JButton tableButton = createMenuButton("  Bàn");
                 JButton orderButton = createMenuButton("  Đơn hàng");
@@ -135,7 +134,6 @@ public class MainView extends JFrame {
                 menuPanel.add(dashboardButton);
                 menuPanel.add(customerButton);
                 menuPanel.add(drinkButton);
-                menuPanel.add(categoryButton);
                 menuPanel.add(employeeButton);
                 menuPanel.add(tableButton);
                 menuPanel.add(orderButton);
@@ -147,7 +145,6 @@ public class MainView extends JFrame {
                         dashboardButton.setText("  Trang chủ");
                         orderButton.setVisible(false);
                         counterOrderButton.setVisible(false);
-                        categoryButton.setVisible(false);
                         employeeButton.setVisible(false);
                         tableButton.setVisible(false);
                         cartButton.setVisible(true);
@@ -156,13 +153,13 @@ public class MainView extends JFrame {
                         dashboardButton.setText("  Thống kê");
                         customerButton.setVisible(false);
                         drinkButton.setVisible(false);
-                        categoryButton.setVisible(false);
                         employeeButton.setVisible(false);
                         tableButton.setVisible(false);
                         counterOrderButton.setVisible(true);
                         cartButton.setVisible(false);
                 } else if ("ADMIN".equalsIgnoreCase(user.getRole())) {
                         customerButton.setVisible(false);
+                        orderButton.setVisible(false);
                         counterOrderButton.setVisible(false);
                         cartButton.setVisible(false);
                 }
@@ -195,7 +192,6 @@ public class MainView extends JFrame {
                 customerButton.addActionListener(e -> showPage("CUSTOMER"));
 
                 drinkButton.addActionListener(e -> showPage("DRINK"));
-                categoryButton.addActionListener(e -> showPage("CATEGORY"));
                 employeeButton.addActionListener(e -> showPage("EMPLOYEE"));
                 tableButton.addActionListener(e -> showPage("TABLE"));
 
@@ -266,7 +262,6 @@ public class MainView extends JFrame {
                 String selectedLabel = switch (page) {
                         case "DASHBOARD" -> "Dashboard";
                         case "DRINK" -> "Đồ uống";
-                        case "CATEGORY" -> "Danh mục";
                         case "EMPLOYEE" -> "Nhân viên";
                         case "TABLE" -> "Bàn";
                         case "ORDER" -> "Đơn hàng";

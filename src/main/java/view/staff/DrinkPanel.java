@@ -1,26 +1,25 @@
 package view.staff;
 
 import model.Drink;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 import service.DrinkService;
-import service.CategoryService;
-import model.Category;
 import view.layout.UITheme;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.text.NumberFormat;
+import java.util.Locale;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class DrinkPanel extends JPanel {
 
     private JTable table;
     private DefaultTableModel model;
     private final DrinkService drinkService = new DrinkService();
-    private final CategoryService categoryService = new CategoryService();
-    private List<Category> categories = new ArrayList<>();
+    private final NumberFormat currency = createVndFormat();
 
     public DrinkPanel() {
 
@@ -68,7 +67,6 @@ public class DrinkPanel extends JPanel {
         String[] columns = {
                 "ID",
                 "Tên đồ uống",
-                "Danh mục",
                 "Giá",
                 "Tồn kho",
                 "Trạng thái",
@@ -78,16 +76,16 @@ public class DrinkPanel extends JPanel {
         model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 6;
+                return column == 5;
             }
         };
 
         table = new JTable(model);
-        table.getColumnModel().getColumn(6).setCellRenderer(new ActionRenderer());
-        table.getColumnModel().getColumn(6).setCellEditor(new ActionEditor());
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        table.getColumnModel().getColumn(6).setMinWidth(150);
-        table.getColumnModel().getColumn(6).setPreferredWidth(150);
+        table.getColumnModel().getColumn(5).setCellRenderer(new ActionRenderer());
+        table.getColumnModel().getColumn(5).setCellEditor(new ActionEditor());
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        table.getColumnModel().getColumn(5).setMinWidth(195);
+        table.getColumnModel().getColumn(5).setPreferredWidth(195);
         table.setRowHeight(44);
 
         JScrollPane tableScrollPane = new JScrollPane(table);
@@ -95,23 +93,15 @@ public class DrinkPanel extends JPanel {
                 BorderFactory.createEmptyBorder(
                         16, 16, 16, 16));// border
 
-        JButton toggle = new JButton("Đổi trạng thái");
-        toggle.addActionListener(e -> toggleDrinkStatus(table.getSelectedRow()));
-        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        footer.add(toggle);
         add(tableScrollPane, BorderLayout.CENTER);
-        add(footer, BorderLayout.SOUTH);
         UITheme.styleTree(this);
+        table.getColumnModel().getColumn(2).setCellRenderer(new CurrencyRenderer());
         loadDrinks();
     }
 
     private void loadDrinks() {
 
         try {
-            categories = categoryService.getAll();
-            if (categories == null) {
-                categories = new ArrayList<>();
-            }
             List<Drink> drinks = drinkService.getAll();
             model.setRowCount(0);
 
@@ -120,7 +110,6 @@ public class DrinkPanel extends JPanel {
                 model.addRow(new Object[] {
                         drink.getId(),
                         drink.getName(),
-                        categoryName(drink.getCategoryId()),
                         drink.getPrice(),
                         drink.getQuantity(),
                         drink.isActive()
@@ -141,27 +130,16 @@ public class DrinkPanel extends JPanel {
         }
     }
 
-    private String categoryName(int categoryId) {
-        return categories.stream()
-                .filter(category -> category.getId() == categoryId)
-                .map(Category::getName).findFirst().orElse("Chưa phân loại");
-    }
-
     private void addDrink() {
         JTextField name = new JTextField();
         JTextField price = new JTextField();
         JTextField quantity = new JTextField("0");
-        JComboBox<Category> categoryCombo = new JComboBox<>(categories.toArray(new Category[0]));
-        if (categories.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Chưa có danh mục để chọn.", "Không thể thêm",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        JTextField image = new JTextField();
         JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
         form.add(new JLabel("Tên đồ uống:")); form.add(name);
         form.add(new JLabel("Giá:")); form.add(price);
         form.add(new JLabel("Tồn kho:")); form.add(quantity);
-        form.add(new JLabel("Danh mục:")); form.add(categoryCombo);
+        form.add(new JLabel("Ảnh (URL hoặc tệp):")); form.add(imageInput(image));
         if (JOptionPane.showConfirmDialog(this, form, "Thêm đồ uống",
                 JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
         try {
@@ -169,11 +147,7 @@ public class DrinkPanel extends JPanel {
             drink.setName(name.getText().trim());
             drink.setPrice(Double.parseDouble(price.getText().trim()));
             drink.setQuantity(Integer.parseInt(quantity.getText().trim()));
-            Category category = (Category) categoryCombo.getSelectedItem();
-            if (category == null) {
-                throw new IllegalArgumentException("Phải chọn danh mục");
-            }
-            drink.setCategoryId(category.getId());
+            drink.setImage(image.getText().trim());
             drink.setActive(true);
             if (drink.getName().isEmpty() || drink.getPrice() < 0 || drink.getQuantity() < 0) {
                 throw new IllegalArgumentException("Dữ liệu không hợp lệ");
@@ -185,11 +159,28 @@ public class DrinkPanel extends JPanel {
         }
     }
 
+    private JPanel imageInput(JTextField image) {
+        JPanel input = new JPanel(new BorderLayout(8, 0));
+        input.add(image, BorderLayout.CENTER);
+        JButton browse = new JButton("Chọn ảnh");
+        browse.addActionListener(event -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Chọn ảnh đồ uống");
+            chooser.setFileFilter(new FileNameExtensionFilter(
+                    "Ảnh (PNG, JPG, JPEG, GIF, BMP)", "png", "jpg", "jpeg", "gif", "bmp"));
+            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                image.setText(chooser.getSelectedFile().toURI().toString());
+            }
+        });
+        input.add(browse, BorderLayout.EAST);
+        return input;
+    }
+
     private void editDrink(int row) {
         int id = (int) model.getValueAt(row, 0);
         JTextField nameField = new JTextField((String) model.getValueAt(row, 1));
-        JTextField priceField = new JTextField(String.valueOf(model.getValueAt(row, 3)));
-        JTextField quantityField = new JTextField(String.valueOf(model.getValueAt(row, 4)));
+        JTextField priceField = new JTextField(String.valueOf(model.getValueAt(row, 2)));
+        JTextField quantityField = new JTextField(String.valueOf(model.getValueAt(row, 3)));
 
         Drink existingDrink;
         try {
@@ -201,14 +192,8 @@ public class DrinkPanel extends JPanel {
             showApiError("Không thể tải đồ uống", exception);
             return;
         }
+        JTextField imageField = new JTextField(existingDrink.getImage() == null ? "" : existingDrink.getImage());
 
-        JComboBox<Category> categoryCombo = new JComboBox<>(categories.toArray(new Category[0]));
-        for (int index = 0; index < categoryCombo.getItemCount(); index++) {
-            if (categoryCombo.getItemAt(index).getId() == existingDrink.getCategoryId()) {
-                categoryCombo.setSelectedIndex(index);
-                break;
-            }
-        }
         JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
         form.add(new JLabel("Tên đồ uống:"));
         form.add(nameField);
@@ -216,8 +201,8 @@ public class DrinkPanel extends JPanel {
         form.add(priceField);
         form.add(new JLabel("Tồn kho:"));
         form.add(quantityField);
-        form.add(new JLabel("Danh mục:"));
-        form.add(categoryCombo);
+        form.add(new JLabel("Ảnh (URL hoặc tệp):"));
+        form.add(imageInput(imageField));
 
         int result = JOptionPane.showConfirmDialog(
                 this, form, "Sửa đồ uống", JOptionPane.OK_CANCEL_OPTION);
@@ -228,16 +213,12 @@ public class DrinkPanel extends JPanel {
         try {
             Drink drink = new Drink();
             drink.setId(id);
-            Category category = (Category) categoryCombo.getSelectedItem();
-            if (category == null) {
-                throw new IllegalArgumentException("Phải chọn danh mục");
-            }
-            drink.setCategoryId(category.getId());
+            drink.setCategoryId(existingDrink.getCategoryId());
             drink.setName(nameField.getText().trim());
             drink.setPrice(Double.parseDouble(priceField.getText().trim()));
             drink.setQuantity(Integer.parseInt(quantityField.getText().trim()));
-            drink.setActive("Đang bán".equals(model.getValueAt(row, 5).toString()));
-            drink.setImage(existingDrink.getImage());
+            drink.setActive("Đang bán".equals(model.getValueAt(row, 4).toString()));
+            drink.setImage(imageField.getText().trim());
 
             if (drink.getName().isEmpty() || drink.getPrice() < 0 || drink.getQuantity() < 0) {
                 throw new IllegalArgumentException("Dữ liệu không hợp lệ");
@@ -272,26 +253,6 @@ public class DrinkPanel extends JPanel {
         }
     }
 
-    private void deleteDrink(int row) {
-        int id = (int) model.getValueAt(row, 0);
-        int result = JOptionPane.showConfirmDialog(
-                this,
-                "Bạn có chắc muốn xóa đồ uống này?",
-                "Xác nhận xóa",
-                JOptionPane.YES_NO_OPTION);
-        if (result != JOptionPane.YES_OPTION) {
-            return;
-        }
-
-        try {
-            drinkService.delete(id);
-            loadDrinks();
-            JOptionPane.showMessageDialog(this, "Đã xóa đồ uống.");
-        } catch (Exception e) {
-            showApiError("Không thể xóa đồ uống", e);
-        }
-    }
-
     private void showApiError(String message, Exception exception) {
         if (exception != null) {
             exception.printStackTrace();
@@ -300,15 +261,51 @@ public class DrinkPanel extends JPanel {
                 + (exception == null ? "" : ": " + exception.getMessage()));
     }
 
+    private void styleActionButton(JButton button, Color color) {
+        button.setBackground(color);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+    }
+
+    private static NumberFormat createVndFormat() {
+        NumberFormat format = NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"));
+        format.setMinimumFractionDigits(0);
+        format.setMaximumFractionDigits(0);
+        return format;
+    }
+
+    private class CurrencyRenderer extends javax.swing.table.DefaultTableCellRenderer {
+        CurrencyRenderer() {
+            setHorizontalAlignment(SwingConstants.CENTER);
+            setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 14));
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable source, Object value,
+                boolean selected, boolean focused, int row, int column) {
+            super.getTableCellRendererComponent(source, value, selected, focused, row, column);
+            double amount = value instanceof Number number ? number.doubleValue()
+                    : Double.parseDouble(String.valueOf(value));
+            setText(currency.format(amount) + " đ");
+            setForeground(UITheme.TEXT);
+            setBackground(selected ? source.getSelectionBackground() : source.getBackground());
+            return this;
+        }
+    }
+
     private class ActionRenderer extends JPanel implements javax.swing.table.TableCellRenderer {
         private final JButton editButton = new JButton("Sửa");
-        private final JButton deleteButton = new JButton("Xóa");
+        private final JButton toggleButton = new JButton("Bật / tắt bán");
 
         ActionRenderer() {
             setLayout(new FlowLayout(FlowLayout.CENTER, 4, 2));
             setOpaque(true);
+            styleActionButton(editButton, UITheme.PRIMARY);
+            styleActionButton(toggleButton, new Color(48, 58, 92));
             add(editButton);
-            add(deleteButton);
+            add(toggleButton);
         }
 
         @Override
@@ -316,6 +313,8 @@ public class DrinkPanel extends JPanel {
                 JTable table, Object value, boolean selected, boolean focused,
                 int row, int column) {
             setBackground(selected ? table.getSelectionBackground() : table.getBackground());
+            revalidate();
+            doLayout();
             return this;
         }
     }
@@ -327,17 +326,19 @@ public class DrinkPanel extends JPanel {
 
         ActionEditor() {
             JButton editButton = new JButton("Sửa");
-            JButton deleteButton = new JButton("Xóa");
+            JButton toggleButton = new JButton("Bật / tắt bán");
+            styleActionButton(editButton, UITheme.PRIMARY);
+            styleActionButton(toggleButton, new Color(48, 58, 92));
             editButton.addActionListener((ActionEvent e) -> {
                 fireEditingStopped();
                 editDrink(table.convertRowIndexToModel(row));
             });
-            deleteButton.addActionListener((ActionEvent e) -> {
+            toggleButton.addActionListener((ActionEvent e) -> {
                 fireEditingStopped();
-                deleteDrink(table.convertRowIndexToModel(row));
+                toggleDrinkStatus(table.convertRowIndexToModel(row));
             });
             panel.add(editButton);
-            panel.add(deleteButton);
+            panel.add(toggleButton);
         }
 
         @Override

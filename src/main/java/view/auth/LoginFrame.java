@@ -66,20 +66,18 @@ public class LoginFrame extends JFrame {
 
     private void openGuestOrder() {
         String value = JOptionPane.showInputDialog(this,
-                "Nhập mã bàn trên QR hoặc tại bàn:", "Đặt món tại bàn",
+                "Nhập mã bàn hoặc mã QR:", "Đặt món tại bàn",
                 JOptionPane.QUESTION_MESSAGE);
-        if (value == null) {
+        if (value == null || value.trim().isEmpty()) {
             return;
         }
         try {
-            int tableId = Integer.parseInt(value.trim());
-            if (tableId <= 0) {
-                throw new NumberFormatException();
-            }
-            new GuestOrderFrame(tableId).setVisible(true);
+            new GuestOrderFrame(value.trim()).setVisible(true);
             dispose();
-        } catch (NumberFormatException exception) {
-            showError("Mã bàn phải là số nguyên dương.");
+        } catch (IllegalArgumentException exception) {
+            showError(exception.getMessage());
+        } catch (Exception exception) {
+            showError("Không kiểm tra được bàn: " + exception.getMessage());
         }
     }
 

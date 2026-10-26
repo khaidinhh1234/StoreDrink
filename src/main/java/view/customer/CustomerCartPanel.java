@@ -9,10 +9,10 @@ import view.layout.UITheme;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.print.PrinterException;
-import java.awt.print.PrinterJob;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CustomerCartPanel extends JPanel {
     private final User user;
@@ -39,7 +39,7 @@ public class CustomerCartPanel extends JPanel {
 
         JButton remove = new JButton("Xóa món");
         remove.addActionListener(e -> remove());
-        JButton pay = new JButton("Thanh toán và in hóa đơn");
+        JButton pay = new JButton("Gửi order chờ duyệt");
         pay.addActionListener(e -> pay());
         total.setFont(new Font("Arial", Font.BOLD, 18));
         total.setForeground(UITheme.TEXT);
@@ -73,48 +73,36 @@ public class CustomerCartPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Giỏ hàng đang trống.");
             return;
         }
-        String payment = (String) JOptionPane.showInputDialog(this, "Phương thức thanh toán:",
-                "Thanh toán", JOptionPane.PLAIN_MESSAGE, null,
-                new String[] {"CASH", "TRANSFER"}, "CASH");
-        if (payment == null) return;
         try {
+            Map<Integer, model.Drink> currentDrinks = drinks.getAll().stream()
+                    .collect(Collectors.toMap(drink -> drink.getId(), drink -> drink));
+            for (CustomerCart.Item item : CustomerCart.items()) {
+                model.Drink current = currentDrinks.get(item.drink().getId());
+                if (current == null || !current.isActive()) {
+                    JOptionPane.showMessageDialog(this, item.drink().getName()
+                            + " đã ngừng bán. Vui lòng xóa món này khỏi giỏ hàng.");
+                    refresh();
+                    return;
+                }
+                if (item.quantity() > current.getQuantity()) {
+                    JOptionPane.showMessageDialog(this, item.drink().getName()
+                            + " chỉ còn " + current.getQuantity() + " cốc trong kho.");
+                    refresh();
+                    return;
+                }
+            }
             var details = CustomerCart.items().stream()
                     .map(item -> new OrderDetail(0, 0, item.drink().getId(),
                             item.quantity(), item.drink().getPrice())).toList();
-            var order = orders.createOrder(user.getId(), CustomerCart.total(), payment, details);
-            for (CustomerCart.Item item : CustomerCart.items()) {
-                item.drink().setQuantity(item.drink().getQuantity() - item.quantity());
-                drinks.update(item.drink());
-            }
-            orders.updateStatus(order, "COMPLETED");
-            printInvoice(order.getId(), payment);
+            orders.createOrder(user.getId(), CustomerCart.total(), "UNPAID", details);
             CustomerCart.items().clear();
             refresh();
+            JOptionPane.showMessageDialog(this,
+                    "Order đã được gửi và đang chờ nhân viên duyệt. Chưa trừ tồn kho.",
+                    "Đã gửi order", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception exception) {
             exception.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Thanh toán thất bại: " + exception.getMessage());
+            JOptionPane.showMessageDialog(this, "Không thể gửi order: " + exception.getMessage());
         }
-    }
-
-    private void printInvoice(int orderId, String payment) throws PrinterException {
-        StringBuilder receipt = new StringBuilder("STORE DRINK\nHÓA ĐƠN #" + orderId + "\n"
-                + "Khách hàng: " + user.getFullName() + "\n"
-                + "Thanh toán: " + payment + "\n----------------------\n");
-        for (CustomerCart.Item item : CustomerCart.items()) {
-            receipt.append(item.drink().getName()).append(" x ").append(item.quantity())
-                    .append(" = ").append(currency.format(item.subtotal())).append(" đ\n");
-        }
-        receipt.append("----------------------\nTỔNG: ")
-                .append(currency.format(CustomerCart.total())).append(" đ");
-        String text = receipt.toString();
-        PrinterJob job = PrinterJob.getPrinterJob();
-        job.setPrintable((graphics, pageFormat, pageIndex) -> {
-            if (pageIndex > 0) return java.awt.print.Printable.NO_SUCH_PAGE;
-            graphics.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 10));
-            int y = 40;
-            for (String line : text.split("\\R")) { graphics.drawString(line, 40, y); y += 16; }
-            return java.awt.print.Printable.PAGE_EXISTS;
-        });
-        if (job.printDialog()) job.print();
     }
 }

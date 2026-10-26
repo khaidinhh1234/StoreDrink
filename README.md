@@ -1,6 +1,8 @@
 # 🥤 Store Drink Management
 
 > Hệ thống quản lý cửa hàng đồ uống được xây dựng bằng **Java Core + Java Swing + JSON Server**.
+cài  đặt db 
+npm i json-server@0.17.4 json-server-auth
 > npx json-server --watch database/db.json --host 0.0.0.0 --port 3000
 
 ## 📌 Giới thiệu

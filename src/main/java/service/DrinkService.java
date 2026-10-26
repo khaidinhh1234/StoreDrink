@@ -28,7 +28,4 @@ public class DrinkService {
         ApiClient.post("/drinks", gson.toJson(drink));
     }
 
-    public void delete(int id) throws Exception {
-        ApiClient.delete("/drinks/" + id);
-    }
 }

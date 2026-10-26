@@ -5,6 +5,8 @@ import service.TableService;
 import view.layout.UITheme;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -12,7 +14,13 @@ import java.awt.event.MouseEvent;
 public class TablePanel extends JPanel {
     private final TableService service = new TableService();
     private final DefaultTableModel model = new DefaultTableModel(
-            new Object[] {"Mã bàn", "Tên bàn", "Mã QR", "Trạng thái", "Thao tác"}, 0);
+            new Object[] {"Mã bàn", "Tên bàn", "Mã QR", "Trạng thái", "Thao tác"}, 0) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return column == 4;
+        }
+    };
+    private JTable table;
     public TablePanel() {
         setLayout(new BorderLayout()); setBackground(UITheme.BACKGROUND);
         JLabel title = new JLabel("Quản lý bàn"); title.setForeground(UITheme.TEXT); title.setFont(new Font("Segoe UI", Font.BOLD, 24));
@@ -20,7 +28,7 @@ public class TablePanel extends JPanel {
         JButton add = new JButton("Thêm bàn");
         add.addActionListener(e -> addTable());
         header.add(title, BorderLayout.WEST); header.add(add, BorderLayout.EAST); add(header, BorderLayout.NORTH);
-        JTable table = new JTable(model);
+        table = new JTable(model);
         table.setRowHeight(54);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         table.getColumnModel().getColumn(0).setPreferredWidth(100);
@@ -46,13 +54,12 @@ public class TablePanel extends JPanel {
                 table.repaint();
             }
         });
-        JButton toggle = new JButton("Đổi trạng thái");
-        toggle.addActionListener(e -> toggleSelected(table.getSelectedRow()));
-        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT)); footer.add(toggle);
+        table.getColumnModel().getColumn(4).setCellRenderer(new TableActionRenderer());
+        table.getColumnModel().getColumn(4).setCellEditor(new TableActionEditor());
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getViewport().setBackground(UITheme.CARD);
-        add(scrollPane, BorderLayout.CENTER); add(footer, BorderLayout.SOUTH);
+        add(scrollPane, BorderLayout.CENTER);
         UITheme.styleTree(this);
         load();
     }
@@ -67,7 +74,8 @@ public class TablePanel extends JPanel {
         try {
             int id = (int) model.getValueAt(row, 0);
             StoreTable t = service.getAll().stream().filter(item -> item.getId() == id).findFirst().orElseThrow();
-            t.setStatus("Đang hoạt động".equalsIgnoreCase(t.getStatus()) ? "Lỗi" : "Đang hoạt động");
+            t.setStatus("Đang hoạt động".equalsIgnoreCase(t.getStatus())
+                    ? "Ngừng hoạt động" : "Đang hoạt động");
             service.update(t); load();
         } catch (Exception e) { error("Không thể cập nhật trạng thái bàn", e); }
     }
@@ -95,6 +103,57 @@ public class TablePanel extends JPanel {
     private int nextId(java.util.List<StoreTable> tables) {
         return tables.stream().mapToInt(StoreTable::getId).max().orElse(0) + 1;
     }
+
+    private class TableActionRenderer extends JButton implements TableCellRenderer {
+        TableActionRenderer() {
+            setFocusPainted(false);
+            setForeground(Color.WHITE);
+            setBackground(UITheme.PRIMARY);
+            setFont(new Font("Segoe UI", Font.BOLD, 12));
+            setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable source, Object value,
+                boolean selected, boolean focused, int row, int column) {
+            boolean active = "Đang hoạt động".equalsIgnoreCase(String.valueOf(source.getValueAt(row, 3)));
+            setText(active ? "Ngừng hoạt động" : "Kích hoạt");
+            setBackground(active ? new Color(48, 58, 92) : new Color(0, 150, 120));
+            return this;
+        }
+    }
+
+    private class TableActionEditor extends AbstractCellEditor implements TableCellEditor {
+        private final JButton button = new JButton();
+        private int viewRow;
+
+        TableActionEditor() {
+            button.setFocusPainted(false);
+            button.setForeground(Color.WHITE);
+            button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            button.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+            button.addActionListener(event -> {
+                fireEditingStopped();
+                toggleSelected(table.convertRowIndexToModel(viewRow));
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable source, Object value,
+                boolean selected, int row, int column) {
+            viewRow = row;
+            boolean active = "Đang hoạt động".equalsIgnoreCase(String.valueOf(source.getValueAt(row, 3)));
+            button.setText(active ? "Ngừng hoạt động" : "Kích hoạt");
+            button.setBackground(active ? new Color(48, 58, 92) : new Color(0, 150, 120));
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return "";
+        }
+    }
+
     private void error(String message, Exception e) {
         JOptionPane.showMessageDialog(this, message + (e == null ? "" : ": " + e.getMessage()), "Lỗi", JOptionPane.ERROR_MESSAGE);
     }

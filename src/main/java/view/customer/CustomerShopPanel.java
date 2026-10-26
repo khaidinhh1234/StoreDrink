@@ -1,27 +1,52 @@
 package view.customer;
 
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
+import java.io.IOException;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
+import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableModel;
+
 import model.Drink;
 import model.OrderDetail;
 import model.User;
 import service.DrinkService;
 import service.OrderService;
 import view.layout.UITheme;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
-import java.awt.print.PrinterException;
-import java.awt.print.PrinterJob;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.net.URL;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-import javax.swing.border.TitledBorder;
 
 public class CustomerShopPanel extends JPanel {
     private final User user;
@@ -32,11 +57,9 @@ public class CustomerShopPanel extends JPanel {
     private final OrderService orderService = new OrderService();
     private final List<Drink> drinks = new ArrayList<>();
     private final List<CartItem> cart = new ArrayList<>();
-    private final DefaultTableModel drinkModel;
     private final DefaultTableModel cartModel;
-    private final JTable drinkTable;
     private final JTable cartTable;
-    private final DrinkVisual drinkVisual = new DrinkVisual();
+    private final JPanel drinkGrid = new JPanel(new GridLayout(0, 4, 10, 10));
     private final JLabel totalLabel = new JLabel();
     private final NumberFormat currency = NumberFormat.getInstance(Locale.of("vi", "VN"));
     private final JTextArea receiptArea = new JTextArea();
@@ -85,23 +108,14 @@ public class CustomerShopPanel extends JPanel {
             add(customerInfo, BorderLayout.SOUTH);
         }
 
-        drinkModel = tableModel(new Object[] { "ID", "Tên đồ uống", "Giá", "Còn lại" });
-        drinkTable = new JTable(drinkModel);
-        drinkTable.setRowHeight(42);
-        drinkTable.getSelectionModel().addListSelectionListener(event -> {
-            if (!event.getValueIsAdjusting() && drinkTable.getSelectedRow() >= 0) {
-                drinkVisual.setDrink(drinks.get(drinkTable.getSelectedRow()));
-            }
-        });
-        JButton addButton = new JButton("Thêm vào giỏ");
-        addButton.addActionListener(e -> addSelectedDrink());
         JButton reloadButton = new JButton("Làm mới");
         reloadButton.addActionListener(e -> loadDrinks());
-        JPanel drinkContent = new JPanel(new BorderLayout(8, 8));
-        drinkContent.add(drinkVisual, BorderLayout.NORTH);
-        drinkContent.add(new JScrollPane(drinkTable), BorderLayout.CENTER);
-        JPanel drinkPanel = section("Đồ uống đang bán", drinkContent,
-                addButton, reloadButton);
+        drinkGrid.setBackground(UITheme.CARD);
+        JScrollPane drinkScroll = new JScrollPane(drinkGrid);
+        drinkScroll.setBorder(BorderFactory.createEmptyBorder());
+        drinkScroll.getViewport().setBackground(UITheme.CARD);
+        drinkScroll.getVerticalScrollBar().setUnitIncrement(16);
+        JPanel drinkPanel = section("Đồ uống đang bán", drinkScroll, reloadButton);
 
         cartModel = tableModel(new Object[] { "Tên đồ uống", "SL", "Đơn giá", "Thành tiền" });
         cartTable = new JTable(cartModel);
@@ -136,7 +150,6 @@ public class CustomerShopPanel extends JPanel {
         splitPane.setBackground(UITheme.BACKGROUND);
         add(splitPane, BorderLayout.CENTER);
         UITheme.styleTree(this);
-        styleActionButton(addButton, UITheme.PRIMARY);
         styleActionButton(reloadButton, new Color(48, 58, 92));
         styleActionButton(removeButton, new Color(240, 68, 56));
         styleActionButton(testReceiptButton, new Color(48, 58, 92));
@@ -198,28 +211,83 @@ public class CustomerShopPanel extends JPanel {
             drinks.addAll(drinkService.getAll().stream()
                     .filter(drink -> drink.isActive() && drink.getQuantity() > 0)
                     .collect(Collectors.toList()));
-            drinkModel.setRowCount(0);
-            for (Drink drink : drinks) {
-                drinkModel.addRow(new Object[] { drink.getId(), drink.getName(),
-                        formatMoney(drink.getPrice()), drink.getQuantity() });
-            }
-            if (!drinks.isEmpty()) {
-                drinkTable.setRowSelectionInterval(0, 0);
+            drinkGrid.removeAll();
+            if (drinks.isEmpty()) {
+                JLabel empty = new JLabel("Hiện chưa có đồ uống đang bán", SwingConstants.CENTER);
+                empty.setForeground(UITheme.MUTED);
+                drinkGrid.add(empty);
             } else {
-                drinkVisual.setDrink(null);
+                for (Drink drink : drinks) {
+                    drinkGrid.add(createDrinkCard(drink));
+                }
             }
+            drinkGrid.revalidate();
+            drinkGrid.repaint();
         } catch (Exception exception) {
             showError("Không tải được đồ uống", exception);
         }
     }
 
-    private void addSelectedDrink() {
-        int row = drinkTable.getSelectedRow();
-        if (row < 0) {
-            showMessage("Hãy chọn một đồ uống.");
-            return;
-        }
-        Drink drink = drinks.get(row);
+    private JPanel createDrinkCard(Drink drink) {
+        JPanel card = new JPanel(new BorderLayout(6, 8));
+        card.setBackground(new Color(24, 25, 49));
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(UITheme.BORDER),
+                BorderFactory.createEmptyBorder(8, 8, 8, 8)));
+        card.setPreferredSize(new Dimension(0, 235));
+
+        DrinkVisual image = new DrinkVisual();
+        image.setPreferredSize(new Dimension(0, 118));
+        image.setDrink(drink);
+        JLabel stock = new JLabel(drink.getQuantity() + "", SwingConstants.CENTER);
+        stock.setOpaque(true);
+        stock.setBackground(new Color(245, 153, 35));
+        stock.setForeground(Color.WHITE);
+        stock.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        stock.setBorder(BorderFactory.createEmptyBorder(4, 7, 4, 7));
+
+        JPanel imageHolder = new JPanel(null) {
+            @Override
+            public void doLayout() {
+                image.setBounds(0, 0, getWidth(), getHeight());
+                stock.setBounds(Math.max(0, getWidth() - stock.getPreferredSize().width - 6),
+                        6, stock.getPreferredSize().width, stock.getPreferredSize().height);
+            }
+        };
+        imageHolder.setOpaque(false);
+        imageHolder.setPreferredSize(new Dimension(0, 118));
+        imageHolder.add(image);
+        imageHolder.add(stock);
+        imageHolder.setComponentZOrder(stock, 0);
+        card.add(imageHolder, BorderLayout.NORTH);
+
+        JPanel details = new JPanel(new GridLayout(0, 1, 2, 2));
+        details.setOpaque(false);
+        JLabel name = new JLabel("<html><div style='text-align:center'>"
+                + escapeHtml(drink.getName()) + "</div></html>", SwingConstants.CENTER);
+        name.setForeground(UITheme.TEXT);
+        name.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        JLabel price = new JLabel(formatMoney(drink.getPrice()) + " đ", SwingConstants.CENTER);
+        price.setForeground(new Color(69, 211, 179));
+        price.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        details.add(name);
+        details.add(price);
+        card.add(details, BorderLayout.CENTER);
+
+        JButton addButton = new JButton("Thêm vào giỏ");
+        styleActionButton(addButton, UITheme.PRIMARY);
+        addButton.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        addButton.setBorder(BorderFactory.createEmptyBorder(7, 4, 7, 4));
+        addButton.addActionListener(event -> addDrinkToCart(drink));
+        card.add(addButton, BorderLayout.SOUTH);
+        return card;
+    }
+
+    private String escapeHtml(String value) {
+        return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    private void addDrinkToCart(Drink drink) {
         CartItem item = cart.stream().filter(entry -> entry.drink.getId() == drink.getId())
                 .findFirst().orElse(null);
         if (item == null)
@@ -278,6 +346,7 @@ public class CustomerShopPanel extends JPanel {
             return;
         }
         try {
+            if (!validateCartAvailability()) return;
             List<OrderDetail> details = cart.stream()
                     .map(item -> new OrderDetail(0, 0, item.drink.getId(), item.quantity, item.drink.getPrice()))
                     .collect(Collectors.toList());
@@ -316,6 +385,7 @@ public class CustomerShopPanel extends JPanel {
             return;
         }
         try {
+            if (!validateCartAvailability()) return;
             List<OrderDetail> details = cart.stream()
                     .map(item -> new OrderDetail(0, 0, item.drink.getId(), item.quantity, item.drink.getPrice()))
                     .collect(Collectors.toList());
@@ -332,6 +402,27 @@ public class CustomerShopPanel extends JPanel {
         } catch (Exception exception) {
             showError("Không thể gửi order", exception);
         }
+    }
+
+    private boolean validateCartAvailability() throws Exception {
+        var currentDrinks = drinkService.getAll().stream()
+                .collect(Collectors.toMap(Drink::getId, drink -> drink));
+        for (CartItem item : cart) {
+            Drink current = currentDrinks.get(item.drink.getId());
+            if (current == null || !current.isActive()) {
+                showMessage(item.drink.getName()
+                        + " đã ngừng bán. Vui lòng xóa món này khỏi giỏ hàng.");
+                loadDrinks();
+                return false;
+            }
+            if (item.quantity > current.getQuantity()) {
+                showMessage(item.drink.getName() + " chỉ còn " + current.getQuantity()
+                        + " cốc trong kho. Vui lòng điều chỉnh số lượng.");
+                loadDrinks();
+                return false;
+            }
+        }
+        return true;
     }
 
     private String buildReceipt(String status) {
@@ -424,7 +515,7 @@ public class CustomerShopPanel extends JPanel {
                 new SwingWorker<BufferedImage, Void>() {
                     @Override
                     protected BufferedImage doInBackground() throws IOException {
-                        return javax.imageio.ImageIO.read(new URL(drink.getImage()));
+                        return javax.imageio.ImageIO.read(java.net.URI.create(drink.getImage()).toURL());
                     }
 
                     @Override
@@ -459,17 +550,14 @@ public class CustomerShopPanel extends JPanel {
 
             if (drink != null) {
                 if (productImage != null) {
-                    drawProductImage(g, productImage, 18, 38, width - 36, 98);
+                    drawProductImage(g, productImage, 8, 8, width - 16, height - 16);
                 } else {
                     drawFallbackDrink(g, drink, width);
                 }
-                g.setColor(Color.WHITE);
-                g.setFont(new Font("Arial", Font.BOLD, 16));
-                g.drawString(drink.getName(), 18, 27);
             } else {
                 g.setColor(UITheme.MUTED);
-                g.setFont(new Font("Arial", Font.BOLD, 16));
-                g.drawString("Chọn một món để xem hình minh họa", 18, 30);
+                g.setFont(new Font("Arial", Font.BOLD, 12));
+                g.drawString("Chưa có hình", 12, height / 2);
             }
             g.dispose();
         }
@@ -489,10 +577,10 @@ public class CustomerShopPanel extends JPanel {
         }
 
         private void drawFallbackDrink(Graphics2D g, Drink drink, int width) {
-            int cupWidth = Math.min(92, Math.max(64, width / 7));
-            int cupHeight = 86;
+            int cupWidth = Math.min(76, Math.max(48, width / 5));
+            int cupHeight = Math.min(78, Math.max(48, getHeight() - 24));
             int cupX = width / 2 - cupWidth / 2;
-            int cupY = 38;
+            int cupY = getHeight() / 2 - cupHeight / 2;
             g.setColor(new Color(255, 255, 255, 210));
             g.fillRoundRect(cupX, cupY, cupWidth, cupHeight, 16, 16);
             g.setColor(new Color(255, 255, 255, 235));
@@ -501,7 +589,7 @@ public class CustomerShopPanel extends JPanel {
             g.fillRoundRect(cupX + 7, cupY + 25, cupWidth - 14, cupHeight - 30, 10, 10);
             g.setColor(new Color(95, 62, 35));
             g.setStroke(new BasicStroke(5));
-            g.drawLine(width / 2 + 15, cupY - 18, width / 2 + 28, cupY + 28);
+            g.drawLine(width / 2 + 10, cupY - 8, width / 2 + 23, cupY + 24);
         }
 
         private Color categoryColor(int categoryId) {

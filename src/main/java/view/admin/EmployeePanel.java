@@ -5,13 +5,21 @@ import service.UserService;
 import view.layout.UITheme;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
 public class EmployeePanel extends JPanel {
     private final UserService service = new UserService();
     private final User currentUser;
     private final DefaultTableModel model = new DefaultTableModel(
-            new Object[] {"ID", "Tài khoản", "Họ tên", "Vai trò", "Trạng thái", "Thao tác"}, 0);
+            new Object[] {"ID", "Tài khoản", "Họ tên", "Vai trò", "Trạng thái", "Thao tác"}, 0) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return column == 5;
+        }
+    };
+    private JTable table;
 
     public EmployeePanel(User currentUser) {
         this.currentUser = currentUser;
@@ -30,17 +38,12 @@ public class EmployeePanel extends JPanel {
         header.add(add, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
 
-        JTable table = new JTable(model);
+        table = new JTable(model);
         table.setRowHeight(44);
-        JButton edit = new JButton("Cập nhật tài khoản");
-        edit.addActionListener(e -> editSelected(table.getSelectedRow()));
-        JButton toggle = new JButton("Đổi trạng thái");
-        toggle.addActionListener(e -> toggleSelected(table.getSelectedRow()));
-        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        footer.add(edit);
-        footer.add(toggle);
+        table.getColumnModel().getColumn(5).setPreferredWidth(220);
+        table.getColumnModel().getColumn(5).setCellRenderer(new EmployeeActionRenderer());
+        table.getColumnModel().getColumn(5).setCellEditor(new EmployeeActionEditor());
         add(new JScrollPane(table), BorderLayout.CENTER);
-        add(footer, BorderLayout.SOUTH);
         UITheme.styleTree(this);
         load();
     }
@@ -50,7 +53,7 @@ public class EmployeePanel extends JPanel {
             model.setRowCount(0);
             for (User user : service.getAll()) {
                 model.addRow(new Object[] {user.getId(), user.getUsername(), user.getFullName(),
-                        user.getRole(), user.isActive() ? "Đang hoạt động" : "Lỗi", ""});
+                        user.getRole(), user.isActive() ? "Đang hoạt động" : "Ngừng hoạt động", ""});
             }
         } catch (Exception exception) {
             error("Không tải được nhân viên", exception);
@@ -120,6 +123,11 @@ public class EmployeePanel extends JPanel {
             JTextField fullName = new JTextField(employee.getFullName());
             JComboBox<String> role = new JComboBox<>(new String[] {"STAFF", "ADMIN"});
             role.setSelectedItem(employee.getRole());
+            boolean editingCurrentUser = employee.getId() == currentUser.getId();
+            role.setEnabled(!editingCurrentUser);
+            if (editingCurrentUser) {
+                role.setToolTipText("Không thể đổi vai trò của tài khoản đang đăng nhập");
+            }
             JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
             form.add(new JLabel("Tài khoản:")); form.add(username);
             form.add(new JLabel("Mật khẩu mới:")); form.add(password);
@@ -134,7 +142,9 @@ public class EmployeePanel extends JPanel {
             }
             employee.setUsername(username.getText().trim());
             employee.setFullName(fullName.getText().trim());
-            employee.setRole((String) role.getSelectedItem());
+            if (!editingCurrentUser) {
+                employee.setRole((String) role.getSelectedItem());
+            }
             if (password.getPassword().length > 0) {
                 employee.setPassword(new String(password.getPassword()));
             }
@@ -161,6 +171,78 @@ public class EmployeePanel extends JPanel {
 
     private int nextId(java.util.List<User> users) {
         return users.stream().mapToInt(User::getId).max().orElse(0) + 1;
+    }
+
+    private class EmployeeActionRenderer extends JPanel implements TableCellRenderer {
+        private final JButton edit = new JButton("Sửa");
+        private final JButton toggle = new JButton("Đổi trạng thái");
+
+        EmployeeActionRenderer() {
+            setLayout(new FlowLayout(FlowLayout.CENTER, 5, 2));
+            setOpaque(true);
+            styleActionButton(edit, UITheme.PRIMARY);
+            styleActionButton(toggle, new Color(48, 58, 92));
+            add(edit);
+            add(toggle);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable source, Object value,
+                boolean selected, boolean focused, int row, int column) {
+            setBackground(selected ? source.getSelectionBackground() : source.getBackground());
+            boolean current = ((Number) source.getValueAt(row, 0)).intValue() == currentUser.getId();
+            toggle.setEnabled(!current);
+            toggle.setText(current ? "Tài khoản hiện tại" : "Đổi trạng thái");
+            toggle.setToolTipText(current ? "Không thể đổi trạng thái tài khoản của bạn" : null);
+            return this;
+        }
+    }
+
+    private class EmployeeActionEditor extends AbstractCellEditor implements TableCellEditor {
+        private final JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 2));
+        private int viewRow;
+
+        EmployeeActionEditor() {
+            JButton edit = new JButton("Sửa");
+            JButton toggle = new JButton("Đổi trạng thái");
+            styleActionButton(edit, UITheme.PRIMARY);
+            styleActionButton(toggle, new Color(48, 58, 92));
+            edit.addActionListener(event -> {
+                fireEditingStopped();
+                editSelected(table.convertRowIndexToModel(viewRow));
+            });
+            toggle.addActionListener(event -> {
+                fireEditingStopped();
+                toggleSelected(table.convertRowIndexToModel(viewRow));
+            });
+            toggle.setDisabledIcon(null);
+            panel.add(edit);
+            panel.add(toggle);
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable source, Object value,
+                boolean selected, int row, int column) {
+            viewRow = row;
+            boolean current = ((Number) source.getValueAt(row, 0)).intValue() == currentUser.getId();
+            Component toggle = panel.getComponent(1);
+            toggle.setEnabled(!current);
+            ((JButton) toggle).setText(current ? "Tài khoản hiện tại" : "Đổi trạng thái");
+            return panel;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return "";
+        }
+    }
+
+    private void styleActionButton(JButton button, Color color) {
+        button.setBackground(color);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        button.setBorder(BorderFactory.createEmptyBorder(6, 9, 6, 9));
     }
 
     private void error(String message, Exception exception) {
