@@ -3,13 +3,22 @@ package utils;
 import java.net.URI;
 import java.net.http.*;
 import java.net.URLEncoder;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 public class ApiClient {
 
     private static final String BASE_URL = "http://127.0.0.1:3000";
 
-    public static final HttpClient client = HttpClient.newHttpClient();
+    public static volatile HttpClient client = createClient();
+
+    private static HttpClient createClient() {
+        return HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(5))
+                .version(HttpClient.Version.HTTP_1_1)
+                .build();
+    }
 
     public static String get(String endpoint) throws Exception {
 
@@ -18,9 +27,7 @@ public class ApiClient {
                 .GET()
                 .build();
 
-        HttpResponse<String> response = client.send(
-                request,
-                HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = sendWithRetry(request, "GET");
 
         ensureSuccess(response);
         return response.body();
@@ -37,9 +44,7 @@ public class ApiClient {
                 .PUT(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-        HttpResponse<String> response = client.send(
-                request,
-                HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = sendWithRetry(request, "PUT");
 
         ensureSuccess(response);
         return response.body();
@@ -52,9 +57,7 @@ public class ApiClient {
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-        HttpResponse<String> response = client.send(
-                request,
-                HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         ensureSuccess(response);
         return response.body();
@@ -66,9 +69,7 @@ public class ApiClient {
                 .DELETE()
                 .build();
 
-        HttpResponse<String> response = client.send(
-                request,
-                HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = sendWithRetry(request, "DELETE");
 
         ensureSuccess(response);
     }
@@ -78,5 +79,28 @@ public class ApiClient {
             throw new IllegalStateException(
                     "API trả về mã lỗi HTTP " + response.statusCode());
         }
+    }
+
+    /** Retries idempotent requests after a dropped/stale HTTP connection. */
+    private static HttpResponse<String> sendWithRetry(HttpRequest request, String method) throws Exception {
+        IOException lastConnectionError = null;
+        for (int attempt = 0; attempt < 3; attempt++) {
+            try {
+                return client.send(request, HttpResponse.BodyHandlers.ofString());
+            } catch (IOException exception) {
+                lastConnectionError = exception;
+                client = createClient();
+                if (attempt < 2) {
+                    try {
+                        Thread.sleep(150L * (attempt + 1));
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("Đã dừng khi kết nối API " + method, interrupted);
+                    }
+                }
+            }
+        }
+        throw new IOException("Không nhận được phản hồi từ API sau 3 lần thử " + method
+                + ". Hãy kiểm tra JSON Server tại http://127.0.0.1:3000.", lastConnectionError);
     }
 }

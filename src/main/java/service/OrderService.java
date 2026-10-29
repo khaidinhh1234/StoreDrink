@@ -1,12 +1,17 @@
 package service;
 
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -18,6 +23,8 @@ import utils.ApiClient;
 
 public class OrderService {
     private final Gson gson = new Gson();
+    private static final Object ORDER_CREATION_LOCK = new Object();
+    private static final Duration DUPLICATE_WINDOW = Duration.ofSeconds(30);
 
     public List<Order> getAll() throws Exception {
         String json = ApiClient.get("/orders");
@@ -156,7 +163,24 @@ public class OrderService {
     public Order createOrder(int createdByUserId, Integer tableId, String customerName,
             String customerPhone, double total, String paymentMethod, String orderType,
             List<OrderDetail> details) throws Exception {
-        int orderId = nextId(getAll(), 1000);
+        synchronized (ORDER_CREATION_LOCK) {
+            return createOrderLocked(createdByUserId, tableId, customerName, customerPhone,
+                    total, paymentMethod, orderType, details);
+        }
+    }
+
+    private Order createOrderLocked(int createdByUserId, Integer tableId, String customerName,
+            String customerPhone, double total, String paymentMethod, String orderType,
+            List<OrderDetail> details) throws Exception {
+        List<Order> orders = getAll();
+        Order duplicate = findRecentDuplicate(orders, tableId, customerName, customerPhone,
+                total, orderType, details);
+        if (duplicate != null) {
+            throw new IllegalStateException("Đơn tương tự vừa được gửi (mã #" + duplicate.getId()
+                    + "). Đơn đang chờ duyệt nên chưa tạo thêm order.");
+        }
+
+        int orderId = nextId(orders, 1000);
         Order order = new Order(orderId, tableId, customerName, customerPhone, total,
                 paymentMethod, "PENDING", orderType, LocalDateTime.now().withNano(0).toString(),
                 createdByUserId);
@@ -172,6 +196,49 @@ public class OrderService {
                     "/orderDetails/" + detail.getId());
         }
         return order;
+    }
+
+    private Order findRecentDuplicate(List<Order> orders, Integer tableId, String customerName,
+            String customerPhone, double total, String orderType, List<OrderDetail> details)
+            throws Exception {
+        LocalDateTime now = LocalDateTime.now();
+        String items = detailsSignature(details);
+        for (Order existing : orders) {
+            if (!"PENDING".equalsIgnoreCase(existing.getStatus())
+                    || !Objects.equals(existing.getTableId(), tableId)
+                    || !normalize(existing.getCustomerName()).equals(normalize(customerName))
+                    || !normalize(existing.getCustomerPhone()).equals(normalize(customerPhone))
+                    || !normalize(existing.getOrderType()).equals(normalize(orderType))
+                    || BigDecimal.valueOf(existing.getTotal()).compareTo(BigDecimal.valueOf(total)) != 0) {
+                continue;
+            }
+            try {
+                LocalDateTime createdAt = LocalDateTime.parse(existing.getCreatedAt());
+                Duration age = Duration.between(createdAt, now);
+                if (!age.isNegative() && age.compareTo(DUPLICATE_WINDOW) <= 0
+                        && items.equals(detailsSignature(getDetails(existing.getId())))) {
+                    return existing;
+                }
+            } catch (RuntimeException ignored) {
+                // Ignore malformed dates or details on older records and continue checking.
+            }
+        }
+        return null;
+    }
+
+    private String detailsSignature(List<OrderDetail> details) {
+        return details.stream()
+                .sorted(Comparator.comparingInt(OrderDetail::getDrinkId)
+                        .thenComparingInt(OrderDetail::getQuantity)
+                        .thenComparingDouble(OrderDetail::getPrice))
+                .map(detail -> detail.getDrinkId() + ":" + detail.getQuantity() + ":"
+                        + BigDecimal.valueOf(detail.getPrice()).stripTrailingZeros().toPlainString())
+                .collect(Collectors.joining("|"));
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().replaceAll("\\s+", " ")
+                .toLowerCase(java.util.Locale.ROOT);
     }
 
     private void postAndConfirm(String endpoint, String body, String resourceEndpoint) throws Exception {
