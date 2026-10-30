@@ -1,6 +1,7 @@
 package view.customer;
 
 import model.StoreTable;
+import service.OrderService;
 import service.TableService;
 import javax.swing.JFrame;
 import java.util.List;
@@ -23,6 +24,7 @@ public class GuestOrderFrame extends JFrame {
             throw new IllegalArgumentException("Bàn này hiện không hoạt động.");
         }
         int tableId = table.getId();
+        OrderService.startExpiryMonitor();
         setTitle("Store Drink - Đặt món tại bàn " + String.format("%02d", tableId));
         setSize(1200, 700);
         setLocationRelativeTo(null);

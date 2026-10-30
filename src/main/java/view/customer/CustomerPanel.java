@@ -1,5 +1,11 @@
 package view.customer;
 
+import view.layout.NotificationDialog;
+
+import model.Customer;
+import service.CustomerService;
+import view.layout.DataSync;
+import view.layout.RefreshablePanel;
 import view.layout.UITheme;
 
 import javax.swing.*;
@@ -9,9 +15,13 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
-public class CustomerPanel extends JPanel {
+public class CustomerPanel extends JPanel implements RefreshablePanel {
+    private final CustomerService service = new CustomerService();
     private final CustomerTableModel model = new CustomerTableModel();
+    private final JButton addButton = new JButton("Thêm khách hàng");
+    private final JButton refreshButton = new JButton("Làm mới");
     private JTable table;
 
     public CustomerPanel() {
@@ -21,14 +31,15 @@ public class CustomerPanel extends JPanel {
         JLabel title = new JLabel("Quản lý khách hàng");
         title.setForeground(UITheme.TEXT);
         title.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        JButton addButton = new JButton("Thêm khách hàng");
-        addButton.addActionListener(event -> addCustomer());
-
-        JPanel header = new JPanel(new BorderLayout());
+        JPanel header = new JPanel(new BorderLayout(10, 0));
         header.setBackground(UITheme.BACKGROUND);
         header.setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
+        actions.add(refreshButton);
+        actions.add(addButton);
         header.add(title, BorderLayout.WEST);
-        header.add(addButton, BorderLayout.EAST);
+        header.add(actions, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
 
         table = new JTable(model);
@@ -40,57 +51,126 @@ public class CustomerPanel extends JPanel {
         scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 16, 16, 16));
         add(scrollPane, BorderLayout.CENTER);
         UITheme.styleTree(this);
+        UITheme.styleButton(addButton, UITheme.Action.CREATE);
+        UITheme.styleButton(refreshButton, UITheme.Action.NEUTRAL);
+        addButton.addActionListener(event -> addCustomer());
+        refreshButton.addActionListener(event -> loadCustomers());
+        loadCustomers();
+        DataSync.register(this, this);
+    }
+
+    @Override public void refreshData() {
+        if (refreshButton.isEnabled()) loadCustomers();
+    }
+
+    private void loadCustomers() {
+        if (!refreshButton.isEnabled()) return;
+        refreshButton.setEnabled(false);
+        new SwingWorker<List<Customer>, Void>() {
+            @Override protected List<Customer> doInBackground() throws Exception {
+                return service.getAll();
+            }
+
+            @Override protected void done() {
+                try {
+                    model.setCustomers(get());
+                } catch (InterruptedException exception) {
+                    Thread.currentThread().interrupt();
+                    showError("Đã dừng khi tải khách hàng", exception);
+                } catch (ExecutionException exception) {
+                    showError("Không tải được khách hàng", exception.getCause());
+                } finally {
+                    refreshButton.setEnabled(true);
+                }
+            }
+        }.execute();
     }
 
     private void addCustomer() {
         JTextField name = new JTextField();
         JTextField phone = new JTextField();
         JTextField email = new JTextField();
-        JPanel form = createForm(name, phone, email);
-        if (JOptionPane.showConfirmDialog(this, form, "Thêm khách hàng",
-                JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
+        if (NotificationDialog.showConfirmDialog(this, createForm(name, phone, email), "Thêm khách hàng",
+                NotificationDialog.OK_CANCEL_OPTION) != NotificationDialog.OK_OPTION) return;
         if (name.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Tên khách hàng không được để trống.");
+            NotificationDialog.showMessageDialog(this, "Tên khách hàng không được để trống.");
             return;
         }
-        model.addCustomer(name.getText().trim(), phone.getText().trim(), email.getText().trim());
+        Customer customer = new Customer(0, name.getText().trim(), phone.getText().trim(), email.getText().trim());
+        runMutation("Không thể thêm khách hàng", () -> service.create(customer));
     }
 
     private void editCustomer(int row) {
         Customer customer = model.getCustomer(row);
-        JTextField name = new JTextField(customer.name);
-        JTextField phone = new JTextField(customer.phone);
-        JTextField email = new JTextField(customer.email);
-        if (JOptionPane.showConfirmDialog(this, createForm(name, phone, email), "Sửa khách hàng",
-                JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
+        JTextField name = new JTextField(customer.getName());
+        JTextField phone = new JTextField(customer.getPhone());
+        JTextField email = new JTextField(customer.getEmail());
+        if (NotificationDialog.showConfirmDialog(this, createForm(name, phone, email), "Sửa khách hàng",
+                NotificationDialog.OK_CANCEL_OPTION) != NotificationDialog.OK_OPTION) return;
         if (name.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Tên khách hàng không được để trống.");
+            NotificationDialog.showMessageDialog(this, "Tên khách hàng không được để trống.");
             return;
         }
-        model.updateCustomer(row, name.getText().trim(), phone.getText().trim(), email.getText().trim());
+        customer.setName(name.getText().trim());
+        customer.setPhone(phone.getText().trim());
+        customer.setEmail(email.getText().trim());
+        runMutation("Không thể cập nhật khách hàng", () -> service.update(customer));
     }
 
     private JPanel createForm(JTextField name, JTextField phone, JTextField email) {
         JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
-        form.add(new JLabel("Tên khách hàng:")); form.add(name);
+        form.add(new JLabel("Họ tên khách hàng:")); form.add(name);
         form.add(new JLabel("Số điện thoại:")); form.add(phone);
         form.add(new JLabel("Email:")); form.add(email);
         return form;
     }
 
     private void deleteCustomer(int row) {
-        if (JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa khách hàng này?",
-                "Xác nhận xóa", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-            model.removeCustomer(row);
-        }
+        Customer customer = model.getCustomer(row);
+        if (NotificationDialog.showConfirmDialog(this,
+                "Bạn có chắc muốn xóa khách hàng " + customer.getName() + "?",
+                "Xác nhận xóa", NotificationDialog.YES_NO_OPTION, NotificationDialog.WARNING_MESSAGE)
+                != NotificationDialog.YES_OPTION) return;
+        runMutation("Không thể xóa khách hàng", () -> service.delete(customer.getId()));
     }
 
-    private void styleButton(JButton button, Color color) {
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+    private void runMutation(String errorMessage, CustomerMutation mutation) {
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        addButton.setEnabled(false);
+        refreshButton.setEnabled(false);
+        new SwingWorker<Void, Void>() {
+            @Override protected Void doInBackground() throws Exception {
+                mutation.run();
+                return null;
+            }
+
+            @Override protected void done() {
+                try {
+                    get();
+                    loadCustomers();
+                } catch (InterruptedException exception) {
+                    Thread.currentThread().interrupt();
+                    showError(errorMessage, exception);
+                } catch (ExecutionException exception) {
+                    showError(errorMessage, exception.getCause());
+                } finally {
+                    addButton.setEnabled(true);
+                    refreshButton.setEnabled(true);
+                    setCursor(Cursor.getDefaultCursor());
+                }
+            }
+        }.execute();
+    }
+
+    private void showError(String message, Throwable exception) {
+        String detail = exception == null || exception.getMessage() == null
+                ? "" : ": " + exception.getMessage();
+        NotificationDialog.showMessageDialog(this, message + detail, "Lỗi", NotificationDialog.ERROR_MESSAGE);
+    }
+
+    @FunctionalInterface
+    private interface CustomerMutation {
+        void run() throws Exception;
     }
 
     private class ActionRenderer extends JPanel implements TableCellRenderer {
@@ -99,14 +179,13 @@ public class CustomerPanel extends JPanel {
             setOpaque(true);
             JButton edit = new JButton("Sửa");
             JButton delete = new JButton("Xóa");
-            styleButton(edit, UITheme.PRIMARY);
-            styleButton(delete, new Color(210, 63, 70));
+            UITheme.styleButton(edit, UITheme.Action.EDIT);
+            UITheme.styleButton(delete, UITheme.Action.DESTRUCTIVE);
             add(edit);
             add(delete);
         }
 
-        @Override
-        public Component getTableCellRendererComponent(JTable source, Object value,
+        @Override public Component getTableCellRendererComponent(JTable source, Object value,
                 boolean selected, boolean focused, int row, int column) {
             setBackground(selected ? source.getSelectionBackground() : source.getBackground());
             return this;
@@ -120,8 +199,8 @@ public class CustomerPanel extends JPanel {
         ActionEditor() {
             JButton edit = new JButton("Sửa");
             JButton delete = new JButton("Xóa");
-            styleButton(edit, UITheme.PRIMARY);
-            styleButton(delete, new Color(210, 63, 70));
+            UITheme.styleButton(edit, UITheme.Action.EDIT);
+            UITheme.styleButton(delete, UITheme.Action.DESTRUCTIVE);
             edit.addActionListener(event -> {
                 fireEditingStopped();
                 editCustomer(table.convertRowIndexToModel(viewRow));
@@ -134,8 +213,7 @@ public class CustomerPanel extends JPanel {
             actions.add(delete);
         }
 
-        @Override
-        public Component getTableCellEditorComponent(JTable source, Object value,
+        @Override public Component getTableCellEditorComponent(JTable source, Object value,
                 boolean selected, int row, int column) {
             viewRow = row;
             return actions;
@@ -145,10 +223,8 @@ public class CustomerPanel extends JPanel {
     }
 
     private static class CustomerTableModel extends AbstractTableModel {
-        private final String[] columns = {"ID", "Tên khách hàng", "Số điện thoại", "Email", "Thao tác"};
-        private final List<Customer> customers = new ArrayList<>(List.of(
-                new Customer(1, "Nguyễn Văn An", "0987654321", "an@gmail.com"),
-                new Customer(2, "Trần Thị Bích", "0912345678", "bich@gmail.com")));
+        private final String[] columns = { "ID", "Tên khách hàng", "Số điện thoại", "Email", "Thao tác" };
+        private final List<Customer> customers = new ArrayList<>();
 
         @Override public int getRowCount() { return customers.size(); }
         @Override public int getColumnCount() { return columns.length; }
@@ -156,41 +232,19 @@ public class CustomerPanel extends JPanel {
         @Override public Object getValueAt(int row, int column) {
             Customer customer = customers.get(row);
             return switch (column) {
-                case 0 -> customer.id;
-                case 1 -> customer.name;
-                case 2 -> customer.phone;
-                case 3 -> customer.email;
+                case 0 -> customer.getId();
+                case 1 -> customer.getName();
+                case 2 -> customer.getPhone();
+                case 3 -> customer.getEmail();
                 default -> "";
             };
         }
         @Override public boolean isCellEditable(int row, int column) { return column == 4; }
         Customer getCustomer(int row) { return customers.get(row); }
-        void addCustomer(String name, String phone, String email) {
-            int id = customers.stream().mapToInt(customer -> customer.id).max().orElse(0) + 1;
-            customers.add(new Customer(id, name, phone, email));
-            fireTableRowsInserted(customers.size() - 1, customers.size() - 1);
-        }
-        void updateCustomer(int row, String name, String phone, String email) {
-            Customer old = customers.get(row);
-            customers.set(row, new Customer(old.id, name, phone, email));
-            fireTableRowsUpdated(row, row);
-        }
-        void removeCustomer(int row) {
-            customers.remove(row);
-            fireTableRowsDeleted(row, row);
-        }
-    }
-
-    private static class Customer {
-        final int id;
-        final String name;
-        final String phone;
-        final String email;
-        Customer(int id, String name, String phone, String email) {
-            this.id = id;
-            this.name = name;
-            this.phone = phone;
-            this.email = email;
+        void setCustomers(List<Customer> rows) {
+            customers.clear();
+            customers.addAll(rows);
+            fireTableDataChanged();
         }
     }
 }

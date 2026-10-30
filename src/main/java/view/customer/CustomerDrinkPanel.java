@@ -16,7 +16,7 @@ import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
+import view.layout.NotificationDialog;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
@@ -24,12 +24,14 @@ import javax.swing.SwingWorker;
 
 import model.Drink;
 import service.DrinkService;
+import view.layout.DataSync;
+import view.layout.RefreshablePanel;
 import view.layout.UITheme;
 
-public class CustomerDrinkPanel extends JPanel {
+public class CustomerDrinkPanel extends JPanel implements RefreshablePanel {
     private final DrinkService service = new DrinkService();
     private final JPanel grid = new JPanel(new GridLayout(0, 4, 14, 14));
-    private final NumberFormat currency = NumberFormat.getInstance(Locale.of("vi", "VN"));
+    private final NumberFormat currency = UITheme.newVndFormatter();
     private final JLabel cartCount = new JLabel();
 
     public CustomerDrinkPanel() {
@@ -53,8 +55,12 @@ public class CustomerDrinkPanel extends JPanel {
         bottom.add(cartCount);
         bottom.add(refresh);
         add(bottom, BorderLayout.SOUTH);
+        UITheme.styleButton(refresh, UITheme.Action.NEUTRAL);
         loadDrinks();
+        DataSync.register(this, this);
     }
+
+    @Override public void refreshData() { loadDrinks(); }
 
     private void loadDrinks() {
         try {
@@ -68,7 +74,7 @@ public class CustomerDrinkPanel extends JPanel {
             grid.repaint();
         } catch (Exception exception) {
             exception.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Không tải được đồ uống: " + exception.getMessage());
+            NotificationDialog.showMessageDialog(this, "Không tải được đồ uống: " + exception.getMessage());
         }
     }
 
@@ -87,13 +93,14 @@ public class CustomerDrinkPanel extends JPanel {
         name.setFont(new Font("Arial", Font.BOLD, 14));
         name.setForeground(UITheme.TEXT);
         JLabel price = new JLabel(currency.format(drink.getPrice()) + " đ", SwingConstants.CENTER);
-        price.setForeground(new Color(64, 203, 176));
+        price.setForeground(UITheme.SUCCESS);
         price.setFont(new Font("Arial", Font.BOLD, 15));
         JButton add = new JButton("THÊM VÀO GIỎ");
+        UITheme.styleButton(add, UITheme.Action.CREATE);
         add.addActionListener(e -> {
             CustomerCart.add(drink);
             updateCartCount();
-            JOptionPane.showMessageDialog(this, "Đã thêm " + drink.getName() + " vào giỏ.");
+            NotificationDialog.showSuccess(this, "Đã thêm " + drink.getName() + " vào giỏ.");
         });
 
         JPanel info = new JPanel(new GridLayout(0, 1, 2, 2));

@@ -14,6 +14,7 @@ import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.Window;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.print.PrinterException;
@@ -29,7 +30,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
+import view.layout.NotificationDialog;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -37,6 +38,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
@@ -46,9 +48,11 @@ import model.OrderDetail;
 import model.User;
 import service.DrinkService;
 import service.OrderService;
+import view.layout.DataSync;
+import view.layout.RefreshablePanel;
 import view.layout.UITheme;
 
-public class CustomerShopPanel extends JPanel {
+public class CustomerShopPanel extends JPanel implements RefreshablePanel {
     private final User user;
     private final boolean staffTakeaway;
     private final boolean guestOrder;
@@ -61,7 +65,7 @@ public class CustomerShopPanel extends JPanel {
     private final JTable cartTable;
     private final JPanel drinkGrid = new JPanel(new GridLayout(0, 4, 10, 10));
     private final JLabel totalLabel = new JLabel();
-    private final NumberFormat currency = NumberFormat.getInstance(Locale.of("vi", "VN"));
+    private final NumberFormat currency = UITheme.newVndFormatter();
     private final JTextArea receiptArea = new JTextArea();
     private JTextField customerNameField;
     private JTextField customerPhoneField;
@@ -92,7 +96,16 @@ public class CustomerShopPanel extends JPanel {
                 : staffTakeaway ? "Tạo đơn cho khách hàng" : "Chọn đồ uống và đặt hàng");
         title.setFont(new Font("Segoe UI", Font.BOLD, 24));
         title.setForeground(UITheme.TEXT);
-        add(title, BorderLayout.NORTH);
+        JPanel heading = new JPanel(new BorderLayout(12, 0));
+        heading.setOpaque(false);
+        heading.add(title, BorderLayout.CENTER);
+        if (guestOrder) {
+            JButton exitButton = new JButton("Thoát đặt món");
+            styleActionButton(exitButton, UITheme.Action.NEUTRAL);
+            exitButton.addActionListener(event -> exitGuestOrder());
+            heading.add(exitButton, BorderLayout.EAST);
+        }
+        add(heading, BorderLayout.NORTH);
 
         if (staffTakeaway || guestOrder) {
             JPanel customerInfo = new JPanel(new GridLayout(1, 4, 8, 0));
@@ -150,13 +163,16 @@ public class CustomerShopPanel extends JPanel {
         splitPane.setBackground(UITheme.BACKGROUND);
         add(splitPane, BorderLayout.CENTER);
         UITheme.styleTree(this);
-        styleActionButton(reloadButton, new Color(48, 58, 92));
-        styleActionButton(removeButton, new Color(240, 68, 56));
-        styleActionButton(testReceiptButton, new Color(48, 58, 92));
-        styleActionButton(payButton, new Color(0, 168, 143));
+        styleActionButton(reloadButton, UITheme.Action.NEUTRAL);
+        styleActionButton(removeButton, UITheme.Action.DESTRUCTIVE);
+        styleActionButton(testReceiptButton, UITheme.Action.PRINT);
+        styleActionButton(payButton, UITheme.Action.CREATE);
         loadDrinks();
         updateCart();
+        DataSync.register(this, this);
     }
+
+    @Override public void refreshData() { loadDrinks(); }
 
     private DefaultTableModel tableModel(Object[] columns) {
         return new DefaultTableModel(columns, 0) {
@@ -186,7 +202,7 @@ public class CustomerShopPanel extends JPanel {
 
     private TitledBorder panelBorder(String title) {
         return BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(48, 48, 71)),
+                BorderFactory.createLineBorder(UITheme.BORDER),
                 title,
                 TitledBorder.LEFT,
                 TitledBorder.TOP,
@@ -194,15 +210,20 @@ public class CustomerShopPanel extends JPanel {
                 UITheme.MUTED);
     }
 
-    private void styleActionButton(JButton button, Color background) {
-        button.setBackground(background);
-        button.setForeground(Color.WHITE);
+    private void styleActionButton(JButton button, UITheme.Action action) {
+        UITheme.styleButton(button, action);
         button.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(background.darker()),
-                BorderFactory.createEmptyBorder(9, 16, 9, 16)));
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    }
+
+    private void exitGuestOrder() {
+        if (!cart.isEmpty()) {
+            int choice = NotificationDialog.showConfirmDialog(this,
+                    "Giỏ hàng chưa gửi sẽ bị bỏ. Bạn có muốn thoát đặt món không?",
+                    "Thoát đặt món", NotificationDialog.YES_NO_OPTION, NotificationDialog.WARNING_MESSAGE);
+            if (choice != NotificationDialog.YES_OPTION) return;
+        }
+        Window window = SwingUtilities.getWindowAncestor(this);
+        if (window != null) window.dispose();
     }
 
     private void loadDrinks() {
@@ -230,7 +251,7 @@ public class CustomerShopPanel extends JPanel {
 
     private JPanel createDrinkCard(Drink drink) {
         JPanel card = new JPanel(new BorderLayout(6, 8));
-        card.setBackground(new Color(24, 25, 49));
+        card.setBackground(UITheme.CARD);
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(UITheme.BORDER),
                 BorderFactory.createEmptyBorder(8, 8, 8, 8)));
@@ -241,8 +262,8 @@ public class CustomerShopPanel extends JPanel {
         image.setDrink(drink);
         JLabel stock = new JLabel(drink.getQuantity() + "", SwingConstants.CENTER);
         stock.setOpaque(true);
-        stock.setBackground(new Color(245, 153, 35));
-        stock.setForeground(Color.WHITE);
+        stock.setBackground(new Color(255, 243, 205));
+        stock.setForeground(new Color(133, 100, 4));
         stock.setFont(new Font("Segoe UI", Font.BOLD, 10));
         stock.setBorder(BorderFactory.createEmptyBorder(4, 7, 4, 7));
 
@@ -268,14 +289,14 @@ public class CustomerShopPanel extends JPanel {
         name.setForeground(UITheme.TEXT);
         name.setFont(new Font("Segoe UI", Font.BOLD, 13));
         JLabel price = new JLabel(formatMoney(drink.getPrice()) + " đ", SwingConstants.CENTER);
-        price.setForeground(new Color(69, 211, 179));
+        price.setForeground(UITheme.SUCCESS);
         price.setFont(new Font("Segoe UI", Font.BOLD, 14));
         details.add(name);
         details.add(price);
         card.add(details, BorderLayout.CENTER);
 
         JButton addButton = new JButton("Thêm vào giỏ");
-        styleActionButton(addButton, UITheme.PRIMARY);
+        styleActionButton(addButton, UITheme.Action.CREATE);
         addButton.setFont(new Font("Segoe UI", Font.BOLD, 11));
         addButton.setBorder(BorderFactory.createEmptyBorder(7, 4, 7, 4));
         addButton.addActionListener(event -> addDrinkToCart(drink));
@@ -335,8 +356,8 @@ public class CustomerShopPanel extends JPanel {
                 showError("Không thể in hóa đơn", exception);
             }
         } else {
-            JOptionPane.showMessageDialog(this, new JScrollPane(receiptArea),
-                    "Hóa đơn thử", JOptionPane.INFORMATION_MESSAGE);
+            NotificationDialog.showMessageDialog(this, new JScrollPane(receiptArea),
+                    "Hóa đơn thử", NotificationDialog.INFORMATION_MESSAGE);
         }
     }
 
@@ -360,9 +381,9 @@ public class CustomerShopPanel extends JPanel {
             var order = orderService.createOrder(user.getId(), null, customerName, customerPhone,
                     total(), "UNPAID", "TAKEAWAY", details);
             receiptArea.setText(buildReceipt("ĐÃ GỬI ORDER - CHỜ XÁC NHẬN - MÃ ĐƠN " + order.getId()));
-            JOptionPane.showMessageDialog(this,
+            NotificationDialog.showMessageDialog(this,
                     "Đã gửi order. Đơn hàng đang chờ xác nhận và thanh toán.",
-                    "Gửi order thành công", JOptionPane.INFORMATION_MESSAGE);
+                    "Gửi order thành công", NotificationDialog.INFORMATION_MESSAGE);
             cart.clear();
             customerNameField.setText("");
             customerPhoneField.setText("");
@@ -392,9 +413,9 @@ public class CustomerShopPanel extends JPanel {
             var order = orderService.createOrder(0, tableId, customerName, customerPhone,
                     total(), "UNPAID", "DINE_IN", details);
             receiptArea.setText(buildReceipt("ĐÃ GỬI ORDER - CHỜ DUYỆT - MÃ ĐƠN " + order.getId()));
-            JOptionPane.showMessageDialog(this,
+            NotificationDialog.showMessageDialog(this,
                     "Đã gửi order. Nhân viên sẽ xác nhận đơn hàng của bạn.",
-                    "Gửi order thành công", JOptionPane.INFORMATION_MESSAGE);
+                    "Gửi order thành công", NotificationDialog.INFORMATION_MESSAGE);
             cart.clear();
 
             updateCart();
@@ -474,13 +495,13 @@ public class CustomerShopPanel extends JPanel {
     }
 
     private void showMessage(String message) {
-        JOptionPane.showMessageDialog(this, message);
+        NotificationDialog.showMessageDialog(this, message);
     }
 
     private void showError(String message, Exception exception) {
         exception.printStackTrace();
-        JOptionPane.showMessageDialog(this, message + ": " + exception.getMessage(),
-                "Lỗi", JOptionPane.ERROR_MESSAGE);
+        NotificationDialog.showMessageDialog(this, message + ": " + exception.getMessage(),
+                "Lỗi", NotificationDialog.ERROR_MESSAGE);
     }
 
     private static class CartItem {
@@ -543,9 +564,9 @@ public class CustomerShopPanel extends JPanel {
             int height = getHeight();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            Color background = drink == null ? new Color(27, 31, 61) : categoryColor(drink.getCategoryId());
+            Color background = drink == null ? new Color(232, 240, 254) : categoryColor(drink.getCategoryId());
             g.setPaint(new GradientPaint(0, 0, background, width, height,
-                    new Color(17, 17, 38)));
+                    new Color(248, 249, 250)));
             g.fillRoundRect(2, 2, width - 4, height - 4, 18, 18);
 
             if (drink != null) {
@@ -594,11 +615,11 @@ public class CustomerShopPanel extends JPanel {
 
         private Color categoryColor(int categoryId) {
             return switch (categoryId) {
-                case 1 -> new Color(170, 120, 82);
-                case 2 -> new Color(88, 174, 160);
-                case 3 -> new Color(245, 166, 76);
-                case 4 -> new Color(224, 126, 165);
-                default -> new Color(129, 112, 196);
+                case 1 -> new Color(245, 230, 218);
+                case 2 -> new Color(220, 241, 237);
+                case 3 -> new Color(255, 239, 214);
+                case 4 -> new Color(250, 228, 237);
+                default -> new Color(235, 230, 248);
             };
         }
 

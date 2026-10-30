@@ -1,5 +1,7 @@
 package view.customer;
 
+import view.layout.NotificationDialog;
+
 import model.OrderDetail;
 import model.User;
 import service.DrinkService;
@@ -20,7 +22,7 @@ public class CustomerCartPanel extends JPanel {
             new Object[] {"Đồ uống", "Số lượng", "Đơn giá", "Thành tiền"}, 0);
     private final JTable table = new JTable(model);
     private final JLabel total = new JLabel();
-    private final NumberFormat currency = NumberFormat.getInstance(Locale.of("vi", "VN"));
+    private final NumberFormat currency = UITheme.newVndFormatter();
     private final OrderService orders = new OrderService();
     private final DrinkService drinks = new DrinkService();
 
@@ -49,6 +51,8 @@ public class CustomerCartPanel extends JPanel {
         bottom.add(remove);
         bottom.add(pay);
         add(bottom, BorderLayout.SOUTH);
+        UITheme.styleButton(remove, UITheme.Action.DESTRUCTIVE);
+        UITheme.styleButton(pay, UITheme.Action.CREATE);
         refresh();
     }
 
@@ -70,7 +74,7 @@ public class CustomerCartPanel extends JPanel {
 
     private void pay() {
         if (CustomerCart.items().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Giỏ hàng đang trống.");
+            NotificationDialog.showMessageDialog(this, "Giỏ hàng đang trống.");
             return;
         }
         try {
@@ -79,13 +83,13 @@ public class CustomerCartPanel extends JPanel {
             for (CustomerCart.Item item : CustomerCart.items()) {
                 model.Drink current = currentDrinks.get(item.drink().getId());
                 if (current == null || !current.isActive()) {
-                    JOptionPane.showMessageDialog(this, item.drink().getName()
+                    NotificationDialog.showMessageDialog(this, item.drink().getName()
                             + " đã ngừng bán. Vui lòng xóa món này khỏi giỏ hàng.");
                     refresh();
                     return;
                 }
                 if (item.quantity() > current.getQuantity()) {
-                    JOptionPane.showMessageDialog(this, item.drink().getName()
+                    NotificationDialog.showMessageDialog(this, item.drink().getName()
                             + " chỉ còn " + current.getQuantity() + " cốc trong kho.");
                     refresh();
                     return;
@@ -97,12 +101,12 @@ public class CustomerCartPanel extends JPanel {
             orders.createOrder(user.getId(), CustomerCart.total(), "UNPAID", details);
             CustomerCart.items().clear();
             refresh();
-            JOptionPane.showMessageDialog(this,
+            NotificationDialog.showMessage(this,
                     "Order đã được gửi và đang chờ nhân viên duyệt. Chưa trừ tồn kho.",
-                    "Đã gửi order", JOptionPane.INFORMATION_MESSAGE);
+                    "Đã gửi order", NotificationDialog.Type.SUCCESS);
         } catch (Exception exception) {
             exception.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Không thể gửi order: " + exception.getMessage());
+            NotificationDialog.showMessageDialog(this, "Không thể gửi order: " + exception.getMessage());
         }
     }
 }

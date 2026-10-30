@@ -11,6 +11,7 @@ import view.customer.CustomerShopPanel;
 import view.staff.DashboardPanel;
 import view.staff.DrinkPanel;
 import view.staff.OrderPanel;
+import service.OrderService;
 import javax.swing.*;
 import java.awt.*;
 
@@ -25,6 +26,7 @@ public class MainView extends JFrame {
         public MainView(User user) {
                 this.user = user;
                 UITheme.install();
+                OrderService.startExpiryMonitor();
 
                 setTitle("Store Drink - " + user.getRole());
                 setSize(1200, 700);
@@ -47,7 +49,7 @@ public class MainView extends JFrame {
                 if (admin || staff) {
                         contentPanel.add(new DashboardPanel(admin ? "Dashboard quản trị" : "Thống kê vận hành", user), "DASHBOARD");
                 }
-                if (staff) {
+                if (staff || admin) {
                         contentPanel.add(new OrderPanel(user), "ORDER");
                 }
                 if (admin) {
@@ -159,7 +161,7 @@ public class MainView extends JFrame {
                         cartButton.setVisible(false);
                 } else if ("ADMIN".equalsIgnoreCase(user.getRole())) {
                         customerButton.setVisible(false);
-                        orderButton.setVisible(false);
+                        orderButton.setVisible(true);
                         counterOrderButton.setVisible(false);
                         cartButton.setVisible(false);
                 }
@@ -237,10 +239,14 @@ public class MainView extends JFrame {
                 button.setOpaque(true);
                 button.addMouseListener(new java.awt.event.MouseAdapter() {
                         @Override public void mouseEntered(java.awt.event.MouseEvent e) {
-                                if (!button.getBackground().equals(UITheme.PRIMARY)) button.setBackground(UITheme.SURFACE_HOVER);
+                                if (!Boolean.TRUE.equals(button.getClientProperty("sidebar.selected"))) {
+                                        button.setBackground(UITheme.SURFACE_HOVER);
+                                }
                         }
                         @Override public void mouseExited(java.awt.event.MouseEvent e) {
-                                if (!button.getBackground().equals(UITheme.PRIMARY)) button.setBackground(UITheme.SIDEBAR);
+                                if (!Boolean.TRUE.equals(button.getClientProperty("sidebar.selected"))) {
+                                        button.setBackground(UITheme.SIDEBAR);
+                                }
                         }
                 });
 
@@ -274,7 +280,8 @@ public class MainView extends JFrame {
                                 boolean selected = button.getText().trim().equals(selectedLabel)
                                         || (selectedLabel.equals("Dashboard") && button.getText().trim().equals("Trang chủ"))
                                         || (selectedLabel.equals("Dashboard") && button.getText().trim().equals("Thống kê"));
-                                button.setBackground(selected ? UITheme.PRIMARY : UITheme.SIDEBAR);
+                                button.putClientProperty("sidebar.selected", selected);
+                                button.setBackground(selected ? UITheme.SUCCESS : UITheme.SIDEBAR);
                                 button.setFont(new Font("Segoe UI", selected ? Font.BOLD : Font.PLAIN, 14));
                         } else if (component instanceof Container child) {
                                 markMenuSelection(child, page);

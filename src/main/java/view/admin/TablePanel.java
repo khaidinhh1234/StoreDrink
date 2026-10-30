@@ -1,7 +1,11 @@
 package view.admin;
 
+import view.layout.NotificationDialog;
+
 import model.StoreTable;
 import service.TableService;
+import view.layout.DataSync;
+import view.layout.RefreshablePanel;
 import view.layout.UITheme;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -11,7 +15,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public class TablePanel extends JPanel {
+public class TablePanel extends JPanel implements RefreshablePanel {
     private final TableService service = new TableService();
     private final DefaultTableModel model = new DefaultTableModel(
             new Object[] {"Mã bàn", "Tên bàn", "Mã QR", "Trạng thái", "Thao tác"}, 0) {
@@ -61,8 +65,12 @@ public class TablePanel extends JPanel {
         scrollPane.getViewport().setBackground(UITheme.CARD);
         add(scrollPane, BorderLayout.CENTER);
         UITheme.styleTree(this);
+        UITheme.styleButton(add, UITheme.Action.CREATE);
         load();
+        DataSync.register(this, this);
     }
+
+    @Override public void refreshData() { if (!table.isEditing()) load(); }
     private void load() {
         try {
             model.setRowCount(0);
@@ -85,8 +93,8 @@ public class TablePanel extends JPanel {
         JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
         form.add(new JLabel("Tên bàn:")); form.add(name);
         form.add(new JLabel("Mã QR:")); form.add(qrCode);
-        if (JOptionPane.showConfirmDialog(this, form, "Thêm bàn",
-                JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
+        if (NotificationDialog.showConfirmDialog(this, form, "Thêm bàn",
+                NotificationDialog.OK_CANCEL_OPTION) != NotificationDialog.OK_OPTION) return;
         try {
             String tableName = name.getText().trim();
             if (tableName.isEmpty()) throw new IllegalArgumentException("Tên bàn không được để trống");
@@ -108,7 +116,7 @@ public class TablePanel extends JPanel {
         TableActionRenderer() {
             setFocusPainted(false);
             setForeground(Color.WHITE);
-            setBackground(UITheme.PRIMARY);
+            UITheme.styleButton(this, UITheme.Action.TOGGLE);
             setFont(new Font("Segoe UI", Font.BOLD, 12));
             setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
         }
@@ -118,7 +126,7 @@ public class TablePanel extends JPanel {
                 boolean selected, boolean focused, int row, int column) {
             boolean active = "Đang hoạt động".equalsIgnoreCase(String.valueOf(source.getValueAt(row, 3)));
             setText(active ? "Ngừng hoạt động" : "Kích hoạt");
-            setBackground(active ? new Color(48, 58, 92) : new Color(0, 150, 120));
+            UITheme.styleButton(this, active ? UITheme.Action.TOGGLE : UITheme.Action.CREATE);
             return this;
         }
     }
@@ -128,10 +136,8 @@ public class TablePanel extends JPanel {
         private int viewRow;
 
         TableActionEditor() {
-            button.setFocusPainted(false);
-            button.setForeground(Color.WHITE);
+            UITheme.styleButton(button, UITheme.Action.TOGGLE);
             button.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            button.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
             button.addActionListener(event -> {
                 fireEditingStopped();
                 toggleSelected(table.convertRowIndexToModel(viewRow));
@@ -144,7 +150,7 @@ public class TablePanel extends JPanel {
             viewRow = row;
             boolean active = "Đang hoạt động".equalsIgnoreCase(String.valueOf(source.getValueAt(row, 3)));
             button.setText(active ? "Ngừng hoạt động" : "Kích hoạt");
-            button.setBackground(active ? new Color(48, 58, 92) : new Color(0, 150, 120));
+            UITheme.styleButton(button, active ? UITheme.Action.TOGGLE : UITheme.Action.CREATE);
             return button;
         }
 
@@ -155,6 +161,6 @@ public class TablePanel extends JPanel {
     }
 
     private void error(String message, Exception e) {
-        JOptionPane.showMessageDialog(this, message + (e == null ? "" : ": " + e.getMessage()), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        NotificationDialog.showMessageDialog(this, message + (e == null ? "" : ": " + e.getMessage()), "Lỗi", NotificationDialog.ERROR_MESSAGE);
     }
 }

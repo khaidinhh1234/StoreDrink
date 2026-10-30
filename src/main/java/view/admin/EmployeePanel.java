@@ -1,7 +1,11 @@
 package view.admin;
 
+import view.layout.NotificationDialog;
+
 import model.User;
 import service.UserService;
+import view.layout.DataSync;
+import view.layout.RefreshablePanel;
 import view.layout.UITheme;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -9,7 +13,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
-public class EmployeePanel extends JPanel {
+public class EmployeePanel extends JPanel implements RefreshablePanel {
     private final UserService service = new UserService();
     private final User currentUser;
     private final DefaultTableModel model = new DefaultTableModel(
@@ -45,7 +49,13 @@ public class EmployeePanel extends JPanel {
         table.getColumnModel().getColumn(5).setCellEditor(new EmployeeActionEditor());
         add(new JScrollPane(table), BorderLayout.CENTER);
         UITheme.styleTree(this);
+        UITheme.styleButton(add, UITheme.Action.CREATE);
         load();
+        DataSync.register(this, this);
+    }
+
+    @Override public void refreshData() {
+        if (table != null && !table.isEditing()) load();
     }
 
     private void load() {
@@ -90,8 +100,8 @@ public class EmployeePanel extends JPanel {
         form.add(new JLabel("Mật khẩu:")); form.add(password);
         form.add(new JLabel("Họ tên:")); form.add(fullName);
         form.add(new JLabel("Vai trò:")); form.add(role);
-        if (JOptionPane.showConfirmDialog(this, form, "Thêm nhân viên",
-                JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
+        if (NotificationDialog.showConfirmDialog(this, form, "Thêm nhân viên",
+                NotificationDialog.OK_CANCEL_OPTION) != NotificationDialog.OK_OPTION) return;
         try {
             if (username.getText().trim().isEmpty() || password.getPassword().length == 0
                     || fullName.getText().trim().isEmpty()) {
@@ -135,8 +145,8 @@ public class EmployeePanel extends JPanel {
             form.add(new JLabel("Vai trò:")); form.add(role);
             form.add(new JLabel("")); form.add(new JLabel("Để trống mật khẩu nếu không đổi"));
 
-            if (JOptionPane.showConfirmDialog(this, form, "Cập nhật tài khoản",
-                    JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
+            if (NotificationDialog.showConfirmDialog(this, form, "Cập nhật tài khoản",
+                    NotificationDialog.OK_CANCEL_OPTION) != NotificationDialog.OK_OPTION) return;
             if (username.getText().trim().isEmpty() || fullName.getText().trim().isEmpty()) {
                 throw new IllegalArgumentException("Tài khoản và họ tên không được để trống");
             }
@@ -180,8 +190,8 @@ public class EmployeePanel extends JPanel {
         EmployeeActionRenderer() {
             setLayout(new FlowLayout(FlowLayout.CENTER, 5, 2));
             setOpaque(true);
-            styleActionButton(edit, UITheme.PRIMARY);
-            styleActionButton(toggle, new Color(48, 58, 92));
+            styleActionButton(edit, UITheme.Action.EDIT);
+            styleActionButton(toggle, UITheme.Action.TOGGLE);
             add(edit);
             add(toggle);
         }
@@ -205,8 +215,8 @@ public class EmployeePanel extends JPanel {
         EmployeeActionEditor() {
             JButton edit = new JButton("Sửa");
             JButton toggle = new JButton("Đổi trạng thái");
-            styleActionButton(edit, UITheme.PRIMARY);
-            styleActionButton(toggle, new Color(48, 58, 92));
+            styleActionButton(edit, UITheme.Action.EDIT);
+            styleActionButton(toggle, UITheme.Action.TOGGLE);
             edit.addActionListener(event -> {
                 fireEditingStopped();
                 editSelected(table.convertRowIndexToModel(viewRow));
@@ -237,17 +247,14 @@ public class EmployeePanel extends JPanel {
         }
     }
 
-    private void styleActionButton(JButton button, Color color) {
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
+    private void styleActionButton(JButton button, UITheme.Action action) {
+        UITheme.styleButton(button, action);
         button.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        button.setBorder(BorderFactory.createEmptyBorder(6, 9, 6, 9));
     }
 
     private void error(String message, Exception exception) {
-        JOptionPane.showMessageDialog(this, message
+        NotificationDialog.showMessageDialog(this, message
                 + (exception == null ? "" : ": " + exception.getMessage()),
-                "Lỗi", JOptionPane.ERROR_MESSAGE);
+                "Lỗi", NotificationDialog.ERROR_MESSAGE);
     }
 }

@@ -1,5 +1,7 @@
 package view.auth;
 
+import view.layout.NotificationDialog;
+
 import model.User;
 import service.UserService;
 import view.customer.GuestOrderFrame;
@@ -65,9 +67,9 @@ public class LoginFrame extends JFrame {
     }
 
     private void openGuestOrder() {
-        String value = JOptionPane.showInputDialog(this,
+        String value = NotificationDialog.showInputDialog(this,
                 "Nhập mã bàn hoặc mã QR:", "Đặt món tại bàn",
-                JOptionPane.QUESTION_MESSAGE);
+                NotificationDialog.QUESTION_MESSAGE);
         if (value == null || value.trim().isEmpty()) {
             return;
         }
@@ -107,6 +109,6 @@ public class LoginFrame extends JFrame {
     }
 
     private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Đăng nhập", JOptionPane.ERROR_MESSAGE);
+        NotificationDialog.showMessageDialog(this, message, "Đăng nhập", NotificationDialog.ERROR_MESSAGE);
     }
 }

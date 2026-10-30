@@ -1,25 +1,26 @@
 package view.staff;
 
+import view.layout.NotificationDialog;
+
 import model.Drink;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 import service.DrinkService;
+import view.layout.DataSync;
+import view.layout.RefreshablePanel;
 import view.layout.UITheme;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.text.NumberFormat;
-import java.util.Locale;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-public class DrinkPanel extends JPanel {
+public class DrinkPanel extends JPanel implements RefreshablePanel {
 
     private JTable table;
     private DefaultTableModel model;
     private final DrinkService drinkService = new DrinkService();
-    private final NumberFormat currency = createVndFormat();
 
     public DrinkPanel() {
 
@@ -42,6 +43,7 @@ public class DrinkPanel extends JPanel {
         title.setFont(new Font("Segoe UI", Font.BOLD, 24));
 
         JButton addButton = new JButton("Thêm đồ uống");
+        JButton refreshButton = new JButton("Làm mới");
 
         header.setBorder(
                 BorderFactory.createEmptyBorder(
@@ -51,10 +53,13 @@ public class DrinkPanel extends JPanel {
                 title,
                 BorderLayout.WEST);
 
-        header.add(
-                addButton,
-                BorderLayout.EAST);
+        JPanel headerActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        headerActions.setOpaque(false);
+        headerActions.add(refreshButton);
+        headerActions.add(addButton);
+        header.add(headerActions, BorderLayout.EAST);
         addButton.addActionListener(e -> addDrink());
+        refreshButton.addActionListener(e -> loadDrinks());
 
         add(
                 header,
@@ -95,8 +100,15 @@ public class DrinkPanel extends JPanel {
 
         add(tableScrollPane, BorderLayout.CENTER);
         UITheme.styleTree(this);
+        UITheme.styleButton(addButton, UITheme.Action.CREATE);
+        UITheme.styleButton(refreshButton, UITheme.Action.NEUTRAL);
         table.getColumnModel().getColumn(2).setCellRenderer(new CurrencyRenderer());
         loadDrinks();
+        DataSync.register(this, this);
+    }
+
+    @Override public void refreshData() {
+        if (!table.isEditing()) loadDrinks();
     }
 
     private void loadDrinks() {
@@ -110,7 +122,7 @@ public class DrinkPanel extends JPanel {
                 model.addRow(new Object[] {
                         drink.getId(),
                         drink.getName(),
-                        drink.getPrice(),
+                        UITheme.formatVnd(drink.getPrice()),
                         drink.getQuantity(),
                         drink.isActive()
                                 ? "Đang bán"
@@ -124,7 +136,7 @@ public class DrinkPanel extends JPanel {
 
             e.printStackTrace();
 
-            JOptionPane.showMessageDialog(
+            NotificationDialog.showMessageDialog(
                     this,
                     "Không tải được đồ uống!");
         }
@@ -140,8 +152,8 @@ public class DrinkPanel extends JPanel {
         form.add(new JLabel("Giá:")); form.add(price);
         form.add(new JLabel("Tồn kho:")); form.add(quantity);
         form.add(new JLabel("Ảnh (URL hoặc tệp):")); form.add(imageInput(image));
-        if (JOptionPane.showConfirmDialog(this, form, "Thêm đồ uống",
-                JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
+        if (NotificationDialog.showConfirmDialog(this, form, "Thêm đồ uống",
+                NotificationDialog.OK_CANCEL_OPTION) != NotificationDialog.OK_OPTION) return;
         try {
             Drink drink = new Drink();
             drink.setName(name.getText().trim());
@@ -154,6 +166,7 @@ public class DrinkPanel extends JPanel {
             }
             drinkService.create(drink);
             loadDrinks();
+            NotificationDialog.showSuccess(this, "Đã thêm đồ uống thành công.");
         } catch (Exception exception) {
             showApiError("Không thể thêm đồ uống", exception);
         }
@@ -178,10 +191,6 @@ public class DrinkPanel extends JPanel {
 
     private void editDrink(int row) {
         int id = (int) model.getValueAt(row, 0);
-        JTextField nameField = new JTextField((String) model.getValueAt(row, 1));
-        JTextField priceField = new JTextField(String.valueOf(model.getValueAt(row, 2)));
-        JTextField quantityField = new JTextField(String.valueOf(model.getValueAt(row, 3)));
-
         Drink existingDrink;
         try {
             existingDrink = drinkService.getAll().stream()
@@ -192,6 +201,9 @@ public class DrinkPanel extends JPanel {
             showApiError("Không thể tải đồ uống", exception);
             return;
         }
+        JTextField nameField = new JTextField((String) model.getValueAt(row, 1));
+        JTextField priceField = new JTextField(Double.toString(existingDrink.getPrice()));
+        JTextField quantityField = new JTextField(String.valueOf(model.getValueAt(row, 3)));
         JTextField imageField = new JTextField(existingDrink.getImage() == null ? "" : existingDrink.getImage());
 
         JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
@@ -204,9 +216,9 @@ public class DrinkPanel extends JPanel {
         form.add(new JLabel("Ảnh (URL hoặc tệp):"));
         form.add(imageInput(imageField));
 
-        int result = JOptionPane.showConfirmDialog(
-                this, form, "Sửa đồ uống", JOptionPane.OK_CANCEL_OPTION);
-        if (result != JOptionPane.OK_OPTION) {
+        int result = NotificationDialog.showConfirmDialog(
+                this, form, "Sửa đồ uống", NotificationDialog.OK_CANCEL_OPTION);
+        if (result != NotificationDialog.OK_OPTION) {
             return;
         }
 
@@ -226,9 +238,9 @@ public class DrinkPanel extends JPanel {
 
             drinkService.update(drink);
             loadDrinks();
-            JOptionPane.showMessageDialog(this, "Đã cập nhật đồ uống.");
+            NotificationDialog.showSuccess(this, "Đã cập nhật đồ uống.");
         } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(this, "Giá và tồn kho phải là số không âm.");
+            NotificationDialog.showError(this, "Giá và tồn kho phải là số không âm.");
         } catch (Exception e) {
             showApiError("Không thể cập nhật đồ uống", e);
         }
@@ -257,23 +269,13 @@ public class DrinkPanel extends JPanel {
         if (exception != null) {
             exception.printStackTrace();
         }
-        JOptionPane.showMessageDialog(this, message
+        NotificationDialog.showMessageDialog(this, message
                 + (exception == null ? "" : ": " + exception.getMessage()));
     }
 
-    private void styleActionButton(JButton button, Color color) {
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
+    private void styleActionButton(JButton button, UITheme.Action action) {
+        UITheme.styleButton(button, action);
         button.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
-    }
-
-    private static NumberFormat createVndFormat() {
-        NumberFormat format = NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"));
-        format.setMinimumFractionDigits(0);
-        format.setMaximumFractionDigits(0);
-        return format;
     }
 
     private class CurrencyRenderer extends javax.swing.table.DefaultTableCellRenderer {
@@ -286,9 +288,8 @@ public class DrinkPanel extends JPanel {
         public Component getTableCellRendererComponent(JTable source, Object value,
                 boolean selected, boolean focused, int row, int column) {
             super.getTableCellRendererComponent(source, value, selected, focused, row, column);
-            double amount = value instanceof Number number ? number.doubleValue()
-                    : Double.parseDouble(String.valueOf(value));
-            setText(currency.format(amount) + " đ");
+            setText(value instanceof Number number
+                    ? UITheme.formatVnd(number.doubleValue()) : String.valueOf(value));
             setForeground(UITheme.TEXT);
             setBackground(selected ? source.getSelectionBackground() : source.getBackground());
             return this;
@@ -302,8 +303,8 @@ public class DrinkPanel extends JPanel {
         ActionRenderer() {
             setLayout(new FlowLayout(FlowLayout.CENTER, 4, 2));
             setOpaque(true);
-            styleActionButton(editButton, UITheme.PRIMARY);
-            styleActionButton(toggleButton, new Color(48, 58, 92));
+            styleActionButton(editButton, UITheme.Action.EDIT);
+            styleActionButton(toggleButton, UITheme.Action.TOGGLE);
             add(editButton);
             add(toggleButton);
         }
@@ -327,8 +328,8 @@ public class DrinkPanel extends JPanel {
         ActionEditor() {
             JButton editButton = new JButton("Sửa");
             JButton toggleButton = new JButton("Bật / tắt bán");
-            styleActionButton(editButton, UITheme.PRIMARY);
-            styleActionButton(toggleButton, new Color(48, 58, 92));
+            styleActionButton(editButton, UITheme.Action.EDIT);
+            styleActionButton(toggleButton, UITheme.Action.TOGGLE);
             editButton.addActionListener((ActionEvent e) -> {
                 fireEditingStopped();
                 editDrink(table.convertRowIndexToModel(row));

@@ -1,5 +1,7 @@
 package view.admin;
 
+import view.layout.NotificationDialog;
+
 import model.Category;
 import service.CategoryService;
 import view.layout.UITheme;
@@ -27,6 +29,7 @@ public class CategoryPanel extends JPanel {
         JTable table = new JTable(model);
         add(new JScrollPane(table), BorderLayout.CENTER);
         UITheme.styleTree(this);
+        UITheme.styleButton(add, UITheme.Action.CREATE);
         load();
     }
     private void load() {
@@ -39,7 +42,7 @@ public class CategoryPanel extends JPanel {
         JTextField name = new JTextField(); JTextField description = new JTextField();
         JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
         form.add(new JLabel("Tên:")); form.add(name); form.add(new JLabel("Mô tả:")); form.add(description);
-        if (JOptionPane.showConfirmDialog(this, form, "Thêm danh mục", JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
+        if (NotificationDialog.showConfirmDialog(this, form, "Thêm danh mục", NotificationDialog.OK_CANCEL_OPTION) != NotificationDialog.OK_OPTION) return;
         try {
             if (name.getText().trim().isEmpty()) throw new IllegalArgumentException("Tên không được để trống");
             Category c = new Category(); c.setName(name.getText().trim()); c.setDescription(description.getText().trim());
@@ -47,6 +50,6 @@ public class CategoryPanel extends JPanel {
         } catch (Exception e) { showError("Không thể thêm danh mục", e); }
     }
     private void showError(String message, Exception e) {
-        JOptionPane.showMessageDialog(this, message + ": " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        NotificationDialog.showMessageDialog(this, message + ": " + e.getMessage(), "Lỗi", NotificationDialog.ERROR_MESSAGE);
     }
 }

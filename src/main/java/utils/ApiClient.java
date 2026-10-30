@@ -47,6 +47,7 @@ public class ApiClient {
         HttpResponse<String> response = sendWithRetry(request, "PUT");
 
         ensureSuccess(response);
+        DataChangeNotifier.publish();
         return response.body();
     }
 
@@ -60,6 +61,7 @@ public class ApiClient {
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         ensureSuccess(response);
+        DataChangeNotifier.publish();
         return response.body();
     }
 
@@ -72,6 +74,7 @@ public class ApiClient {
         HttpResponse<String> response = sendWithRetry(request, "DELETE");
 
         ensureSuccess(response);
+        DataChangeNotifier.publish();
     }
 
     private static void ensureSuccess(HttpResponse<String> response) {

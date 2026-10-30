@@ -32,5 +32,6 @@ public class AdminManagementPanel extends JPanel {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         add(new JScrollPane(table), BorderLayout.CENTER);
         UITheme.styleTree(this);
+        UITheme.styleButton(addButton, UITheme.Action.CREATE);
     }
 }
