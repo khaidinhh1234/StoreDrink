@@ -192,6 +192,8 @@ public class EmployeePanel extends JPanel implements RefreshablePanel {
             setOpaque(true);
             styleActionButton(edit, UITheme.Action.EDIT);
             styleActionButton(toggle, UITheme.Action.TOGGLE);
+            edit.setPreferredSize(new Dimension(62, 32));
+            toggle.setPreferredSize(new Dimension(130, 32));
             add(edit);
             add(toggle);
         }
@@ -217,6 +219,8 @@ public class EmployeePanel extends JPanel implements RefreshablePanel {
             JButton toggle = new JButton("Đổi trạng thái");
             styleActionButton(edit, UITheme.Action.EDIT);
             styleActionButton(toggle, UITheme.Action.TOGGLE);
+            edit.setPreferredSize(new Dimension(62, 32));
+            toggle.setPreferredSize(new Dimension(130, 32));
             edit.addActionListener(event -> {
                 fireEditingStopped();
                 editSelected(table.convertRowIndexToModel(viewRow));

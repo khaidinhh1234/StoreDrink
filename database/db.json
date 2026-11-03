@@ -2755,7 +2755,7 @@
       "status": "CANCELLED",
       "createdAt": "2026-10-31T00:54:29",
       "cancelledBy": "SYSTEM",
-      "cancelledAt": "2026-11-03T18:36:53.464180500",
+      "cancelledAt": "2026-11-03T18:54:55.547256500",
       "cancelReason": "Đơn tự động hủy do quá 30 phút chưa được duyệt",
       "stockDeducted": false,
       "stockRestored": true,

@@ -1005,13 +1005,9 @@ public class DashboardPanel extends JPanel implements RefreshablePanel {
     private static final class ToolbarButton extends JButton {
         ToolbarButton(String text, Color color) {
             super(text);
-            setBackground(color);
-            setForeground(Color.WHITE);
             setFont(new Font("Segoe UI", Font.BOLD, 12));
-            setFocusPainted(false);
+            UITheme.styleButton(this, color);
             setContentAreaFilled(false);
-            setOpaque(false);
-            setBorder(new EmptyBorder(0, 14, 0, 14));
             setPreferredSize(new Dimension(text.equals("Xuất Excel") ? 132 : 112, 36));
             setMinimumSize(new Dimension(102, 36));
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -1035,9 +1031,9 @@ public class DashboardPanel extends JPanel implements RefreshablePanel {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             Color fill = isEnabled() ? getBackground() : new Color(0xE9, 0xEC, 0xEF);
             g.setColor(fill);
-            g.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
+            g.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
             g.setColor(isEnabled() ? fill.darker() : UITheme.BORDER);
-            g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
+            g.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
             g.dispose();
             super.paintComponent(graphics);
         }

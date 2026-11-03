@@ -3,6 +3,7 @@ package view.layout;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.JTableHeader;
+import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -10,6 +11,7 @@ import java.text.NumberFormat;
 import java.util.Locale;
 
 public final class UITheme {
+    private static final int BUTTON_ARC = 14;
     public static final Color PRIMARY = new Color(0x00, 0x7B, 0xFF);
     public static final Color PRIMARY_DARK = new Color(0x00, 0x66, 0xD6);
     public static final Color SUCCESS = new Color(0x28, 0xA7, 0x45);
@@ -120,9 +122,9 @@ public final class UITheme {
         button.setForeground(contrastText(background));
         button.setOpaque(true);
         button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(background.darker()),
-                new EmptyBorder(7, 14, 7, 14)));
+        button.setBorder(new EmptyBorder(8, 15, 8, 15));
+        button.setContentAreaFilled(false);
+        button.setUI(new RoundedButtonUI(BUTTON_ARC));
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     }
 
@@ -130,9 +132,7 @@ public final class UITheme {
         Color normal = action.color;
         button.putClientProperty("uiTheme.actionColor", normal);
         styleButton(button, normal);
-        button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(normal.darker()),
-                new EmptyBorder(7, 14, 7, 14)));
+        button.setBorder(new EmptyBorder(8, 15, 8, 15));
         if (!Boolean.TRUE.equals(button.getClientProperty("uiTheme.actionStyled"))) {
             button.putClientProperty("uiTheme.actionStyled", Boolean.TRUE);
             button.addMouseListener(new MouseAdapter() {
@@ -160,6 +160,29 @@ public final class UITheme {
 
     private static Color hoverColor(Color color) {
         return color.equals(WARNING) ? new Color(0xFF, 0xD3, 0x55) : color.brighter();
+    }
+
+    private static final class RoundedButtonUI extends BasicButtonUI {
+        private final int arc;
+
+        private RoundedButtonUI(int arc) { this.arc = arc; }
+
+        @Override public void paint(Graphics graphics, JComponent component) {
+            AbstractButton button = (AbstractButton) component;
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            Color background = button.isEnabled() ? button.getBackground() : new Color(0xE9, 0xEC, 0xEF);
+            g.setColor(background);
+            g.fillRoundRect(0, 0, button.getWidth() - 1, button.getHeight() - 1, arc, arc);
+            g.setColor(button.isEnabled() ? background.darker() : BORDER);
+            g.drawRoundRect(0, 0, button.getWidth() - 1, button.getHeight() - 1, arc, arc);
+            g.dispose();
+            Graphics2D textGraphics = (Graphics2D) graphics.create();
+            textGraphics.clip(new java.awt.geom.RoundRectangle2D.Float(
+                    0, 0, button.getWidth(), button.getHeight(), arc, arc));
+            super.paint(textGraphics, component);
+            textGraphics.dispose();
+        }
     }
 
     public static NumberFormat newVndFormatter() {
@@ -282,7 +305,9 @@ public final class UITheme {
             setOpaque(true);
             setLayout(new FlowLayout(FlowLayout.CENTER, 14, 0));
             badge.setOpaque(true);
-            badge.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+            badge.setBorder(BorderFactory.createCompoundBorder(
+                    new RoundedStatusBorder(BORDER, 5),
+                    BorderFactory.createEmptyBorder(4, 9, 4, 9)));
             add(badge);
         }
 
@@ -310,6 +335,19 @@ public final class UITheme {
             badge.setBackground(statusColor);
             setBackground(selected ? TABLE_SELECTION : CARD);
             return this;
+        }
+    }
+
+    private static final class RoundedStatusBorder extends javax.swing.border.AbstractBorder {
+        private final Color color;
+        private final int arc;
+        RoundedStatusBorder(Color color, int arc) { this.color = color; this.arc = arc; }
+        @Override public void paintBorder(Component c, Graphics graphics, int x, int y, int width, int height) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setColor(color);
+            g.drawRoundRect(x, y, width - 1, height - 1, arc, arc);
+            g.dispose();
         }
     }
 }

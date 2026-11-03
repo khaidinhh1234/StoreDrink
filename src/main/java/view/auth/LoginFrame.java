@@ -64,6 +64,8 @@ public class LoginFrame extends JFrame {
         passwordField.addActionListener(e -> authenticate());
         guestOrderButton.addActionListener(e -> openGuestOrder());
         add(form);
+        UITheme.styleButton(loginButton, UITheme.Action.CONFIRM);
+        UITheme.styleButton(guestOrderButton, UITheme.Action.CREATE);
     }
 
     private void openGuestOrder() {
