@@ -176,6 +176,7 @@ public class DrinkPanel extends JPanel implements RefreshablePanel {
         JPanel input = new JPanel(new BorderLayout(8, 0));
         input.add(image, BorderLayout.CENTER);
         JButton browse = new JButton("Chọn ảnh");
+        UITheme.styleButton(browse, UITheme.Action.NEUTRAL);
         browse.addActionListener(event -> {
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("Chọn ảnh đồ uống");
@@ -305,6 +306,7 @@ public class DrinkPanel extends JPanel implements RefreshablePanel {
             setOpaque(true);
             styleActionButton(editButton, UITheme.Action.EDIT);
             styleActionButton(toggleButton, UITheme.Action.TOGGLE);
+            setPreferredSize(new Dimension(195, 42));
             add(editButton);
             add(toggleButton);
         }
@@ -330,6 +332,8 @@ public class DrinkPanel extends JPanel implements RefreshablePanel {
             JButton toggleButton = new JButton("Bật / tắt bán");
             styleActionButton(editButton, UITheme.Action.EDIT);
             styleActionButton(toggleButton, UITheme.Action.TOGGLE);
+            editButton.setPreferredSize(new Dimension(56, 32));
+            toggleButton.setPreferredSize(new Dimension(112, 32));
             editButton.addActionListener((ActionEvent e) -> {
                 fireEditingStopped();
                 editDrink(table.convertRowIndexToModel(row));
@@ -346,6 +350,8 @@ public class DrinkPanel extends JPanel implements RefreshablePanel {
         public Component getTableCellEditorComponent(
                 JTable table, Object value, boolean selected, int row, int column) {
             this.row = row;
+            for (Component component : panel.getComponents()) component.setPreferredSize(
+                    component == panel.getComponent(0) ? new Dimension(56, 32) : new Dimension(112, 32));
             return panel;
         }
 

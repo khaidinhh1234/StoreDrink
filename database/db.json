@@ -27,7 +27,7 @@
     {
       "id": 4,
       "username": "admin2",
-      "password": "122223456",
+      "password": "123456",
       "fullName": "Nguyễn Đình Khải",
       "role": "ADMIN",
       "active": true
@@ -147,8 +147,8 @@
     },
     {
       "id": 11,
-      "name": "TABLE-11",
-      "qrCode": "A1",
+      "name": "Bàn 11",
+      "qrCode": "TABLE-11",
       "status": "Đang hoạt động"
     }
   ],
@@ -166,7 +166,7 @@
       "id": 4,
       "name": "Trà đào",
       "price": 30000,
-      "quantity": 59,
+      "quantity": 62,
       "active": true,
       "categoryId": 2,
       "image": "https://res.cloudinary.com/khaidinhh/image/upload/t_caphesua/TraDao-removebg-preview_f01tcg.png"
@@ -238,7 +238,7 @@
       "id": 12,
       "name": "Sinh tố bơ",
       "price": 40000,
-      "quantity": 34,
+      "quantity": 29,
       "active": true,
       "categoryId": 4,
       "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_600,w_600/images-removebg-preview_ymaq32.png"
@@ -247,7 +247,7 @@
       "id": 13,
       "name": "Đá xay matcha",
       "price": 45000,
-      "quantity": 21,
+      "quantity": 19,
       "active": true,
       "categoryId": 5,
       "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_600,w_600/9e72797a32e724fcab79f17bc7764d5c-removebg-preview_l2iir8.png"
@@ -2752,12 +2752,36 @@
       "orderType": "TAKEAWAY",
       "total": 90000,
       "paymentMethod": "UNPAID",
-      "status": "PENDING",
+      "status": "CANCELLED",
       "createdAt": "2026-10-31T00:54:29",
+      "cancelledBy": "SYSTEM",
+      "cancelledAt": "2026-10-31T01:24:54.690756",
+      "cancelReason": "Đơn tự động hủy do quá 30 phút chưa được duyệt",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {
+        "4": 3
+      }
+    },
+    {
+      "id": 1329,
+      "userId": 2,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "customerName": "khai",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 290000,
+      "paymentMethod": "UNPAID",
+      "status": "CONFIRMED",
+      "createdAt": "2026-10-31T18:41:21",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-10-31T18:41:47.059575200",
       "stockDeducted": true,
       "stockRestored": false,
       "reservedStock": {
-        "4": 3
+        "12": 5,
+        "13": 2
       }
     }
   ],
@@ -4905,6 +4929,22 @@
       "quantity": 3,
       "price": 30000,
       "subtotal": 90000
+    },
+    {
+      "id": 3269,
+      "orderId": 1329,
+      "drinkId": 13,
+      "quantity": 2,
+      "price": 45000,
+      "subtotal": 90000
+    },
+    {
+      "id": 3270,
+      "orderId": 1329,
+      "drinkId": 12,
+      "quantity": 5,
+      "price": 40000,
+      "subtotal": 200000
     }
   ],
   "customers": [

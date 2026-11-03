@@ -338,11 +338,11 @@ public final class NotificationDialog {
         card.setOpaque(true);
         card.setBackground(UITheme.CARD);
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(selected ? UITheme.PRIMARY : UITheme.BORDER, selected ? 2 : 1),
-                new EmptyBorder(9, 10, 9, 10)));
+                BorderFactory.createLineBorder(selected ? UITheme.PRIMARY : UITheme.BORDER,
+                        selected ? 2 : 1, true), new EmptyBorder(9, 10, 9, 10)));
         card.addItemListener(event -> card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(card.isSelected() ? UITheme.PRIMARY : UITheme.BORDER,
-                        card.isSelected() ? 2 : 1), new EmptyBorder(9, 10, 9, 10))));
+                        card.isSelected() ? 2 : 1, true), new EmptyBorder(9, 10, 9, 10))));
         return card;
     }
 

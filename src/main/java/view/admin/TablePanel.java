@@ -118,7 +118,7 @@ public class TablePanel extends JPanel implements RefreshablePanel {
             setForeground(Color.WHITE);
             UITheme.styleButton(this, UITheme.Action.TOGGLE);
             setFont(new Font("Segoe UI", Font.BOLD, 12));
-            setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+            setPreferredSize(new Dimension(150, 32));
         }
 
         @Override
@@ -127,6 +127,7 @@ public class TablePanel extends JPanel implements RefreshablePanel {
             boolean active = "Đang hoạt động".equalsIgnoreCase(String.valueOf(source.getValueAt(row, 3)));
             setText(active ? "Ngừng hoạt động" : "Kích hoạt");
             UITheme.styleButton(this, active ? UITheme.Action.TOGGLE : UITheme.Action.CREATE);
+            setPreferredSize(new Dimension(150, 32));
             return this;
         }
     }

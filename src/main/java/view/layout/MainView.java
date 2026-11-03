@@ -232,6 +232,7 @@ public class MainView extends JFrame {
                 button.setBorderPainted(false);
 
                 button.setFocusPainted(false);
+                button.setContentAreaFilled(false);
 
                 button.setFont(
                                 new Font("Segoe UI", Font.PLAIN, 14));
@@ -247,6 +248,17 @@ public class MainView extends JFrame {
                                 if (!Boolean.TRUE.equals(button.getClientProperty("sidebar.selected"))) {
                                         button.setBackground(UITheme.SIDEBAR);
                                 }
+                        }
+                });
+                button.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+                        @Override public void paint(Graphics graphics, JComponent component) {
+                                JButton menuButton = (JButton) component;
+                                Graphics2D g = (Graphics2D) graphics.create();
+                                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                                g.setColor(menuButton.getBackground());
+                                g.fillRoundRect(3, 2, menuButton.getWidth() - 6, menuButton.getHeight() - 4, 14, 14);
+                                g.dispose();
+                                super.paint(graphics, component);
                         }
                 });
 

@@ -298,7 +298,6 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
         JButton addButton = new JButton("Thêm vào giỏ");
         styleActionButton(addButton, UITheme.Action.CREATE);
         addButton.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        addButton.setBorder(BorderFactory.createEmptyBorder(7, 4, 7, 4));
         addButton.addActionListener(event -> addDrinkToCart(drink));
         card.add(addButton, BorderLayout.SOUTH);
         return card;
