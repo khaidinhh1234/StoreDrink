@@ -128,7 +128,7 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                 boolean hasRowActions = staff || "ADMIN".equalsIgnoreCase(user.getRole());
                 boolean clickable = row >= 0 && ((column == 7 && hasRowActions)
                         || (column == 5 && staff && "PENDING".equalsIgnoreCase(statusCode(
-                                String.valueOf(model.getValueAt(row, 5))))));
+                        String.valueOf(model.getValueAt(row, 5))))));
                 table.setCursor(Cursor.getPredefinedCursor(
                         clickable ? Cursor.HAND_CURSOR : Cursor.DEFAULT_CURSOR));
             }
@@ -373,7 +373,7 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                         this,
                         "Đã hủy đơn #" + orderId
                                 + (stockWillBeReturned ? ". Số lượng đã trừ được hoàn lại kho."
-                                        : ". Đơn đang chờ duyệt nên không có hàng cần hoàn kho."));
+                                : ". Đơn đang chờ duyệt nên không có hàng cần hoàn kho."));
             }
         } catch (OrderService.OrderExpiredException expired) {
             loadOrders();
@@ -468,7 +468,6 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
             default -> List.of();
         };
     }
-
     private void selectOrderRow(int row) {
         if (table.getSelectedRow() != row) {
             table.setRowSelectionInterval(row, row);
@@ -517,7 +516,7 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
 
         @Override
         public Component getTableCellRendererComponent(JTable source, Object value,
-                boolean selected, boolean focused, int row, int column) {
+                                                       boolean selected, boolean focused, int row, int column) {
             quantity.setText(value == null ? "0" : value.toString());
             setBackground(selected ? UITheme.TABLE_SELECTION : UITheme.CARD);
             revalidate();
@@ -538,7 +537,7 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
 
         @Override
         public Component getTableCellRendererComponent(JTable source, Object value,
-                boolean selected, boolean focused, int row, int column) {
+                                                       boolean selected, boolean focused, int row, int column) {
             String status = statusCode(String.valueOf(source.getValueAt(row, 5)));
             List<String> labels = actionLabels(status);
             setLayout(new GridLayout(1, Math.max(1, labels.size()), 5, 0));
@@ -557,6 +556,7 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                 };
                 UITheme.styleButton(actionButton, action);
                 actionButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                actionButton.setPreferredSize(new Dimension(126, 34));
                 add(actionButton);
             }
             revalidate();
@@ -613,7 +613,6 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
             for (OrderDetail detail : details) {
 
                 Drink drink = drinkMap.get(detail.getDrinkId());
-
                 String drinkName = drink == null
                         ? "Đồ uống #" + detail.getDrinkId()
                         : drink.getName();
@@ -964,9 +963,9 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
     }
 
     private void showOrderDetailsDialog(Order order, List<OrderDetail> details,
-            Map<Integer, String> employeeNames, Map<Integer, String> customerAccountNames,
-            Map<Integer, String> drinkNames,
-            List<Customer> customers) {
+                                        Map<Integer, String> employeeNames, Map<Integer, String> customerAccountNames,
+                                        Map<Integer, String> drinkNames,
+                                        List<Customer> customers) {
         JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this),
                 "Chi tiết đơn hàng #" + order.getId(), Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -1126,7 +1125,7 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
     }
 
     private String resolveCustomerName(Order order, List<Customer> customers,
-            Map<Integer, String> customerAccountNames) {
+                                       Map<Integer, String> customerAccountNames) {
         if (order.getCustomerName() != null && !order.getCustomerName().isBlank()) {
             return order.getCustomerName().trim();
         }

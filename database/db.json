@@ -166,7 +166,7 @@
       "id": 4,
       "name": "Trà đào",
       "price": 30000,
-      "quantity": 59,
+      "quantity": 62,
       "active": true,
       "categoryId": 2,
       "image": "https://res.cloudinary.com/khaidinhh/image/upload/t_caphesua/TraDao-removebg-preview_f01tcg.png"
@@ -2752,10 +2752,13 @@
       "orderType": "TAKEAWAY",
       "total": 90000,
       "paymentMethod": "UNPAID",
-      "status": "PENDING",
+      "status": "CANCELLED",
       "createdAt": "2026-10-31T00:54:29",
-      "stockDeducted": true,
-      "stockRestored": false,
+      "cancelledBy": "SYSTEM",
+      "cancelledAt": "2026-11-03T18:36:53.464180500",
+      "cancelReason": "Đơn tự động hủy do quá 30 phút chưa được duyệt",
+      "stockDeducted": false,
+      "stockRestored": true,
       "reservedStock": {
         "4": 3
       }
