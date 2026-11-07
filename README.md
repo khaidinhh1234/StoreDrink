@@ -15,6 +15,7 @@ và sử dụng **JSON Server** để lưu dữ liệu.
 - [Công nghệ và yêu cầu](#công-nghệ-và-yêu-cầu)
 - [Cài đặt](#cài-đặt)
 - [Chạy dự án](#chạy-dự-án)
+- [Kiểm thử](#kiểm-thử)
 - [Hướng dẫn sử dụng](#hướng-dẫn-sử-dụng)
 - [Dữ liệu và API](#dữ-liệu-và-api)
 - [Cấu trúc mã nguồn](#cấu-trúc-mã-nguồn)
@@ -213,6 +214,14 @@ Có thể đóng gói project bằng:
 
 ```bash
 mvn package
+```
+
+## Kiểm thử
+
+Chạy toàn bộ kiểm thử tự động bằng Maven:
+
+```bash
+mvn test
 ```
 
 ### Bước 4: Chạy `Main`
