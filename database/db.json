@@ -27,7 +27,7 @@
     {
       "id": 4,
       "username": "admin2",
-      "password": "123456",
+      "password": "122223456",
       "fullName": "Nguyễn Đình Khải",
       "role": "ADMIN",
       "active": true
@@ -120,8 +120,8 @@
     },
     {
       "id": 11,
-      "name": "Bàn 11",
-      "qrCode": "TABLE-11",
+      "name": "TABLE-11",
+      "qrCode": "A1",
       "status": "Đang hoạt động"
     }
   ],
@@ -202,7 +202,7 @@
       "id": 12,
       "name": "Sinh tố bơ",
       "price": 40000,
-      "quantity": 98,
+      "quantity": 29,
       "active": true,
       "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_600,w_600/images-removebg-preview_ymaq32.png"
     },
@@ -210,7 +210,7 @@
       "id": 13,
       "name": "Đá xay matcha",
       "price": 45000,
-      "quantity": 88,
+      "quantity": 19,
       "active": true,
       "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_600,w_600/9e72797a32e724fcab79f17bc7764d5c-removebg-preview_l2iir8.png"
     },
@@ -1474,30 +1474,66 @@
       }
     },
     {
-      "id": 1350,
-      "userId": 0,
-      "createdByUserId": 7,
-      "processedByUserId": 7,
-      "tableId": 5,
-      "customerName": "Trần Thị Lan",
-      "customerPhone": "0905123401",
-      "orderType": "DINE_IN",
-      "total": 65000,
-      "paymentMethod": "CASH",
-      "status": "COMPLETED",
-      "createdAt": "2026-10-05T12:50:00",
-      "confirmedBy": 7,
-      "confirmedAt": "2026-10-05T12:55:00",
-      "completedBy": 7,
-      "completedAt": "2026-10-05T13:05:00",
-      "cancelledBy": null,
-      "cancelledAt": null,
-      "cancelReason": null,
+      "id": 1327,
+      "userId": 2,
+      "createdByUserId": 2,
+      "processedByUserId": 0,
+      "customerName": "sdfsdf",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 45000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-10-30T23:53:26",
+      "cancelledBy": "SYSTEM",
+      "cancelledAt": "2026-10-31T00:42:16.951312300",
+      "cancelReason": "Đơn tự động hủy do quá 30 phút chưa được duyệt",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {
+        "14": 1
+      }
+    },
+    {
+      "id": 1328,
+      "userId": 2,
+      "createdByUserId": 2,
+      "processedByUserId": 0,
+      "customerName": "ádasdasd",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 90000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-10-31T00:54:29",
+      "cancelledBy": "SYSTEM",
+      "cancelledAt": "2026-10-31T01:24:54.690756",
+      "cancelReason": "Đơn tự động hủy do quá 30 phút chưa được duyệt",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {
+        "4": 3
+      }
+    },
+    {
+      "id": 1329,
+      "userId": 2,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "customerName": "khai",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 290000,
+      "paymentMethod": "UNPAID",
+      "status": "CONFIRMED",
+      "createdAt": "2026-10-31T18:41:21",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-10-31T18:41:47.059575200",
       "stockDeducted": true,
       "stockRestored": false,
       "reservedStock": {
-        "8": 1,
-        "10": 1
+        "12": 5,
+        "13": 2
       }
     }
   ],
@@ -2463,48 +2499,42 @@
       "paidAt": "2026-10-06T11:29:00"
     },
     {
-      "id": 29,
-      "orderId": 1339,
-      "customerName": "Mai Phương Thảo",
-      "orderType": "DINE_IN",
-      "employeeId": 6,
-      "amount": 30000,
-      "paymentMethod": "CASH",
-      "status": "SUCCESS",
-      "paidAt": "2026-10-30T08:19:00"
+      "id": 3268,
+      "orderId": 1328,
+      "drinkId": 4,
+      "quantity": 3,
+      "price": 30000,
+      "subtotal": 90000
     },
     {
-      "id": 30,
-      "orderId": 1340,
-      "customerName": "Bùi Thanh Trúc",
-      "orderType": "DINE_IN",
-      "employeeId": 7,
-      "amount": 25000,
-      "paymentMethod": "TRANSFER",
-      "status": "SUCCESS",
-      "paidAt": "2026-10-21T14:34:00"
+      "id": 3269,
+      "orderId": 1329,
+      "drinkId": 13,
+      "quantity": 2,
+      "price": 45000,
+      "subtotal": 90000
     },
     {
-      "id": 31,
-      "orderId": 1341,
-      "customerName": "Nguyễn Tuấn Kiệt",
-      "orderType": "TAKEAWAY",
-      "employeeId": 2,
-      "amount": 45000,
-      "paymentMethod": "CASH",
-      "status": "SUCCESS",
-      "paidAt": "2026-10-24T18:47:00"
+      "id": 3270,
+      "orderId": 1329,
+      "drinkId": 12,
+      "quantity": 5,
+      "price": 40000,
+      "subtotal": 200000
+    }
+  ],
+  "customers": [
+    {
+      "id": 1,
+      "name": "Bùi Thanh Trúc",
+      "phone": "0981122334",
+      "email": "khach01@example.com"
     },
     {
-      "id": 32,
-      "orderId": 1342,
-      "customerName": "Đỗ Khánh Linh",
-      "orderType": "DINE_IN",
-      "employeeId": 3,
-      "amount": 30000,
-      "paymentMethod": "CASH",
-      "status": "SUCCESS",
-      "paidAt": "2026-10-19T17:54:00"
+      "id": 2,
+      "name": "Đặng Hoàng Nam",
+      "phone": "0908765432",
+      "email": "khach02@example.com"
     },
     {
       "id": 33,
