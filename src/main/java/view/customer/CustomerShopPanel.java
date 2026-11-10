@@ -1,10 +1,8 @@
 package view.customer;
-
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -23,14 +21,11 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
-
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import view.layout.NotificationDialog;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -42,16 +37,15 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
-
 import model.Drink;
 import model.OrderDetail;
 import model.User;
 import service.DrinkService;
 import service.OrderService;
 import view.layout.DataSync;
+import view.layout.NotificationDialog;
 import view.layout.RefreshablePanel;
 import view.layout.UITheme;
-
 public class CustomerShopPanel extends JPanel implements RefreshablePanel {
     private final User user;
     private final boolean staffTakeaway;

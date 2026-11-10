@@ -164,6 +164,18 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
             List<Order> orders = "CUSTOMER".equalsIgnoreCase(user.getRole())
                     ? orderService.getForUser(user.getId())
                     : orderService.getAll();
+            Map<Integer, String> orderEmployeeNames = new java.util.HashMap<>();
+            if (orders.stream().anyMatch(order -> "TAKEAWAY".equalsIgnoreCase(order.getOrderType()))) {
+                try {
+                    for (User employee : userService.getAll()) {
+                        if (employee.getFullName() != null && !employee.getFullName().isBlank()) {
+                            orderEmployeeNames.put(employee.getId(), employee.getFullName().trim());
+                        }
+                    }
+                } catch (Exception ignored) {
+                    // Keep the order list usable if the optional employee-name lookup fails.
+                }
+            }
             orders.sort(Comparator
                     .comparingInt((Order order) -> {
                         String status = order.getStatus() == null ? "" : order.getStatus().toUpperCase(Locale.ROOT);
@@ -199,7 +211,9 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
             for (Order order : orders) {
                 model.addRow(new Object[] {
                         order.getId(),
-                        "TAKEAWAY".equalsIgnoreCase(order.getOrderType()) ? "Nhân viên Order" : "TẠI BÀN",
+                        "TAKEAWAY".equalsIgnoreCase(order.getOrderType())
+                                ? orderEmployeeNames.getOrDefault(order.getCreatedByUserId(), "Nhân viên") + " ORDER"
+                                : "TẠI BÀN",
                         valueOrDash(order.getCustomerName()),
                         order.getTableId() == null ? "-" : String.format("%02d", order.getTableId()),
                         currency.format(order.getTotal()) + " đ",

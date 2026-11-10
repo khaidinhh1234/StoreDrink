@@ -1,5 +1,4 @@
 package view.customer;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -11,29 +10,24 @@ import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.text.NumberFormat;
 import java.util.List;
-import java.util.Locale;
-
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import view.layout.NotificationDialog;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
-
 import model.Drink;
 import service.DrinkService;
 import view.layout.DataSync;
+import view.layout.NotificationDialog;
 import view.layout.RefreshablePanel;
 import view.layout.UITheme;
-
 public class CustomerDrinkPanel extends JPanel implements RefreshablePanel {
     private final DrinkService service = new DrinkService();
     private final JPanel grid = new JPanel(new GridLayout(0, 4, 14, 14));
     private final NumberFormat currency = UITheme.newVndFormatter();
     private final JLabel cartCount = new JLabel();
-
     public CustomerDrinkPanel() {
         setLayout(new BorderLayout(12, 12));
         setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));

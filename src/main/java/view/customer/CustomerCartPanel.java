@@ -1,21 +1,23 @@
 package view.customer;
-
-import view.layout.NotificationDialog;
-
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.text.NumberFormat;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import model.OrderDetail;
 import model.User;
 import service.DrinkService;
 import service.OrderService;
+import view.layout.NotificationDialog;
 import view.layout.UITheme;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.text.NumberFormat;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 public class CustomerCartPanel extends JPanel {
     private final User user;
     private final DefaultTableModel model = new DefaultTableModel(

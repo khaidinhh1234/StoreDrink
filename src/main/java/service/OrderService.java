@@ -34,6 +34,7 @@ public class OrderService {
     private static final Duration DUPLICATE_WINDOW = Duration.ofSeconds(30);
     private static final Duration PENDING_TIMEOUT = Duration.ofMinutes(30);
     private static volatile ScheduledExecutorService expiryMonitor;
+    private final PaymentService paymentService = new PaymentService();
 
     public List<Order> getAll() throws Exception {
         String json = ApiClient.get("/orders");
@@ -172,6 +173,7 @@ public class OrderService {
                             && persisted.getCompletedBy() != null
                             && persisted.getCompletedBy() == actor.getId()
                             && paymentMethod.equalsIgnoreCase(persisted.getPaymentMethod())) {
+                        paymentService.recordCompletedOrder(persisted);
                         copyStatus(persisted, staleOrder);
                         return;
                     }
@@ -180,6 +182,9 @@ public class OrderService {
                 }
                 throw exception;
             }
+            // Payment history is stored separately. This write is idempotent by orderId,
+            // so a retry after an interrupted response will not create a duplicate.
+            paymentService.recordCompletedOrder(current);
             copyStatus(current, staleOrder);
         }
     }

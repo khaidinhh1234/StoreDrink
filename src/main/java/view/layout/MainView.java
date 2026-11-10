@@ -11,6 +11,7 @@ import view.customer.CustomerShopPanel;
 import view.staff.DashboardPanel;
 import view.staff.DrinkPanel;
 import view.staff.OrderPanel;
+import view.staff.PaymentHistoryPanel;
 import service.OrderService;
 import javax.swing.*;
 import java.awt.*;
@@ -51,6 +52,7 @@ public class MainView extends JFrame {
                 }
                 if (staff || admin) {
                         contentPanel.add(new OrderPanel(user), "ORDER");
+                        contentPanel.add(new PaymentHistoryPanel(user), "PAYMENT_HISTORY");
                 }
                 if (admin) {
                         contentPanel.add(new DrinkPanel(), "DRINK");
@@ -130,6 +132,7 @@ public class MainView extends JFrame {
                 JButton employeeButton = createMenuButton("  Nhân viên");
                 JButton tableButton = createMenuButton("  Bàn");
                 JButton orderButton = createMenuButton("  Đơn hàng");
+                JButton paymentHistoryButton = createMenuButton("  Lịch sử thanh toán");
                 JButton counterOrderButton = createMenuButton("  Tạo đơn tại quầy");
                 JButton cartButton = createMenuButton("  Giỏ hàng");
 
@@ -139,6 +142,7 @@ public class MainView extends JFrame {
                 menuPanel.add(employeeButton);
                 menuPanel.add(tableButton);
                 menuPanel.add(orderButton);
+                menuPanel.add(paymentHistoryButton);
                 menuPanel.add(counterOrderButton);
                 menuPanel.add(cartButton);
 
@@ -146,6 +150,7 @@ public class MainView extends JFrame {
                         customerButton.setVisible(false);
                         dashboardButton.setText("  Trang chủ");
                         orderButton.setVisible(false);
+                        paymentHistoryButton.setVisible(false);
                         counterOrderButton.setVisible(false);
                         employeeButton.setVisible(false);
                         tableButton.setVisible(false);
@@ -158,10 +163,12 @@ public class MainView extends JFrame {
                         employeeButton.setVisible(false);
                         tableButton.setVisible(false);
                         counterOrderButton.setVisible(true);
+                        paymentHistoryButton.setVisible(true);
                         cartButton.setVisible(false);
                 } else if ("ADMIN".equalsIgnoreCase(user.getRole())) {
                         customerButton.setVisible(false);
                         orderButton.setVisible(true);
+                        paymentHistoryButton.setVisible(true);
                         counterOrderButton.setVisible(false);
                         cartButton.setVisible(false);
                 }
@@ -198,6 +205,7 @@ public class MainView extends JFrame {
                 tableButton.addActionListener(e -> showPage("TABLE"));
 
                 orderButton.addActionListener(e -> showPage("ORDER"));
+                paymentHistoryButton.addActionListener(e -> showPage("PAYMENT_HISTORY"));
                 counterOrderButton.addActionListener(e -> showPage(COUNTER_ORDER));
                 cartButton.addActionListener(e -> {
                         customerCartPanel.refresh();
