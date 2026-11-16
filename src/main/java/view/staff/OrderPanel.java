@@ -23,14 +23,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Locale;
-import java.awt.print.PrinterException;
-import java.awt.print.PrinterJob;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
-import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 
 public class OrderPanel extends JPanel implements RefreshablePanel {
@@ -41,10 +36,7 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
     private final DefaultTableModel model;
     private final JTable table;
     private final NumberFormat currency = UITheme.newVndFormatter();
-    private final JLabel notification = new JLabel();
     private final JProgressBar progress = new JProgressBar(0, 3);
-    private final Set<Integer> alertedOverdueOrderIds = new HashSet<>();
-    private final Map<Integer, Timer> overdueAlertTimers = new java.util.HashMap<>();
     private Order selectedOrder;
 
     public OrderPanel(User user) {
@@ -57,12 +49,9 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
         title.setForeground(UITheme.TEXT);
         title.setFont(new Font("Segoe UI", Font.BOLD, 24));
         title.setBorder(BorderFactory.createEmptyBorder(24, 28, 12, 28));
-        notification.setForeground(UITheme.DANGER);
-        notification.setBorder(BorderFactory.createEmptyBorder(0, 20, 8, 20));
         JPanel heading = new JPanel(new BorderLayout());
         heading.setOpaque(false);
-        heading.add(title, BorderLayout.NORTH);
-        heading.add(notification, BorderLayout.SOUTH);
+        heading.add(title, BorderLayout.CENTER);
         add(heading, BorderLayout.NORTH);
 
         model = new DefaultTableModel(
@@ -98,12 +87,7 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                 if (event.getClickCount() != 1 || row < 0) {
                     return;
                 }
-                if (column == 5 && "STAFF".equalsIgnoreCase(user.getRole())
-                        && "PENDING".equalsIgnoreCase(statusCode(
-                        String.valueOf(model.getValueAt(row, column))))) {
-                    selectOrderRow(row);
-                    updateSelectedStatus();
-                } else if (column == 7) {
+                if (column == 7) {
                     Rectangle cell = table.getCellRect(row, column, true);
                     int localX = event.getX() - cell.x;
                     List<String> actions = actionLabels(statusCode(
@@ -126,9 +110,7 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                 int column = table.columnAtPoint(event.getPoint());
                 boolean staff = "STAFF".equalsIgnoreCase(user.getRole());
                 boolean hasRowActions = staff || "ADMIN".equalsIgnoreCase(user.getRole());
-                boolean clickable = row >= 0 && ((column == 7 && hasRowActions)
-                        || (column == 5 && staff && "PENDING".equalsIgnoreCase(statusCode(
-                        String.valueOf(model.getValueAt(row, 5))))));
+                boolean clickable = row >= 0 && column == 7 && hasRowActions;
                 table.setCursor(Cursor.getPredefinedCursor(
                         clickable ? Cursor.HAND_CURSOR : Cursor.DEFAULT_CURSOR));
             }
@@ -161,9 +143,14 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
 
     private void loadOrders() {
         try {
+            if ("STAFF".equalsIgnoreCase(user.getRole())) recoverPaidCounterOrders();
             List<Order> orders = "CUSTOMER".equalsIgnoreCase(user.getRole())
                     ? orderService.getForUser(user.getId())
                     : orderService.getAll();
+            orders = orders.stream().filter(order -> {
+                String status = order.getStatus() == null ? "" : order.getStatus().toUpperCase(Locale.ROOT);
+                return "CONFIRMED".equals(status) || "COMPLETED".equals(status) || "CANCELLED".equals(status);
+            }).collect(Collectors.toCollection(ArrayList::new));
             Map<Integer, String> orderEmployeeNames = new java.util.HashMap<>();
             if (orders.stream().anyMatch(order -> "TAKEAWAY".equalsIgnoreCase(order.getOrderType()))) {
                 try {
@@ -180,32 +167,13 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                     .comparingInt((Order order) -> {
                         String status = order.getStatus() == null ? "" : order.getStatus().toUpperCase(Locale.ROOT);
                         return switch (status) {
-                            case "PENDING" -> 0;
-                            case "CONFIRMED" -> 1;
+                            case "CONFIRMED" -> 0;
+                            case "COMPLETED" -> 1;
                             default -> 2;
                         };
                     })
                     .thenComparing(Order::getCreatedAt,
                             Comparator.nullsFirst(Comparator.reverseOrder())));
-            List<Order> pendingOrders = orders.stream()
-                    .filter(order -> "PENDING".equalsIgnoreCase(order.getStatus()))
-                    .toList();
-            int pendingCount = pendingOrders.size();
-            List<Order> overdueOrders = pendingOrders.stream().filter(this::hasWaitedFiveMinutes).toList();
-            Set<Integer> currentlyOverdueIds = new HashSet<>();
-            for (Order order : overdueOrders) {
-                currentlyOverdueIds.add(order.getId());
-            }
-            alertedOverdueOrderIds.retainAll(currentlyOverdueIds);
-            scheduleOverdueAlerts(pendingOrders, currentlyOverdueIds);
-            List<Order> newlyOverdue = overdueOrders.stream()
-                    .filter(order -> !alertedOverdueOrderIds.contains(order.getId())).toList();
-            if (pendingCount > 0) {
-                notification.setText("Có " + pendingCount + " order đang chờ duyệt");
-                notification.setForeground(UITheme.MUTED);
-            } else {
-                notification.setText("");
-            }
             Integer selectedId = selectedOrder == null ? null : selectedOrder.getId();
             model.setRowCount(0);
             for (Order order : orders) {
@@ -230,10 +198,6 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                     }
                 }
             }
-            if (isShowing() && !newlyOverdue.isEmpty()) {
-                newlyOverdue.forEach(order -> alertedOverdueOrderIds.add(order.getId()));
-                showOverdueAlert(newlyOverdue);
-            }
         } catch (Exception exception) {
             exception.printStackTrace();
             NotificationDialog.showMessageDialog(this, "Không tải được danh sách đơn hàng: "
@@ -241,123 +205,44 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
         }
     }
 
-    private void showOverdueAlert(List<Order> orders) {
-        String orderIds = orders.stream().map(order -> "#" + order.getId())
-                .collect(Collectors.joining(", "));
-        String message = orders.size() + " đơn hàng đã chờ duyệt quá 5 phút: " + orderIds
-                + "\nVui lòng kiểm tra và xử lý. Đơn sẽ tự hủy sau 30 phút nếu chưa được duyệt.";
-        NotificationDialog.showMessageDialog(this, message, "Cảnh báo đơn chờ duyệt",
-                NotificationDialog.WARNING_MESSAGE);
-    }
-
-    private void scheduleOverdueAlerts(List<Order> pendingOrders, Set<Integer> overdueIds) {
-        Set<Integer> pendingIds = new HashSet<>();
-        for (Order order : pendingOrders) pendingIds.add(order.getId());
-        overdueAlertTimers.entrySet().removeIf(entry -> {
-            if (!pendingIds.contains(entry.getKey()) || overdueIds.contains(entry.getKey())) {
-                entry.getValue().stop();
-                return true;
-            }
-            return false;
-        });
-        for (Order order : pendingOrders) {
-            if (overdueIds.contains(order.getId()) || overdueAlertTimers.containsKey(order.getId())) continue;
-            try {
-                LocalDateTime createdAt = LocalDateTime.parse(order.getCreatedAt());
-                long remainingMs = Duration.between(LocalDateTime.now(), createdAt.plusMinutes(5)).toMillis();
-                int delay = (int) Math.max(1, Math.min(Integer.MAX_VALUE, remainingMs));
-                Timer timer = new Timer(delay, event -> {
-                    overdueAlertTimers.remove(order.getId());
-                    loadOrders();
-                });
-                timer.setRepeats(false);
-                overdueAlertTimers.put(order.getId(), timer);
-                timer.start();
-            } catch (RuntimeException ignored) {
-                // Ignore legacy records with an unrecognized creation time.
-            }
-        }
-    }
-
-    private boolean hasWaitedFiveMinutes(Order order) {
-        if (order.getCreatedAt() == null || order.getCreatedAt().isBlank()) return false;
+    /** Finishes a staff-created counter order after a saved payment if the app was interrupted. */
+    private void recoverPaidCounterOrders() {
         try {
-            return Duration.between(LocalDateTime.parse(order.getCreatedAt()), LocalDateTime.now())
-                    .compareTo(Duration.ofMinutes(5)) >= 0;
-        } catch (RuntimeException ignored) {
-            return false;
-        }
-    }
-
-    private void updateSelectedStatus() {
-        if (!"STAFF".equalsIgnoreCase(user.getRole())) {
-            return;
-        }
-
-        if (!ensureSelectedOrder()) {
-            return;
-        }
-
-        String current = selectedOrder.getStatus() == null
-                ? "PENDING"
-                : selectedOrder.getStatus().toUpperCase(Locale.ROOT);
-
-        // Chỉ cho phép đúng luồng nghiệp vụ:
-        // PENDING -> CONFIRMED hoặc CANCELLED
-        // CONFIRMED -> CANCELLED
-        // COMPLETED/CANCELLED -> không đổi bằng nút này.
-        String[] statusLabels;
-
-        switch (current) {
-            case "PENDING" -> statusLabels = new String[] {
-                    "Duyệt đơn",
-                    "Hủy đơn"
-            };
-            case "CONFIRMED" -> statusLabels = new String[] {
-                    "Hủy đơn"
-            };
-            case "COMPLETED", "CANCELLED" -> {
-                NotificationDialog.showMessageDialog(
-                        this,
-                        "Đơn này đã " + statusLabel(current) + ". Không thể cập nhật trạng thái bằng nút này.",
-                        "Không thể cập nhật",
-                        NotificationDialog.INFORMATION_MESSAGE);
-                return;
+            List<Order> processing = orderService.getAll().stream()
+                    .filter(order -> "PAYMENT_PROCESSING".equalsIgnoreCase(order.getStatus())
+                            && order.getSourceCheckoutRequestId() == null)
+                    .toList();
+            List<model.Payment> payments = new service.PaymentService().getAll();
+            for (Order order : processing) {
+                boolean paid = payments.stream().anyMatch(payment -> payment.getOrderId() == order.getId()
+                        && "SUCCESS".equalsIgnoreCase(payment.getStatus()));
+                if (paid) orderService.confirmCashierOrder(order.getId(), user, null);
             }
-            default -> {
-                NotificationDialog.showMessageDialog(
-                        this,
-                        "Trạng thái đơn không hợp lệ: " + current,
-                        "Lỗi dữ liệu",
-                        NotificationDialog.ERROR_MESSAGE);
-                return;
-            }
+        } catch (Exception recoveryFailure) {
+            // Keep the order screen usable; a cashier can retry after restoring API connectivity.
+            recoveryFailure.printStackTrace();
         }
-
-        String choice = (String) NotificationDialog.showInputDialog(
-                this,
-                "Thao tác với đơn #" + selectedOrder.getId() + ":",
-                "Xử lý đơn hàng",
-                NotificationDialog.PLAIN_MESSAGE,
-                null,
-                statusLabels,
-                statusLabels[0]);
-
-        if (choice == null) {
-            return;
-        }
-        String newStatus = "Duyệt đơn".equals(choice) ? "CONFIRMED" : "CANCELLED";
-        processSelectedStatus(newStatus);
     }
 
     private void processSelectedStatus(String newStatus) {
         if (!"STAFF".equalsIgnoreCase(user.getRole())) return;
+        if (!"CANCELLED".equalsIgnoreCase(newStatus)) return;
         if (!ensureSelectedOrder()) return;
         int orderId = selectedOrder.getId();
         String cancelReason = null;
         if ("CANCELLED".equals(newStatus)) {
+            boolean paidConfirmed="CONFIRMED".equalsIgnoreCase(selectedOrder.getStatus());
+            boolean refundAlreadyRecorded = false;
+            if (paidConfirmed) {
+                try { refundAlreadyRecorded = new service.PaymentService().hasFullOrderRefund(orderId); }
+                catch (Exception exception) { showError("Không kiểm tra được lịch sử hoàn tiền", exception); return; }
+            }
             cancelReason = NotificationDialog.showInputDialog(this,
-                    "Nhập lý do hủy đơn #" + orderId + ":", "Lý do hủy đơn", NotificationDialog.QUESTION_MESSAGE);
+                    "Nhập lý do hủy đơn #" + orderId + ":"
+                            + (paidConfirmed ? refundAlreadyRecorded
+                                    ? "\nKhoản hoàn tiền đã được ghi nhận. Không hoàn thêm lần nữa."
+                                    : "\nChỉ tiếp tục nếu đã thực sự trả tiền cho khách." : ""),
+                    paidConfirmed ? "Hủy và hoàn tiền" : "Lý do hủy đơn", NotificationDialog.QUESTION_MESSAGE);
             if (cancelReason == null) return;
             if (cancelReason.isBlank()) {
                 NotificationDialog.showMessageDialog(this, "Vui lòng nhập lý do hủy đơn.",
@@ -365,34 +250,22 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                 return;
             }
             if (NotificationDialog.showConfirmDialog(this,
-                    "Xác nhận hủy đơn #" + orderId + " với lý do: " + cancelReason.trim(),
-                    "Xác nhận hủy đơn", NotificationDialog.YES_NO_OPTION,
+                    (paidConfirmed ? refundAlreadyRecorded
+                            ? "Khoản hoàn tiền đã có trong lịch sử. Tiếp tục hủy đơn mà không hoàn thêm.\n"
+                            : "Xác nhận đã hoàn tiền " + String.format("%,.0f đ", selectedOrder.getTotal())
+                                    + " qua " + selectedOrder.getPaymentMethod() + " cho khách.\n" : "")
+                            + "Xác nhận hủy đơn #" + orderId + " với lý do: " + cancelReason.trim(),
+                    paidConfirmed?"Xác nhận hoàn tiền":"Xác nhận hủy đơn", NotificationDialog.YES_NO_OPTION,
                     NotificationDialog.WARNING_MESSAGE) != NotificationDialog.YES_OPTION) return;
         }
-        boolean stockWillBeReturned = "CANCELLED".equals(newStatus)
-                && Boolean.TRUE.equals(selectedOrder.getStockDeducted());
-
         try {
             orderService.updateStatus(selectedOrder, newStatus, user, cancelReason);
             selectedOrder.setStatus(newStatus);
             loadOrders();
             updateProgress();
 
-            if ("CONFIRMED".equals(newStatus)) {
-                NotificationDialog.showMessageDialog(
-                        this,
-                        "Đã duyệt đơn, chuyển sang pha chế và trừ số lượng trong kho.");
-            } else {
-                NotificationDialog.showMessageDialog(
-                        this,
-                        "Đã hủy đơn #" + orderId
-                                + (stockWillBeReturned ? ". Số lượng đã trừ được hoàn lại kho."
-                                : ". Đơn đang chờ duyệt nên không có hàng cần hoàn kho."));
-            }
-        } catch (OrderService.OrderExpiredException expired) {
-            loadOrders();
-            NotificationDialog.showMessageDialog(this, expired.getMessage(),
-                    "Đơn đã hết hạn", NotificationDialog.INFORMATION_MESSAGE);
+            NotificationDialog.showMessageDialog(this,
+                    "Đã hủy đơn #" + orderId + ". Hệ thống đã ghi nhận hoàn tiền và hoàn kho (nếu kho đã bị trừ)." );
         } catch (Exception exception) {
             loadOrders();
             showError("Không thể cập nhật đơn hàng", exception);
@@ -425,9 +298,8 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
         }
 
         int value = switch (selectedOrder.getStatus() == null
-                ? "PENDING"
+                ? ""
                 : selectedOrder.getStatus().toUpperCase(Locale.ROOT)) {
-            case "PENDING" -> 0;
             case "CONFIRMED" -> 1;
             case "COMPLETED" -> 3;
             case "CANCELLED" -> 0;
@@ -442,10 +314,10 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
         if (!"STAFF".equalsIgnoreCase(user.getRole())) return;
         if (!ensureSelectedOrder())
             return;
-        if (!"PENDING".equalsIgnoreCase(selectedOrder.getStatus())) {
+        if (!"CONFIRMED".equalsIgnoreCase(selectedOrder.getStatus())) {
             NotificationDialog.showMessageDialog(
                     this,
-                    "Đơn đã được duyệt nên không thể sửa order. Chỉ có thể thanh toán.");
+                    "Chỉ đơn đã duyệt, đang pha chế mới được sửa.");
             return;
         }
         try {
@@ -469,14 +341,13 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
         if ("ADMIN".equalsIgnoreCase(user.getRole())) {
             return switch (status == null ? "" : status.toUpperCase(Locale.ROOT)) {
                 case "CANCELLED" -> List.of("Chi tiết", "Lý do hủy");
-                case "PENDING", "CONFIRMED" -> List.of("Chi tiết");
-                case "COMPLETED" -> List.of("Chi tiết", "In hóa đơn");
+                case "CONFIRMED" -> List.of("Chi tiết");
+                case "COMPLETED" -> List.of("Chi tiết");
                 default -> List.of();
             };
         }
         return switch (status == null ? "" : status.toUpperCase(Locale.ROOT)) {
-            case "PENDING" -> List.of("Duyệt đơn", "Sửa order", "Hủy đơn");
-            case "CONFIRMED" -> List.of("Thanh toán", "Hủy đơn");
+            case "CONFIRMED" -> List.of("Sửa món", "In bill", "Hoàn tất đơn", "Hủy & hoàn tiền");
             case "COMPLETED" -> List.of("Chi tiết", "In hóa đơn");
             case "CANCELLED" -> List.of("Chi tiết", "Lý do hủy");
             default -> List.of();
@@ -492,10 +363,11 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
 
     private void performRowAction(String action) {
         switch (action) {
-            case "Duyệt đơn" -> processSelectedStatus("CONFIRMED");
-            case "Hủy đơn" -> processSelectedStatus("CANCELLED");
             case "Sửa order" -> editSelectedOrder();
-            case "Thanh toán" -> completeSelectedOrder();
+            case "Sửa món" -> editSelectedOrder();
+            case "Hoàn tất đơn" -> completePreparationOrder();
+            case "Hủy & hoàn tiền" -> processSelectedStatus("CANCELLED");
+            case "In bill" -> printSelectedInvoice();
             case "Chi tiết" -> showOrderDetails();
             case "Lý do hủy" -> showCancelReason();
             case "In hóa đơn" -> printSelectedInvoice();
@@ -561,10 +433,11 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
             for (String label : labels) {
                 JButton actionButton = new JButton(label);
                 UITheme.Action action = switch (label) {
-                    case "Duyệt đơn" -> UITheme.Action.CONFIRM;
                     case "Sửa order" -> UITheme.Action.EDIT;
-                    case "Thanh toán" -> UITheme.Action.PAYMENT;
-                    case "Hủy đơn" -> UITheme.Action.DESTRUCTIVE;
+                    case "Hoàn tất đơn" -> UITheme.Action.PAYMENT;
+                    case "Hủy & hoàn tiền" -> UITheme.Action.DESTRUCTIVE;
+                    case "Sửa món" -> UITheme.Action.EDIT;
+                    case "In bill" -> UITheme.Action.PRINT;
                     case "In hóa đơn" -> UITheme.Action.PRINT;
                     default -> UITheme.Action.NEUTRAL;
                 };
@@ -599,7 +472,7 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
         dialog.setContentPane(editorContent);
 
         DefaultTableModel detailModel = new DefaultTableModel(
-                new Object[] { "Đồ uống", "Đơn giá", "Số lượng", "Thành tiền" }, 0) {
+                new Object[] { "Đồ uống / tùy chọn", "Đơn giá", "Số lượng", "Thành tiền", "Tùy chỉnh" }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -631,11 +504,14 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                         ? "Đồ uống #" + detail.getDrinkId()
                         : drink.getName();
 
+                StringBuilder label=new StringBuilder(drinkName).append(" · Size ").append(detail.getSize()==null?"S":detail.getSize());
+                if(detail.getToppings()!=null&&!detail.getToppings().isEmpty())label.append(" · ").append(detail.getToppings().stream().map(t->t.name).collect(java.util.stream.Collectors.joining(", ")));
+                if(detail.getNote()!=null&&!detail.getNote().isBlank())label.append(" · ").append(detail.getNote());
                 detailModel.addRow(new Object[] {
-                        drinkName,
+                        label.toString(),
                         currency.format(detail.getPrice()) + " đ",
                         detail.getQuantity(),
-                        currency.format(detail.getSubtotal()) + " đ"
+                        currency.format(detail.getSubtotal()) + " đ", "Tùy chỉnh"
                 });
             }
         };
@@ -692,11 +568,16 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
 
         detailTable.getColumnModel().getColumn(2).setPreferredWidth(150);
         detailTable.getColumnModel().getColumn(2).setCellRenderer(new QuantityCellRenderer());
+        detailTable.getColumnModel().getColumn(4).setPreferredWidth(105);
+        detailTable.getColumnModel().getColumn(4).setCellRenderer(new javax.swing.table.DefaultTableCellRenderer(){
+            {setHorizontalAlignment(SwingConstants.CENTER);setForeground(UITheme.PRIMARY);setFont(new Font("Segoe UI",Font.BOLD,12));}
+        });
         detailTable.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent event) {
                 int row = detailTable.rowAtPoint(event.getPoint());
                 int column = detailTable.columnAtPoint(event.getPoint());
+                if(row>=0&&column==4){OrderDetail target=details.get(row);Drink chosen=drinkMap.get(target.getDrinkId());if(chosen!=null){OrderDetail edited=customizeOrderLine(dialog,chosen,target);if(edited!=null){details.set(row,edited);reload.run();}}return;}
                 if (row < 0 || column != 2) {
                     return;
                 }
@@ -768,12 +649,9 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                 }
 
                 // Kiểm tra món đã có trong order chưa
-                OrderDetail existing = details.stream()
-                        .filter(item -> item.getDrinkId() == drink.getId())
-                        .findFirst()
-                        .orElse(null);
+                boolean alreadyInOrder = details.stream().anyMatch(item -> item.getDrinkId() == drink.getId());
 
-                if (existing == null && !drink.isActive()) {
+                if (!alreadyInOrder && !drink.isActive()) {
                     NotificationDialog.showMessageDialog(dialog,
                             drink.getName() + " đã ngừng bán và không thể thêm vào order mới.",
                             "Đồ uống đã ngừng bán", NotificationDialog.INFORMATION_MESSAGE);
@@ -788,27 +666,11 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                     return;
                 }
 
-                if (existing == null) {
-
-                    // QUAN TRỌNG:
-                    // Dùng editingOrder thay selectedOrder
-                    details.add(
-                            new OrderDetail(
-                                    0,
-                                    editingOrder.getId(),
-                                    drink.getId(),
-                                    quantity,
-                                    drink.getPrice()));
-
-                } else {
-
-                    // Nếu món đã tồn tại -> cộng thêm số lượng
-                    existing.setQuantity(
-                            existing.getQuantity() + quantity);
-
-                    // Giữ nguyên giá đã chốt lúc món được thêm vào order.
-                    existing.setSubtotal(existing.getQuantity() * existing.getPrice());
-                }
+                OrderDetail configured=customizeOrderLine(dialog,drink,null);
+                if(configured==null)return;
+                configured.setOrderId(editingOrder.getId());configured.setQuantity(quantity);configured.setSubtotal(configured.getPrice()*quantity);
+                OrderDetail identical=details.stream().filter(line->sameOrderLine(line,configured)).findFirst().orElse(null);
+                if(identical==null)details.add(configured);else{identical.setQuantity(identical.getQuantity()+quantity);identical.setSubtotal(identical.getPrice()*identical.getQuantity());}
 
                 reload.run();
 
@@ -859,15 +721,50 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
 
                     details.get(row).setQuantity(quantity);
                 }
-                orderService.saveOrderDetails(editingOrder.getId(), details, user);
+                double revisedTotal=details.stream().mapToDouble(d->d.getPrice()*d.getQuantity()).sum();
+                double delta=revisedTotal-editingOrder.getTotal();
+                orderService.validateOrderDetailsStock(editingOrder.getId(), details, user);
+                boolean adjustmentConfirmed=false;
+                String adjustmentReason=null;
+                if("CONFIRMED".equalsIgnoreCase(editingOrder.getStatus())&&Math.abs(delta)>0.0001){
+                    boolean refund=delta<0;
+                    String amount=currency.format(Math.abs(delta))+" đ";
+                    String instruction=refund
+                            ?"Chênh lệch giảm "+amount+". Hãy hoàn khoản này cho khách trước khi chọn thành công."
+                            :"Chênh lệch tăng "+amount+". Hãy thu thêm khoản này từ khách trước khi chọn thành công.";
+                    Object[] outcomes={refund?"Hoàn tiền thành công":"Thanh toán thành công",
+                            refund?"Hoàn tiền thất bại":"Thanh toán thất bại","Hủy"};
+                    int result=JOptionPane.showOptionDialog(dialog,instruction,
+                            refund?"Hoàn tiền phần chênh lệch":"Thu thêm phần chênh lệch",
+                            JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,outcomes,outcomes[0]);
+                    if(result!=0){
+                        dialog.dispose();
+                        loadOrders();
+                        NotificationDialog.showMessageDialog(this,
+                                result==1?"Giao dịch chênh lệch thất bại. Thay đổi món không được lưu; order giữ nguyên."
+                                        :"Đã hủy xử lý chênh lệch. Thay đổi món không được lưu; order giữ nguyên.",
+                                "Không xác nhận thay đổi",NotificationDialog.INFORMATION_MESSAGE);
+                        return;
+                    }
+                    adjustmentConfirmed=true;
+                    adjustmentReason=(refund?"Hoàn tiền":"Thu thêm")
+                            +" phần chênh lệch khi sửa món đơn #"+editingOrder.getId();
+                }
+                orderService.saveOrderDetails(editingOrder.getId(), details, user,
+                        adjustmentConfirmed ? delta : null, adjustmentReason);
 
                 dialog.dispose();
 
                 loadOrders();
 
-                NotificationDialog.showMessageDialog(
-                        this,
-                        "Đã lưu danh sách món trong order.");
+                String savedMessage = !adjustmentConfirmed
+                        ? "Đã lưu danh sách món trong order."
+                        : delta < 0
+                                ? "Đã lưu món, hoàn tiền " + currency.format(Math.abs(delta))
+                                        + " đ và ghi vào lịch sử thanh toán."
+                                : "Đã lưu món, thu thêm " + currency.format(delta)
+                                        + " đ và ghi vào lịch sử thanh toán.";
+                NotificationDialog.showMessageDialog(this, savedMessage);
 
             } catch (NumberFormatException exception) {
 
@@ -915,41 +812,61 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
         dialog.setVisible(true);
     }
 
-    private void completeSelectedOrder() {
-        if (!"STAFF".equalsIgnoreCase(user.getRole())) return;
-        if (!ensureSelectedOrder())
-            return;
-        if (!"CONFIRMED".equalsIgnoreCase(selectedOrder.getStatus())) {
-            NotificationDialog.showMessageDialog(this,
-                    "Chỉ đơn đã xác nhận mới được thanh toán.",
-                    "Chưa thể thanh toán", NotificationDialog.INFORMATION_MESSAGE);
-            return;
-        }
+    private OrderDetail customizeOrderLine(Component owner, Drink drink, OrderDetail original) {
         try {
-            List<OrderDetail> details = orderService.getDetails(selectedOrder.getId());
-            Map<Integer, Drink> drinks = new java.util.HashMap<>();
-            for (Drink drink : drinkService.getAll()) drinks.put(drink.getId(), drink);
-            Map<Integer, String> customers = new java.util.HashMap<>();
-            for (User employee : userService.getAll()) customers.put(employee.getId(), employee.getFullName());
-            String paymentLabel = NotificationDialog.showPayment(this, selectedOrder, details,
-                    drinks, user, customers, currency);
-            if (paymentLabel == null) return;
-            orderService.completePayment(selectedOrder,
-                    "Tiền mặt".equals(paymentLabel) ? "CASH" : "TRANSFER", user);
-            loadOrders();
-            updateProgress();
-            NotificationDialog.showMessageDialog(this,
-                    "Thanh toán thành công. Đơn hàng đã chuyển sang trạng thái hoàn thành.");
-            int print = NotificationDialog.showConfirmDialog(this,
-                    "Thanh toán thành công. Bạn có muốn in hóa đơn không?",
-                    "In hóa đơn", NotificationDialog.YES_NO_OPTION);
-            if (print == NotificationDialog.YES_OPTION) {
-                printSelectedInvoice();
+            List<Drink.SizeOption> sizeOptions=new ArrayList<>(drink.getAvailableSizes().stream().limit(3).toList());
+            if(original!=null&&sizeOptions.stream().noneMatch(option->option.getName().equalsIgnoreCase(original.getSize())))
+                sizeOptions.add(new Drink.SizeOption(original.getSize(),drink.getPrice()+original.getSizeExtraPrice()));
+            JComboBox<Drink.SizeOption> size=new JComboBox<>(sizeOptions.toArray(Drink.SizeOption[]::new));
+            if(original!=null)for(Drink.SizeOption option:sizeOptions)if(option.getName().equalsIgnoreCase(original.getSize()))size.setSelectedItem(option);
+
+            List<model.Topping> options=new ArrayList<>(new service.ToppingService().getForDrink(drink.getId()));
+            if(options.size()>3)options=new ArrayList<>(options.subList(0,3));
+            if(original!=null&&original.getToppings()!=null)for(OrderDetail.ToppingSnapshot snapshot:original.getToppings()){
+                if(options.stream().noneMatch(option->option.getId()==snapshot.toppingId)){
+                    if(options.size()>=3){
+                        int replaceIndex=-1;
+                        for(int index=options.size()-1;index>=0;index--){
+                            int candidateId=options.get(index).getId();
+                            boolean historical=original.getToppings().stream().anyMatch(topping->topping.toppingId==candidateId);
+                            if(!historical){replaceIndex=index;break;}
+                        }
+                        if(replaceIndex>=0)options.remove(replaceIndex);
+                    }
+                    if(options.size()<3){model.Topping old=new model.Topping(snapshot.name,snapshot.price);old.setId(snapshot.toppingId);options.add(old);}
+                }
             }
-        } catch (Exception exception) {
-            loadOrders();
-            showError("Không thể hoàn tất đơn hàng", exception);
-        }
+            JPanel toppingPanel=new JPanel(new GridLayout(0,2,6,6));List<JCheckBox> checks=new ArrayList<>();
+            for(model.Topping topping:options){JCheckBox check=new JCheckBox(topping.getName()+" (+"+currency.format(topping.getPrice())+" đ)");check.putClientProperty("topping",topping);
+                if(original!=null&&original.getToppings()!=null&&original.getToppings().stream().anyMatch(t->t.toppingId==topping.getId()))check.setSelected(true);
+                checks.add(check);toppingPanel.add(check);}
+            if(options.isEmpty())toppingPanel.add(new JLabel("Chưa cấu hình topping cho món này."));
+            JTextField note=new JTextField(original==null?"":original.getNote()==null?"":original.getNote(),25);
+            JLabel priceLabel=new JLabel();priceLabel.setFont(new Font("Segoe UI",Font.BOLD,16));priceLabel.setForeground(UITheme.SUCCESS);
+            Runnable refreshPrice=()->{Drink.SizeOption selected=(Drink.SizeOption)size.getSelectedItem();double unit=selected==null?drink.getPrice():selected.getPrice();for(JCheckBox check:checks)if(check.isSelected())unit+=((model.Topping)check.getClientProperty("topping")).getPrice();priceLabel.setText("Đơn giá mới: "+currency.format(unit)+" đ");};
+            size.addActionListener(e->refreshPrice.run());for(JCheckBox check:checks)check.addActionListener(e->refreshPrice.run());refreshPrice.run();
+            JPanel form=new JPanel(new BorderLayout(8,8));form.add(new JLabel("Tùy chỉnh: "+drink.getName()),BorderLayout.NORTH);JPanel center=new JPanel(new GridLayout(0,1,5,5));center.add(new JLabel("Chọn size"));center.add(size);center.add(new JLabel("Topping (tối đa 3)"));center.add(new JScrollPane(toppingPanel));center.add(new JLabel("Ghi chú món"));center.add(note);center.add(priceLabel);form.add(center,BorderLayout.CENTER);
+            if(JOptionPane.showConfirmDialog(owner,form,"Size, topping và ghi chú",JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE)!=JOptionPane.OK_OPTION)return null;
+            Drink.SizeOption selected=(Drink.SizeOption)size.getSelectedItem();double unitPrice=selected==null?drink.getPrice():selected.getPrice();
+            OrderDetail result=original==null?new OrderDetail(0,0,drink.getId(),1,unitPrice):new OrderDetail(original.getId(),original.getOrderId(),original.getDrinkId(),original.getQuantity(),unitPrice);
+            result.setDrinkName(drink.getName());result.setSize(selected==null?"S":selected.getName());result.setSizeExtraPrice(unitPrice-drink.getPrice());result.setNote(note.getText().trim());
+            List<OrderDetail.ToppingSnapshot> chosen=new ArrayList<>();for(JCheckBox check:checks)if(check.isSelected()){model.Topping topping=(model.Topping)check.getClientProperty("topping");chosen.add(new OrderDetail.ToppingSnapshot(topping.getId(),topping.getName(),topping.getPrice()));}
+            result.setToppings(chosen);result.setToppingTotal(chosen.stream().mapToDouble(topping->topping.price).sum());result.setPrice(unitPrice+result.getToppingTotal());result.setSubtotal(result.getPrice()*result.getQuantity());return result;
+        }catch(Exception ex){showError("Không tải được tùy chọn món",ex);return null;}
+    }
+
+    private boolean sameOrderLine(OrderDetail a, OrderDetail b){
+        if(a.getDrinkId()!=b.getDrinkId()||!java.util.Objects.equals(a.getSize(),b.getSize())||!java.util.Objects.equals(a.getNote(),b.getNote()))return false;
+        List<Integer> x=a.getToppings()==null?List.of():a.getToppings().stream().map(t->t.toppingId).sorted().toList();
+        List<Integer> y=b.getToppings()==null?List.of():b.getToppings().stream().map(t->t.toppingId).sorted().toList();return x.equals(y);
+    }
+
+    private void completePreparationOrder() {
+        if(!"STAFF".equalsIgnoreCase(user.getRole()) || !ensureSelectedOrder()) return;
+        if(!"CONFIRMED".equalsIgnoreCase(selectedOrder.getStatus())) return;
+        if(NotificationDialog.showConfirmDialog(this,"Xác nhận đơn #"+selectedOrder.getId()+" đã pha chế và giao xong?","Hoàn tất đơn",NotificationDialog.YES_NO_OPTION,NotificationDialog.QUESTION_MESSAGE)!=NotificationDialog.YES_OPTION)return;
+        try{orderService.completeOrder(selectedOrder,user);loadOrders();updateProgress();NotificationDialog.showMessageDialog(this,"Đơn đã hoàn tất.");}
+        catch(Exception ex){loadOrders();showError("Không thể hoàn tất đơn",ex);}
     }
 
     private void showOrderDetails() {
@@ -1025,18 +942,16 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
 
         List<String[]> staffFields = new ArrayList<>();
         String status = order.getStatus() == null ? "" : order.getStatus().toUpperCase(Locale.ROOT);
-        if (!"PENDING".equals(status)) {
-            staffFields.add(new String[] { "Người duyệt", employeeName(order.getConfirmedBy(), employeeNames) });
-            staffFields.add(new String[] { "Thời điểm duyệt", formatDateTime(order.getConfirmedAt()) });
-            if ("COMPLETED".equals(status) || "CANCELLED".equals(status)) {
-                staffFields.add(new String[] { "Người thanh toán", employeeName(order.getCompletedBy(), employeeNames) });
-                staffFields.add(new String[] { "Thời điểm thanh toán", formatDateTime(order.getCompletedAt()) });
-            }
-            if ("CANCELLED".equals(status)) {
-                staffFields.add(new String[] { "Người hủy", cancelledByName(order.getCancelledBy(), employeeNames) });
-                staffFields.add(new String[] { "Thời điểm hủy", formatDateTime(order.getCancelledAt()) });
-                staffFields.add(new String[] { "Lý do hủy", valueOrDash(order.getCancelReason()) });
-            }
+        staffFields.add(new String[] { "Người duyệt", employeeName(order.getConfirmedBy(), employeeNames) });
+        staffFields.add(new String[] { "Thời điểm duyệt", formatDateTime(order.getConfirmedAt()) });
+        if ("COMPLETED".equals(status) || "CANCELLED".equals(status)) {
+            staffFields.add(new String[] { "Người thanh toán", employeeName(order.getCompletedBy(), employeeNames) });
+            staffFields.add(new String[] { "Thời điểm thanh toán", formatDateTime(order.getCompletedAt()) });
+        }
+        if ("CANCELLED".equals(status)) {
+            staffFields.add(new String[] { "Người hủy", cancelledByName(order.getCancelledBy(), employeeNames) });
+            staffFields.add(new String[] { "Thời điểm hủy", formatDateTime(order.getCancelledAt()) });
+            staffFields.add(new String[] { "Lý do hủy", valueOrDash(order.getCancelReason()) });
         }
         if (!staffFields.isEmpty()) {
             infoStack.add(Box.createVerticalStrut(8));
@@ -1045,21 +960,43 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
         dialog.add(infoStack, BorderLayout.NORTH);
 
         DefaultTableModel itemsModel = new DefaultTableModel(
-                new Object[] { "STT", "Tên đồ uống", "Số lượng", "Đơn giá", "Thành tiền" }, 0) {
+                new Object[] { "STT", "Tên đồ uống", "Tùy chọn món", "Số lượng", "Đơn giá", "Thành tiền" }, 0) {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
         int totalQuantity = 0;
         for (int index = 0; index < details.size(); index++) {
             OrderDetail detail = details.get(index);
             totalQuantity += detail.getQuantity();
+            List<String> options = new ArrayList<>();
+            options.add("Size " + (detail.getSize() == null || detail.getSize().isBlank() ? "S" : detail.getSize()));
+            if (detail.getToppings() != null && !detail.getToppings().isEmpty()) {
+                options.add("Topping: " + detail.getToppings().stream()
+                        .map(topping -> topping.name + " (+" + currency.format(topping.price) + " đ)")
+                        .collect(java.util.stream.Collectors.joining(", ")));
+            }
+            if (detail.getNote() != null && !detail.getNote().isBlank()) options.add("Ghi chú: " + detail.getNote());
+            String drinkName = detail.getDrinkName() == null || detail.getDrinkName().isBlank()
+                    ? drinkNames.getOrDefault(detail.getDrinkId(), "Sản phẩm không tồn tại")
+                    : detail.getDrinkName();
             itemsModel.addRow(new Object[] { index + 1,
-                    drinkNames.getOrDefault(detail.getDrinkId(), "Sản phẩm không tồn tại"),
-                    detail.getQuantity(), currency.format(detail.getPrice()) + " đ",
+                    drinkName,
+                    String.join("\n", options), detail.getQuantity(), currency.format(detail.getPrice()) + " đ",
                     currency.format(detail.getSubtotal()) + " đ" });
         }
         JTable itemsTable = new JTable(itemsModel);
-        itemsTable.setRowHeight(34);
+        itemsTable.setRowHeight(52);
         itemsTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        itemsTable.getColumnModel().getColumn(2).setCellRenderer((source, value, selected, focused, row, column) -> {
+            JTextArea area = new JTextArea(value == null ? "" : value.toString());
+            area.setLineWrap(true);
+            area.setWrapStyleWord(true);
+            area.setOpaque(true);
+            area.setBorder(BorderFactory.createEmptyBorder(5, 7, 5, 7));
+            area.setBackground(selected ? source.getSelectionBackground() : source.getBackground());
+            area.setForeground(selected ? source.getSelectionForeground() : source.getForeground());
+            area.setFont(source.getFont());
+            return area;
+        });
         itemsTable.setFillsViewportHeight(true);
         JScrollPane itemsScroll = new JScrollPane(itemsTable);
         itemsScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
@@ -1092,13 +1029,14 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
         dialog.add(footer, BorderLayout.SOUTH);
 
         UITheme.styleTree(dialog.getContentPane());
-        itemsTable.setRowHeight(36);
+        itemsTable.setRowHeight(52);
         itemsTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         itemsTable.getColumnModel().getColumn(0).setPreferredWidth(55);
-        itemsTable.getColumnModel().getColumn(1).setPreferredWidth(370);
-        itemsTable.getColumnModel().getColumn(2).setPreferredWidth(100);
-        itemsTable.getColumnModel().getColumn(3).setPreferredWidth(135);
-        itemsTable.getColumnModel().getColumn(4).setPreferredWidth(150);
+        itemsTable.getColumnModel().getColumn(1).setPreferredWidth(190);
+        itemsTable.getColumnModel().getColumn(2).setPreferredWidth(330);
+        itemsTable.getColumnModel().getColumn(3).setPreferredWidth(70);
+        itemsTable.getColumnModel().getColumn(4).setPreferredWidth(115);
+        itemsTable.getColumnModel().getColumn(5).setPreferredWidth(125);
         itemsTable.setPreferredScrollableViewportSize(new Dimension(750,
                 itemsTable.getTableHeader().getPreferredSize().height
                         + Math.max(1, itemsTable.getRowCount()) * itemsTable.getRowHeight() + 4));
@@ -1158,7 +1096,6 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
 
     private void styleStatusValue(JLabel label, String status) {
         Color color = switch (status == null ? "" : status.toUpperCase(Locale.ROOT)) {
-            case "PENDING" -> UITheme.WARNING;
             case "CONFIRMED" -> UITheme.PRIMARY;
             case "COMPLETED" -> UITheme.SUCCESS;
             case "CANCELLED" -> UITheme.DANGER;
@@ -1198,52 +1135,29 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
     }
 
     private void printSelectedInvoice() {
+        if (!"STAFF".equalsIgnoreCase(user.getRole())) {
+            NotificationDialog.showMessageDialog(this, "Chỉ nhân viên thu ngân được phép in bill.",
+                    "Không có quyền in bill", NotificationDialog.WARNING_MESSAGE);
+            return;
+        }
         if (!ensureSelectedOrder())
             return;
-        if (!"COMPLETED".equalsIgnoreCase(selectedOrder.getStatus())) {
+        try {
+        boolean completed="COMPLETED".equalsIgnoreCase(selectedOrder.getStatus());
+        boolean confirmedPaid="CONFIRMED".equalsIgnoreCase(selectedOrder.getStatus())
+                && new service.PaymentService().getAll().stream().anyMatch(p->p.getOrderId()==selectedOrder.getId()
+                && "SUCCESS".equalsIgnoreCase(p.getStatus()));
+        if (!completed && !confirmedPaid) {
             NotificationDialog.showMessageDialog(this,
-                    "Chỉ có thể in hóa đơn sau khi đơn đã được duyệt và thanh toán.",
+                    "Chỉ có thể in bill khi thanh toán đã thành công.",
                     "Chưa thể in hóa đơn", NotificationDialog.INFORMATION_MESSAGE);
             return;
         }
-        try {
             List<OrderDetail> details = orderService.getDetails(selectedOrder.getId());
-            StringBuilder invoice = new StringBuilder("STORE DRINK\nHÓA ĐƠN #")
-                    .append(selectedOrder.getId()).append("\n")
-                    .append("Khách hàng: ").append(selectedOrder.getCustomerName()).append("\n")
-                    .append("Bàn: ").append(selectedOrder.getTableId() == null ? "-" : selectedOrder.getTableId())
-                    .append("\n")
-                    .append("Thanh toán: ").append(paymentLabel(selectedOrder.getPaymentMethod())).append("\n")
-                    .append("Trạng thái: ").append(statusLabel(selectedOrder.getStatus()))
-                    .append("\n------------------------------\n");
-            for (OrderDetail detail : details) {
-                invoice.append("Đồ uống #").append(detail.getDrinkId()).append(" x ")
-                        .append(detail.getQuantity()).append(" = ")
-                        .append(currency.format(detail.getSubtotal())).append(" đ\n");
-            }
-            invoice.append("------------------------------\nTỔNG: ")
-                    .append(currency.format(selectedOrder.getTotal())).append(" đ\n");
-            printText(invoice.toString());
+            utils.ReceiptPrinter.print(selectedOrder,details);
         } catch (Exception exception) {
             showError("Không thể in hóa đơn", exception);
         }
-    }
-
-    private void printText(String text) throws PrinterException {
-        PrinterJob job = PrinterJob.getPrinterJob();
-        job.setPrintable((graphics, pageFormat, pageIndex) -> {
-            if (pageIndex > 0)
-                return java.awt.print.Printable.NO_SUCH_PAGE;
-            graphics.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 10));
-            int y = 40;
-            for (String line : text.split("\\R")) {
-                graphics.drawString(line, 40, y);
-                y += 15;
-            }
-            return java.awt.print.Printable.PAGE_EXISTS;
-        });
-        if (job.printDialog())
-            job.print();
     }
 
     private boolean ensureSelectedOrder() {
@@ -1265,9 +1179,8 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
 
     private String statusLabel(String status) {
         return switch (status == null ? "" : status.toUpperCase(Locale.ROOT)) {
-            case "PENDING" -> "Chờ duyệt";
             case "CONFIRMED" -> "Đã duyệt - đang pha chế";
-            case "COMPLETED" -> "Đã thanh toán - hoàn thành";
+            case "COMPLETED" -> "Hoàn thành";
             case "CANCELLED" -> "Đã hủy";
             default -> "Không xác định";
         };
@@ -1275,11 +1188,10 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
 
     private String statusCode(String label) {
         return switch (label) {
-            case "Chờ duyệt" -> "PENDING";
             case "Đã duyệt - đang pha chế" -> "CONFIRMED";
-            case "Đã thanh toán - hoàn thành" -> "COMPLETED";
+            case "Hoàn thành", "Đã thanh toán - hoàn thành" -> "COMPLETED";
             case "Đã hủy" -> "CANCELLED";
-            default -> "PENDING";
+            default -> "";
         };
     }
 

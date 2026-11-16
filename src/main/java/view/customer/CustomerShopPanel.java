@@ -15,15 +15,20 @@ import java.awt.Shape;
 import java.awt.Window;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.print.PrinterException;
-import java.awt.print.PrinterJob;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JSpinner;
+import javax.swing.JOptionPane;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -42,6 +47,9 @@ import model.OrderDetail;
 import model.User;
 import service.DrinkService;
 import service.OrderService;
+import service.CashierRequestService;
+import service.InventoryService;
+import service.ToppingService;
 import view.layout.DataSync;
 import view.layout.NotificationDialog;
 import view.layout.RefreshablePanel;
@@ -53,7 +61,9 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
     private final Integer tableId;
     private final DrinkService drinkService = new DrinkService();
     private final OrderService orderService = new OrderService();
+    private final InventoryService inventoryService = new InventoryService();
     private final List<Drink> drinks = new ArrayList<>();
+    private Map<Integer, Integer> availableQuantities = Map.of();
     private final List<CartItem> cart = new ArrayList<>();
     private final DefaultTableModel cartModel;
     private final JTable cartTable;
@@ -63,10 +73,6 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
     private final JTextArea receiptArea = new JTextArea();
     private JTextField customerNameField;
     private JTextField customerPhoneField;
-
-    public CustomerShopPanel(User user) {
-        this(user, false);
-    }
 
     public CustomerShopPanel(User user, boolean staffTakeaway) {
         this(user, staffTakeaway, false, null);
@@ -130,7 +136,7 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
         JButton removeButton = new JButton("Xóa khỏi giỏ");
         removeButton.addActionListener(e -> removeSelectedItem());
         JButton testReceiptButton = new JButton("In hóa đơn thử");
-        testReceiptButton.addActionListener(e -> showReceipt(false));
+        testReceiptButton.addActionListener(e -> showReceipt());
         JButton payButton = new JButton("Gửi order");
         payButton.addActionListener(e -> {
             if (guestOrder) {
@@ -223,8 +229,9 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
     private void loadDrinks() {
         try {
             drinks.clear();
+            availableQuantities = inventoryService.getAllAvailable();
             drinks.addAll(drinkService.getAll().stream()
-                    .filter(drink -> drink.isActive() && drink.getQuantity() > 0)
+                    .filter(drink -> drink.isActive() && availableQuantities.getOrDefault(drink.getId(), 0) > 0)
                     .collect(Collectors.toList()));
             drinkGrid.removeAll();
             if (drinks.isEmpty()) {
@@ -254,7 +261,7 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
         DrinkVisual image = new DrinkVisual();
         image.setPreferredSize(new Dimension(0, 118));
         image.setDrink(drink);
-        JLabel stock = new JLabel(drink.getQuantity() + "", SwingConstants.CENTER);
+        JLabel stock = new JLabel(availableQuantities.getOrDefault(drink.getId(), 0) + "", SwingConstants.CENTER);
         stock.setOpaque(true);
         stock.setBackground(new Color(255, 243, 205));
         stock.setForeground(new Color(133, 100, 4));
@@ -302,17 +309,60 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
     }
 
     private void addDrinkToCart(Drink drink) {
-        CartItem item = cart.stream().filter(entry -> entry.drink.getId() == drink.getId())
-                .findFirst().orElse(null);
-        if (item == null)
-            cart.add(new CartItem(drink, 1));
-        else if (item.quantity < drink.getQuantity())
-            item.quantity++;
-        else {
-            showMessage("Số lượng trong giỏ không được vượt quá tồn kho.");
-            return;
-        }
+        try {
+            int alreadyInCart = cart.stream().filter(item -> item.drink.getId() == drink.getId())
+                    .mapToInt(item -> item.quantity).sum();
+            int initialAvailable = inventoryService.getAvailable(drink.getId());
+            int remaining = initialAvailable - alreadyInCart;
+            if (remaining <= 0) {
+                showMessage(drink.getName() + " hiện chỉ còn " + initialAvailable
+                        + " cốc có thể đặt; giỏ hàng hiện đã có " + alreadyInCart + " cốc.");
+                loadDrinks();
+                return;
+            }
+            List<model.Topping> available=new ToppingService().getForDrink(drink.getId()).stream().limit(3).toList();
+            List<JCheckBox> boxes=new ArrayList<>();
+            JPanel toppingsPanel=new JPanel(new GridLayout(0,2,8,8)); toppingsPanel.setOpaque(false);
+            if(available.isEmpty()){JLabel none=new JLabel("Món này chưa có topping.");none.setForeground(UITheme.MUTED);toppingsPanel.add(none);}
+            for(var topping:available){JCheckBox box=new JCheckBox(" "+topping.getName()+"  ·  +"+formatMoney(topping.getPrice())+" đ");box.setOpaque(true);box.setBackground(UITheme.CARD);box.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UITheme.BORDER),BorderFactory.createEmptyBorder(8,8,8,8)));box.putClientProperty("topping",topping);boxes.add(box);toppingsPanel.add(box);}
+            List<Drink.SizeOption> sizes=drink.getAvailableSizes().stream().limit(3).toList();
+            JComboBox<Drink.SizeOption> size=new JComboBox<>(sizes.toArray(Drink.SizeOption[]::new));
+            JTextField note=new JTextField(); note.setPreferredSize(new Dimension(260,34)); JSpinner qty=new JSpinner(new javax.swing.SpinnerNumberModel(1,1,remaining,1)); qty.setPreferredSize(new Dimension(80,34));
+            JLabel amount=new JLabel(); amount.setFont(new Font("Segoe UI",Font.BOLD,20));amount.setForeground(UITheme.SUCCESS);
+            Runnable update=()->{Drink.SizeOption selected=(Drink.SizeOption)size.getSelectedItem();double unit=selected==null?drink.getPrice():selected.getPrice();for(var b:boxes)if(b.isSelected())unit+=((model.Topping)b.getClientProperty("topping")).getPrice();amount.setText(formatMoney(unit*(Integer)qty.getValue())+" đ");};
+            size.addActionListener(e->update.run());qty.addChangeListener(e->update.run());for(var b:boxes)b.addActionListener(e->update.run());update.run();
+            JPanel form=new JPanel(new BorderLayout(0,12));form.setBorder(BorderFactory.createEmptyBorder(16,18,12,18));form.setBackground(UITheme.BACKGROUND);form.setPreferredSize(new Dimension(430,430));
+            JPanel content=new JPanel();content.setOpaque(false);content.setLayout(new BoxLayout(content,BoxLayout.Y_AXIS));
+            JLabel title=new JLabel(drink.getName());title.setFont(new Font("Segoe UI",Font.BOLD,20));title.setForeground(UITheme.TEXT);content.add(title);
+            JLabel base=new JLabel("Giá Size S: "+formatMoney(drink.getPrice())+" đ  ·  Còn có thể đặt "+initialAvailable+" ly");base.setForeground(UITheme.MUTED);content.add(base);content.add(Box.createVerticalStrut(14));
+            content.add(new JLabel("CHỌN SIZE"));content.add(size);content.add(Box.createVerticalStrut(12));content.add(new JLabel("TOPPING · TỐI ĐA 3"));content.add(new JScrollPane(toppingsPanel));content.add(Box.createVerticalStrut(8));
+            content.add(new JLabel("GHI CHÚ RIÊNG CHO MÓN"));note.setToolTipText("Ví dụ: ít đá, ít đường, không đá");content.add(note);
+            JPanel footer=new JPanel(new BorderLayout());footer.setOpaque(false);JPanel q=new JPanel(new FlowLayout(FlowLayout.LEFT));q.setOpaque(false);q.add(new JLabel("Số lượng"));q.add(qty);footer.add(q,BorderLayout.WEST);footer.add(amount,BorderLayout.EAST);form.add(content,BorderLayout.CENTER);form.add(footer,BorderLayout.SOUTH);
+            if(JOptionPane.showConfirmDialog(this,form,"Tùy chỉnh món",JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE)!=JOptionPane.OK_OPTION)return;
+            int latestAvailable = inventoryService.getAvailable(drink.getId());
+            if (alreadyInCart + (Integer) qty.getValue() > latestAvailable) {
+                showMessage(drink.getName() + " chỉ còn " + latestAvailable
+                        + " cốc có thể đặt. Giỏ hiện có " + alreadyInCart
+                        + " cốc; vui lòng giảm số lượng rồi thử lại.");
+                loadDrinks();
+                return;
+            }
+            Drink.SizeOption selectedSize=(Drink.SizeOption)size.getSelectedItem();
+            CartItem item=new CartItem(drink,(Integer)qty.getValue());item.size=selectedSize==null?"S":selectedSize.getName();item.sizeExtraPrice=(selectedSize==null?drink.getPrice():selectedSize.getPrice())-drink.getPrice();item.note=note.getText().trim();
+            for(var b:boxes)if(b.isSelected()){var t=(model.Topping)b.getClientProperty("topping");item.toppings.add(new OrderDetail.ToppingSnapshot(t.getId(),t.getName(),t.getPrice()));}
+            CartItem same=cart.stream().filter(existing->sameConfiguration(existing,item)).findFirst().orElse(null);
+            if(same==null) cart.add(item);
+            else same.quantity+=item.quantity;
+        } catch(Exception ex){showError("Không tải được topping",ex);return;}
         updateCart();
+    }
+
+    private boolean sameConfiguration(CartItem a, CartItem b) {
+        if(a.drink.getId()!=b.drink.getId() || !a.size.equals(b.size)
+                || !a.note.trim().equals(b.note.trim()) || a.toppings.size()!=b.toppings.size()) return false;
+        java.util.Map<Integer,Long> first=a.toppings.stream().collect(Collectors.groupingBy(t->t.toppingId,Collectors.counting()));
+        java.util.Map<Integer,Long> second=b.toppings.stream().collect(Collectors.groupingBy(t->t.toppingId,Collectors.counting()));
+        return first.equals(second);
     }
 
     private void removeSelectedItem() {
@@ -325,8 +375,8 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
     private void updateCart() {
         cartModel.setRowCount(0);
         for (CartItem item : cart) {
-            cartModel.addRow(new Object[] { item.drink.getName(), item.quantity,
-                    formatMoney(item.drink.getPrice()), formatMoney(item.subtotal()) });
+            cartModel.addRow(new Object[] { item.drink.getName()+" / "+item.size+ (item.toppings.isEmpty()?"":" / "+item.toppings.stream().map(t->t.name).collect(Collectors.joining(", ")))+(item.note.isBlank()?"":" / "+item.note), item.quantity,
+                    formatMoney(item.unitPrice()), formatMoney(item.subtotal()) });
         }
         totalLabel.setText("Tổng: " + formatMoney(total()) + " đ");
     }
@@ -335,23 +385,15 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
         return cart.stream().mapToDouble(CartItem::subtotal).sum();
     }
 
-    private void showReceipt(boolean print) {
+    private void showReceipt() {
         if (cart.isEmpty()) {
             showMessage("Giỏ hàng đang trống.");
             return;
         }
         receiptArea.setText(buildReceipt("CHƯA THANH TOÁN"));
         receiptArea.setCaretPosition(0);
-        if (print) {
-            try {
-                printReceipt();
-            } catch (PrinterException exception) {
-                showError("Không thể in hóa đơn", exception);
-            }
-        } else {
-            NotificationDialog.showMessageDialog(this, new JScrollPane(receiptArea),
-                    "Hóa đơn thử", NotificationDialog.INFORMATION_MESSAGE);
-        }
+        NotificationDialog.showMessageDialog(this, new JScrollPane(receiptArea),
+                "Hóa đơn thử", NotificationDialog.INFORMATION_MESSAGE);
     }
 
     private void sendStaffOrder() {
@@ -362,7 +404,7 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
         try {
             if (!validateCartAvailability()) return;
             List<OrderDetail> details = cart.stream()
-                    .map(item -> new OrderDetail(0, 0, item.drink.getId(), item.quantity, item.drink.getPrice()))
+                    .map(this::toOrderDetail)
                     .collect(Collectors.toList());
             String customerName = staffTakeaway ? customerNameField.getText().trim() : user.getFullName();
             String customerPhone = staffTakeaway ? customerPhoneField.getText().trim() : null;
@@ -370,18 +412,21 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
                 showMessage("Hãy nhập tên khách hàng.");
                 return;
             }
-
-            var order = orderService.createOrder(user.getId(), null, customerName, customerPhone,
-                    total(), "UNPAID", "TAKEAWAY", details);
-            receiptArea.setText(buildReceipt("ĐÃ GỬI ORDER - CHỜ XÁC NHẬN - MÃ ĐƠN " + order.getId()));
-            NotificationDialog.showMessageDialog(this,
-                    "Đã gửi order. Đơn hàng đang chờ xác nhận và thanh toán.",
-                    "Gửi order thành công", NotificationDialog.INFORMATION_MESSAGE);
-            cart.clear();
-            customerNameField.setText("");
-            customerPhoneField.setText("");
-            updateCart();
-            loadDrinks();
+            Object[] methods={"Tiền mặt","Chuyển khoản","Hủy"};
+            int methodChoice=JOptionPane.showOptionDialog(this,"Đơn mang về cho "+customerName+"\nTổng tiền: "+formatMoney(total())+" đ\nChọn phương thức khách thanh toán:","Thanh toán tại quầy",JOptionPane.DEFAULT_OPTION,JOptionPane.QUESTION_MESSAGE,null,methods,methods[0]);
+            if(methodChoice<0||methodChoice==2)return;
+            String method=methodChoice==0?"CASH":"TRANSFER";
+            String verifyMessage=method.equals("CASH")
+                    ?"Chỉ chọn thành công sau khi đã nhận đủ tiền mặt từ khách."
+                    :"Chỉ chọn thành công sau khi đã kiểm tra tiền chuyển khoản thực tế đã vào tài khoản.";
+            Object[] outcomes={"Thanh toán thành công","Thanh toán thất bại","Hủy"};
+            int outcome=JOptionPane.showOptionDialog(this,verifyMessage,"Xác nhận thanh toán",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,outcomes,outcomes[0]);
+            if(outcome!=0){cart.clear();customerNameField.setText("");customerPhoneField.setText("");updateCart();showMessage(outcome==1?"Thanh toán thất bại; order nháp đã bị hủy, chưa tạo order chính thức và không trừ kho.":"Đã hủy thanh toán; order nháp đã bị hủy, chưa tạo order chính thức và không trừ kho.");return;}
+            var order=orderService.createStaffCounterPaidOrder(customerName,customerPhone,total(),method,details,user);
+            receiptArea.setText(buildReceipt("ĐÃ THANH TOÁN · ĐƠN #"+order.getId()+" · ĐANG PHA CHẾ"));
+            NotificationDialog.showMessageDialog(this,"Thanh toán thành công. Đơn #"+order.getId()+" đã được tạo, xác nhận và chuyển pha chế.","Tạo đơn thành công",NotificationDialog.INFORMATION_MESSAGE);
+            if(JOptionPane.showConfirmDialog(this,"In bill giao khách?","In bill",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)utils.ReceiptPrinter.print(order,orderService.getDetails(order.getId()));
+            cart.clear();customerNameField.setText("");customerPhoneField.setText("");updateCart();loadDrinks();
         } catch (Exception exception) {
             showError("Thanh toán thất bại", exception);
         }
@@ -399,16 +444,54 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
             return;
         }
         try {
+            // Different sizes of one drink still share a single inventory count.
             if (!validateCartAvailability()) return;
+        } catch (Exception exception) {
+            showError("Không thể kiểm tra tồn kho", exception);
+            return;
+        }
+        int paymentChoice = javax.swing.JOptionPane.showOptionDialog(this,
+                "Tổng thanh toán: " + formatMoney(total()) + " đ\nChọn cách thanh toán:",
+                "Thanh toán mô phỏng", javax.swing.JOptionPane.DEFAULT_OPTION,
+                javax.swing.JOptionPane.QUESTION_MESSAGE, null,
+                new Object[] {"Tiền mặt tại quầy", "Chuyển khoản QR", "Hủy"}, "Tiền mặt tại quầy");
+        if (paymentChoice < 0 || paymentChoice == 2) {
+            showMessage("Đã hủy thanh toán. Chưa tạo yêu cầu, chưa tạo đơn hàng và không trừ kho.");
+            return;
+        }
+        try {
             List<OrderDetail> details = cart.stream()
-                    .map(item -> new OrderDetail(0, 0, item.drink.getId(), item.quantity, item.drink.getPrice()))
+                    .map(this::toOrderDetail)
                     .collect(Collectors.toList());
-            var order = orderService.createOrder(0, tableId, customerName, customerPhone,
-                    total(), "UNPAID", "DINE_IN", details);
-            receiptArea.setText(buildReceipt("ĐÃ GỬI ORDER - CHỜ DUYỆT - MÃ ĐƠN " + order.getId()));
+            if(paymentChoice==1){
+                JPanel qrPanel=new JPanel(new BorderLayout(8,8));qrPanel.setBorder(BorderFactory.createEmptyBorder(14,18,14,18));
+                JLabel qrPlaceholder=new JLabel("<html><div style='text-align:center;padding:24px;border:2px dashed #9aa6b2;width:260px;height:170px'>MÃ QR NGÂN HÀNG<br><br>Chưa cấu hình QR cửa hàng</div></html>",SwingConstants.CENTER);
+                JLabel amount=new JLabel("Số tiền cần thanh toán: "+formatMoney(total())+" đ",SwingConstants.CENTER);amount.setFont(new Font("Segoe UI",Font.BOLD,18));amount.setForeground(UITheme.SUCCESS);
+                JLabel simulation=new JLabel("Thanh toán mô phỏng · Chưa kết nối ngân hàng",SwingConstants.CENTER);simulation.setForeground(UITheme.MUTED);
+                qrPanel.add(qrPlaceholder,BorderLayout.CENTER);JPanel labels=new JPanel(new GridLayout(0,1,4,4));labels.add(amount);labels.add(simulation);qrPanel.add(labels,BorderLayout.SOUTH);
+                Object[] results={"Tôi đã chuyển khoản","Thanh toán thất bại","Hủy"};
+                int result=JOptionPane.showOptionDialog(this,qrPanel,"Thanh toán bằng QR",JOptionPane.DEFAULT_OPTION,JOptionPane.PLAIN_MESSAGE,null,results,results[0]);
+                if(result!=0){showMessage(result==1?"Thanh toán thất bại. Không tạo đơn và không trừ kho; bạn có thể thử lại.":"Đã hủy thanh toán. Không tạo đơn và không trừ kho.");return;}
+                int requestId=new CashierRequestService().create(new com.google.gson.Gson().toJson(
+                        new CashierRequestService.Request(customerName,customerPhone,tableId,total(),"DINE_IN",details,
+                                "WAITING_CONFIRMATION",java.time.LocalDateTime.now().toString(),"TRANSFER")));
+                receiptArea.setText(buildReceipt("CHỜ NHÂN VIÊN XÁC NHẬN CHUYỂN KHOẢN · TMP"+requestId));
+                NotificationDialog.showMessageDialog(this,"Kết quả QR mô phỏng thành công đã được gửi đến nhân viên để kiểm tra và xác nhận. Chưa tạo đơn chính thức, chưa trừ kho. Mã yêu cầu TMP"+requestId,
+                        "Chờ xác nhận thanh toán",NotificationDialog.INFORMATION_MESSAGE);
+                cart.clear();updateCart();loadDrinks();return;
+            }
+            if(JOptionPane.showConfirmDialog(this,"Vui lòng đến quầy thu ngân để thanh toán. Gửi yêu cầu cho nhân viên?","Thanh toán tiền mặt",JOptionPane.YES_NO_OPTION,JOptionPane.INFORMATION_MESSAGE)!=JOptionPane.YES_OPTION)return;
+            String paymentMethod = paymentChoice == 0 ? "CASH" : "TRANSFER";
+            String paymentStatus = paymentChoice == 0 ? "WAITING_CASHIER" : "WAITING_CONFIRMATION";
+            String requestJson = new com.google.gson.Gson().toJson(new CashierRequestService.Request(
+                    customerName, customerPhone, tableId, total(), "DINE_IN", details,
+                    paymentStatus, java.time.LocalDateTime.now().toString(), paymentMethod));
+            int requestId = new CashierRequestService().create(requestJson);
+            receiptArea.setText(buildReceipt("CHỜ NHÂN VIÊN XÁC NHẬN THANH TOÁN - MÃ TMP" + requestId));
             NotificationDialog.showMessageDialog(this,
-                    "Đã gửi order. Nhân viên sẽ xác nhận đơn hàng của bạn.",
-                    "Gửi order thành công", NotificationDialog.INFORMATION_MESSAGE);
+                    "Đã gửi yêu cầu TMP" + requestId + " (" + (paymentMethod.equals("CASH") ? "tiền mặt" : "chuyển khoản")
+                            + "). Nhân viên sẽ xác nhận sau khi nhận tiền hoặc kiểm tra giao dịch vào tài khoản.",
+                    "Chờ nhân viên xác nhận", NotificationDialog.INFORMATION_MESSAGE);
             cart.clear();
 
             updateCart();
@@ -421,22 +504,40 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
     private boolean validateCartAvailability() throws Exception {
         var currentDrinks = drinkService.getAll().stream()
                 .collect(Collectors.toMap(Drink::getId, drink -> drink));
-        for (CartItem item : cart) {
-            Drink current = currentDrinks.get(item.drink.getId());
+        Map<Integer, Integer> requestedQuantities = cart.stream().collect(Collectors.groupingBy(
+                item -> item.drink.getId(), Collectors.summingInt(item -> item.quantity)));
+        for (Map.Entry<Integer, Integer> requested : requestedQuantities.entrySet()) {
+            Drink current = currentDrinks.get(requested.getKey());
             if (current == null || !current.isActive()) {
-                showMessage(item.drink.getName()
+                String name = cart.stream().filter(item -> item.drink.getId() == requested.getKey())
+                        .map(item -> item.drink.getName()).findFirst().orElse("Đồ uống");
+                showMessage(name
                         + " đã ngừng bán. Vui lòng xóa món này khỏi giỏ hàng.");
                 loadDrinks();
                 return false;
             }
-            if (item.quantity > current.getQuantity()) {
-                showMessage(item.drink.getName() + " chỉ còn " + current.getQuantity()
-                        + " cốc trong kho. Vui lòng điều chỉnh số lượng.");
+            int available = inventoryService.getAvailable(current.getId());
+            if (requested.getValue() > available) {
+                showMessage("Bạn đang chọn tổng " + requested.getValue() + " cốc " + current.getName()
+                        + " ở các size khác nhau, nhưng hiện chỉ còn " + available
+                        + " cốc có thể đặt. Vui lòng giảm số lượng trước khi thanh toán.");
                 loadDrinks();
                 return false;
             }
         }
         return true;
+    }
+
+    private OrderDetail toOrderDetail(CartItem item) {
+        OrderDetail detail = new OrderDetail(0, 0, item.drink.getId(), item.quantity, item.unitPrice());
+        detail.setDrinkName(item.drink.getName());
+        detail.setSize(item.size);
+        detail.setSizeExtraPrice(item.sizeExtraPrice);
+        detail.setToppings(item.toppings);
+        detail.setToppingTotal(item.toppings.stream().mapToDouble(t -> t.price).sum());
+        detail.setNote(item.note);
+        detail.setSubtotal(item.unitPrice() * item.quantity);
+        return detail;
     }
 
     private String buildReceipt(String status) {
@@ -456,31 +557,12 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
         for (CartItem item : cart) {
             receipt.append(item.drink.getName()).append("\n")
                     .append("  ").append(item.quantity).append(" x ")
-                    .append(formatMoney(item.drink.getPrice())).append(" = ")
+                    .append(formatMoney(item.unitPrice())).append(" = ")
                     .append(formatMoney(item.subtotal())).append(" đ\n");
         }
         receipt.append("--------------------------------\n");
         receipt.append("TỔNG CỘNG: ").append(formatMoney(total())).append(" đ\n");
         return receipt.toString();
-    }
-
-    private void printReceipt() throws PrinterException {
-        PrinterJob job = PrinterJob.getPrinterJob();
-        job.setPrintable((graphics, pageFormat, pageIndex) -> {
-            if (pageIndex > 0)
-                return java.awt.print.Printable.NO_SUCH_PAGE;
-            graphics.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 10));
-            int y = 40;
-            for (String line : receiptArea.getText().split("\\R")) {
-                graphics.drawString(line, 40, y);
-                y += 15;
-            }
-            return java.awt.print.Printable.PAGE_EXISTS;
-        });
-        if (job.printDialog()) {
-            job.print();
-            showMessage("Đã gửi hóa đơn tới máy in.");
-        }
     }
 
     private String formatMoney(double value) {
@@ -500,6 +582,7 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
     private static class CartItem {
         private final Drink drink;
         private int quantity;
+        private String size="S", note=""; private double sizeExtraPrice; private final List<OrderDetail.ToppingSnapshot> toppings=new ArrayList<>();
 
         private CartItem(Drink drink, int quantity) {
             this.drink = drink;
@@ -507,8 +590,9 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
         }
 
         private double subtotal() {
-            return drink.getPrice() * quantity;
+            return unitPrice() * quantity;
         }
+        private double unitPrice(){return drink.getPrice()+sizeExtraPrice+toppings.stream().mapToDouble(t->t.price).sum();}
     }
 
     private static class DrinkVisual extends JPanel {

@@ -7,14 +7,7 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridLayout;
-import java.text.NumberFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -25,18 +18,12 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
-import model.Drink;
-import model.Order;
-import model.OrderDetail;
-import model.User;
 
 /**
  * Shared modal UI for application messages, confirmations, forms and choices.
@@ -184,197 +171,6 @@ public final class NotificationDialog {
             }
         }
         return null;
-    }
-
-    public static String showPayment(Component owner, int orderId, String total) {
-        JPanel content = new JPanel();
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.setOpaque(false);
-        JLabel order = new JLabel("Mã đơn hàng: #" + orderId);
-        JLabel amount = new JLabel("Tổng thanh toán: " + total);
-        amount.setFont(amount.getFont().deriveFont(Font.BOLD, 18f));
-        amount.setForeground(UITheme.SUCCESS);
-        JLabel prompt = new JLabel("Chọn phương thức thanh toán");
-        prompt.setBorder(new EmptyBorder(18, 0, 8, 0));
-        content.add(order);
-        content.add(Box.createVerticalStrut(8));
-        content.add(amount);
-        content.add(prompt);
-        ButtonGroup group = new ButtonGroup();
-        JRadioButton cash = new JRadioButton("Tiền mặt", true);
-        JRadioButton transfer = new JRadioButton("Chuyển khoản ngân hàng");
-        cash.setOpaque(false);
-        transfer.setOpaque(false);
-        group.add(cash);
-        group.add(transfer);
-        content.add(cash);
-        content.add(transfer);
-        if (!showDialog(owner, "Thanh toán đơn hàng", content, Type.SUCCESS,
-                "Xác nhận thanh toán", "Hủy", null)) {
-            return null;
-        }
-        return cash.isSelected() ? "Tiền mặt" : "Chuyển khoản";
-    }
-
-    public static String showPayment(Component owner, Order order, List<OrderDetail> details,
-                                     Map<Integer, Drink> drinks, User cashier,
-                                     Map<Integer, String> customerNames, NumberFormat currency) {
-        JPanel content = new JPanel();
-        content.setOpaque(false);
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-
-        JPanel header = new JPanel(new BorderLayout());
-        header.setOpaque(false);
-        JLabel heading = new JLabel("THANH TOÁN ĐƠN HÀNG");
-        heading.setFont(new Font("Segoe UI", Font.BOLD, 19));
-        heading.setForeground(UITheme.TEXT);
-        JLabel orderCode = new JLabel("#" + order.getId());
-        orderCode.setForeground(Color.WHITE);
-        orderCode.setOpaque(true);
-        orderCode.setBackground(UITheme.PRIMARY);
-        orderCode.setBorder(new EmptyBorder(5, 10, 5, 10));
-        header.add(heading, BorderLayout.WEST);
-        header.add(orderCode, BorderLayout.EAST);
-        content.add(header);
-        content.add(sectionDivider());
-
-        JPanel info = new JPanel(new GridLayout(0, 2, 16, 10));
-        info.setOpaque(false);
-        String customer = order.getCustomerName();
-        if ((customer == null || customer.isBlank()) && customerNames != null) {
-            customer = customerNames.get(order.getUserId());
-        }
-        addInfo(info, "Khách hàng", customer == null || customer.isBlank() ? "Khách lẻ" : customer);
-        String type = "TAKEAWAY".equalsIgnoreCase(order.getOrderType()) ? "Mang đi" : "Tại bàn";
-        if (!"TAKEAWAY".equalsIgnoreCase(order.getOrderType()) && order.getTableId() != null) {
-            type += " – Bàn " + String.format("%02d", order.getTableId());
-        }
-        addInfo(info, "Loại đơn", type);
-        addInfo(info, "Thời gian đặt", formatTime(order.getCreatedAt()));
-        addInfo(info, "Nhân viên thanh toán", cashier == null ? "Tài khoản đang đăng nhập"
-                : cashier.getFullName());
-        content.add(info);
-        content.add(sectionDivider());
-
-        JLabel detailsTitle = sectionTitle("CHI TIẾT ĐƠN HÀNG");
-        content.add(detailsTitle);
-        JPanel lines = new JPanel(new GridLayout(Math.max(1, details == null ? 0 : details.size()) + 1,
-                3, 8, 4));
-        lines.setOpaque(false);
-        addTableHeader(lines, "Tên đồ uống", SwingConstants.LEFT);
-        addTableHeader(lines, "SL", SwingConstants.CENTER);
-        addTableHeader(lines, "Thành tiền", SwingConstants.RIGHT);
-        int quantity = 0;
-        if (details != null) for (OrderDetail detail : details) {
-            Drink drink = drinks == null ? null : drinks.get(detail.getDrinkId());
-            JLabel name = new JLabel(drink == null ? "Sản phẩm không tồn tại" : drink.getName());
-            JLabel count = new JLabel(String.valueOf(detail.getQuantity()), SwingConstants.CENTER);
-            JLabel subtotal = new JLabel(currency.format(detail.getSubtotal()) + " đ", SwingConstants.RIGHT);
-            for (JLabel label : new JLabel[] {name, count, subtotal}) {
-                label.setForeground(UITheme.TEXT);
-                label.setBorder(new EmptyBorder(5, 0, 5, 0));
-                lines.add(label);
-            }
-            quantity += detail.getQuantity();
-        }
-        JScrollPane scroll = new JScrollPane(lines);
-        scroll.setBorder(BorderFactory.createLineBorder(UITheme.BORDER));
-        scroll.setPreferredSize(new Dimension(650, Math.min(170, 34 * Math.max(2, (details == null ? 0 : details.size()) + 1))));
-        content.add(scroll);
-
-        JPanel totalPanel = new JPanel(new BorderLayout(10, 8));
-        totalPanel.setOpaque(false);
-        JLabel count = new JLabel("Tổng số lượng: " + quantity + " món");
-        count.setForeground(UITheme.MUTED);
-        JLabel total = new JLabel("TỔNG THANH TOÁN: " + currency.format(order.getTotal()) + " đ");
-        total.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        total.setForeground(UITheme.SUCCESS);
-        totalPanel.add(count, BorderLayout.NORTH);
-        totalPanel.add(total, BorderLayout.SOUTH);
-        content.add(totalPanel);
-        content.add(sectionDivider());
-
-        JLabel methodTitle = sectionTitle("PHƯƠNG THỨC THANH TOÁN");
-        content.add(methodTitle);
-        ButtonGroup group = new ButtonGroup();
-        JRadioButton cash = paymentCard("Tiền mặt", "Khách hàng thanh toán trực tiếp tại quầy", true);
-        JRadioButton transfer = paymentCard("Chuyển khoản ngân hàng", "Xác nhận thanh toán sau khi nhận được tiền", false);
-        group.add(cash);
-        group.add(transfer);
-        JPanel methods = new JPanel(new GridLayout(2, 1, 0, 8));
-        methods.setOpaque(false);
-        methods.add(cash);
-        methods.add(transfer);
-        content.add(methods);
-
-        final String[] result = {null};
-        showDialog(owner, "Thanh toán đơn hàng", content, Type.INFO,
-                "Xác nhận thanh toán", "Hủy", () -> result[0] = cash.isSelected() ? "Tiền mặt" : "Chuyển khoản",
-                new Dimension(720, 680));
-        return result[0];
-    }
-
-    private static JSeparator sectionDivider() {
-        JSeparator separator = new JSeparator();
-        separator.setForeground(UITheme.BORDER);
-        separator.setMaximumSize(new Dimension(Integer.MAX_VALUE, 12));
-        return separator;
-    }
-
-    private static JLabel sectionTitle(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        label.setForeground(UITheme.TEXT);
-        label.setBorder(new EmptyBorder(4, 0, 8, 0));
-        return label;
-    }
-
-    private static void addInfo(JPanel panel, String label, String value) {
-        JPanel cell = new JPanel();
-        cell.setOpaque(false);
-        cell.setLayout(new BoxLayout(cell, BoxLayout.Y_AXIS));
-        JLabel key = new JLabel(label);
-        key.setForeground(UITheme.MUTED);
-        key.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        JLabel content = new JLabel(value);
-        content.setForeground(UITheme.TEXT);
-        content.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        cell.add(key);
-        cell.add(Box.createVerticalStrut(3));
-        cell.add(content);
-        panel.add(cell);
-    }
-
-    private static void addTableHeader(JPanel panel, String text, int alignment) {
-        JLabel label = new JLabel(text, alignment);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        label.setForeground(UITheme.MUTED);
-        label.setBorder(new EmptyBorder(5, 0, 5, 0));
-        panel.add(label);
-    }
-
-    private static JRadioButton paymentCard(String title, String description, boolean selected) {
-        JRadioButton card = new JRadioButton("  " + title + "\n  " + description, selected);
-        card.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        card.setForeground(UITheme.TEXT);
-        card.setOpaque(true);
-        card.setBackground(UITheme.CARD);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(selected ? UITheme.PRIMARY : UITheme.BORDER,
-                        selected ? 2 : 1, true), new EmptyBorder(9, 10, 9, 10)));
-        card.addItemListener(event -> card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(card.isSelected() ? UITheme.PRIMARY : UITheme.BORDER,
-                        card.isSelected() ? 2 : 1, true), new EmptyBorder(9, 10, 9, 10))));
-        return card;
-    }
-
-    private static String formatTime(String value) {
-        if (value == null || value.isBlank()) return "-";
-        try {
-            return LocalDateTime.parse(value).format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-        } catch (RuntimeException ignored) {
-            return value;
-        }
     }
 
     private static JPanel labeledContent(String prompt, JComponent field) {

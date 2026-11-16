@@ -8,12 +8,15 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 import service.DrinkService;
+import service.ToppingService;
 import view.layout.DataSync;
 import view.layout.RefreshablePanel;
 import view.layout.UITheme;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Locale;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class DrinkPanel extends JPanel implements RefreshablePanel {
@@ -143,32 +146,151 @@ public class DrinkPanel extends JPanel implements RefreshablePanel {
     }
 
     private void addDrink() {
-        JTextField name = new JTextField();
-        JTextField price = new JTextField();
-        JTextField quantity = new JTextField("0");
-        JTextField image = new JTextField();
-        JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
-        form.add(new JLabel("Tên đồ uống:")); form.add(name);
-        form.add(new JLabel("Giá:")); form.add(price);
-        form.add(new JLabel("Tồn kho:")); form.add(quantity);
-        form.add(new JLabel("Ảnh (URL hoặc tệp):")); form.add(imageInput(image));
-        if (NotificationDialog.showConfirmDialog(this, form, "Thêm đồ uống",
-                NotificationDialog.OK_CANCEL_OPTION) != NotificationDialog.OK_OPTION) return;
         try {
-            Drink drink = new Drink();
-            drink.setName(name.getText().trim());
-            drink.setPrice(Double.parseDouble(price.getText().trim()));
-            drink.setQuantity(Integer.parseInt(quantity.getText().trim()));
-            drink.setImage(image.getText().trim());
-            drink.setActive(true);
-            if (drink.getName().isEmpty() || drink.getPrice() < 0 || drink.getQuantity() < 0) {
-                throw new IllegalArgumentException("Dữ liệu không hợp lệ");
+            DrinkForm editor=new DrinkForm(null);
+            if(NotificationDialog.showConfirmDialog(this,editor.scrollPane(),"Thêm đồ uống",
+                    NotificationDialog.OK_CANCEL_OPTION)!=NotificationDialog.OK_OPTION)return;
+            Drink drink=editor.read(new Drink());
+            validateDrink(drink);
+            List<model.Topping> toppingOptions=editor.selectedToppings();
+            Drink saved=drinkService.create(drink);
+            try {
+                new ToppingService().setForDrink(saved.getId(),toppingOptions);
+            } catch (Exception toppingFailure) {
+                loadDrinks();
+                showApiError("Đồ uống #" + saved.getId()
+                        + " đã được tạo nhưng chưa gắn được topping. Hãy mở Sửa đồ uống để thử lại.",
+                        toppingFailure);
+                return;
             }
-            drinkService.create(drink);
             loadDrinks();
-            NotificationDialog.showSuccess(this, "Đã thêm đồ uống thành công.");
-        } catch (Exception exception) {
-            showApiError("Không thể thêm đồ uống", exception);
+            NotificationDialog.showSuccess(this,"Đã thêm đồ uống và cấu hình size, topping.");
+        }catch(Exception exception){showApiError("Không thể thêm đồ uống",exception);}
+    }
+
+    private void validateDrink(Drink drink) {
+        if(drink.getName().isBlank()||!Double.isFinite(drink.getPrice())||drink.getPrice()<0
+                ||drink.getQuantity()<0)
+            throw new IllegalArgumentException("Vui lòng nhập tên, giá và tồn kho hợp lệ.");
+        if (drink.getAvailableSizes().size() > 3) {
+            throw new IllegalArgumentException("Mỗi món chỉ được cấu hình tối đa 3 size, tính cả Size S.");
+        }
+    }
+
+    private final class DrinkForm {
+        final JPanel panel=new JPanel(); final JTextField name=new JTextField(24),price=new JTextField(12),
+                quantity=new JTextField(8),image=new JTextField(24);
+        final JTextArea description=new JTextArea(3,24);
+        final JPanel sizeRows=new JPanel(), toppingRows=new JPanel();
+        final JButton addSizeButton=new JButton("+ Thêm size"), addToppingButton=new JButton("+ Thêm topping");
+        final List<SizeRow> sizes=new ArrayList<>();
+        final List<ToppingRow> toppings=new ArrayList<>();
+        final List<model.Topping> originalToppings;
+        DrinkForm(Drink existing)throws Exception {
+            panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));panel.setBorder(BorderFactory.createEmptyBorder(8,10,8,10));
+            sectionLabel("THÔNG TIN CƠ BẢN");
+            row("Tên đồ uống",name);row("Giá Size S (đ)",price);row("Tồn kho",quantity);
+            row("Mô tả",new JScrollPane(description));row("Hình ảnh",imageInput(image));
+            sectionLabel("CẤU HÌNH SIZE");
+            row("Size mặc định",new JLabel("S · giá nhập ở trên"));
+            sizeRows.setLayout(new BoxLayout(sizeRows,BoxLayout.Y_AXIS));
+            panel.add(sizeRows); addSizeButton.addActionListener(e->addSizeRow(null));
+            panel.add(addSizeButton);
+            sectionLabel("TOPPING ÁP DỤNG CHO MÓN (TÙY CHỌN)");
+            toppingRows.setLayout(new BoxLayout(toppingRows,BoxLayout.Y_AXIS));
+            panel.add(toppingRows); addToppingButton.addActionListener(e->addToppingRow(null));
+            panel.add(addToppingButton);
+            if(existing!=null){
+                name.setText(existing.getName());price.setText(String.valueOf(existing.getPrice()));quantity.setText(String.valueOf(existing.getQuantity()));
+                image.setText(existing.getImage()==null?"":existing.getImage());description.setText(existing.getDescription()==null?"":existing.getDescription());
+                List<Drink.SizeOption> configuredSizes=existing.getAvailableSizes();
+                for(int i=1;i<configuredSizes.size();i++)addSizeRow(configuredSizes.get(i));
+                originalToppings=List.copyOf(new ToppingService().getForDrink(existing.getId()));
+                for(model.Topping topping:originalToppings)addToppingRow(topping);
+            }else{quantity.setText("0");originalToppings=List.of();}
+            updateSizeLimit(); updateToppingLimit();
+        }
+        JScrollPane scrollPane(){
+            JScrollPane scroll=new JScrollPane(panel);
+            scroll.setPreferredSize(new Dimension(590,500));
+            scroll.getVerticalScrollBar().setUnitIncrement(18);
+            return scroll;
+        }
+        void sectionLabel(String text){JLabel label=new JLabel(text);label.setFont(new Font("Segoe UI",Font.BOLD,13));label.setForeground(UITheme.PRIMARY);label.setBorder(BorderFactory.createEmptyBorder(10,0,6,0));panel.add(label);}
+        void row(String label,Component field){JPanel row=new JPanel(new BorderLayout(12,4));row.setOpaque(false);JLabel caption=new JLabel(label);caption.setPreferredSize(new Dimension(145,28));row.add(caption,BorderLayout.WEST);row.add(field,BorderLayout.CENTER);row.setBorder(BorderFactory.createEmptyBorder(2,0,4,0));panel.add(row);}
+        void addSizeRow(Drink.SizeOption option){
+            if(sizes.size()>=2)return;
+            SizeRow size=new SizeRow(option);sizes.add(size);sizeRows.add(size.panel);updateSizeLimit();refreshFormLayout(size.panel);
+        }
+        void addToppingRow(model.Topping topping){
+            if(toppings.size()>=3)return;
+            ToppingRow row=new ToppingRow(topping);toppings.add(row);toppingRows.add(row.panel);updateToppingLimit();refreshFormLayout(row.panel);
+        }
+        void refreshFormLayout(JComponent addedRow){
+            sizeRows.revalidate();sizeRows.repaint();toppingRows.revalidate();toppingRows.repaint();
+            panel.revalidate();panel.repaint();
+            JScrollPane scroll=(JScrollPane)SwingUtilities.getAncestorOfClass(JScrollPane.class,panel);
+            if(scroll==null)return;
+            scroll.revalidate();scroll.getViewport().revalidate();
+            SwingUtilities.invokeLater(()->{
+                scroll.revalidate();scroll.doLayout();scroll.getViewport().doLayout();
+                panel.revalidate();panel.doLayout();
+                Rectangle bounds=SwingUtilities.convertRectangle(addedRow.getParent(),addedRow.getBounds(),panel);
+                panel.scrollRectToVisible(bounds);
+                Window window=SwingUtilities.getWindowAncestor(scroll);
+                if(window!=null)window.validate();
+            });
+        }
+        void updateSizeLimit(){addSizeButton.setEnabled(sizes.size()<2);addSizeButton.setToolTipText(sizes.size()>=2?"Tối đa 3 size, tính cả Size S.":null);}
+        void updateToppingLimit(){addToppingButton.setEnabled(toppings.size()<3);addToppingButton.setToolTipText(toppings.size()>=3?"Mỗi món tối đa 3 topping.":null);}
+        Drink read(Drink d){
+            d.setName(name.getText().trim());d.setPrice(Double.parseDouble(price.getText().trim()));
+            d.setQuantity(Integer.parseInt(quantity.getText().trim()));d.setImage(image.getText().trim());d.setDescription(description.getText().trim());
+            List<Drink.SizeOption> configured=new ArrayList<>();configured.add(new Drink.SizeOption("S",d.getPrice()));
+            java.util.Set<String> names=new java.util.HashSet<>();names.add("s");
+            for(SizeRow row:sizes){String sizeName=row.name.getText().trim();String extraText=row.price.getText().trim();
+                if(sizeName.isBlank()&&extraText.isBlank())continue;
+                if(sizeName.isBlank()||extraText.isBlank())throw new IllegalArgumentException("Hãy nhập đủ tên size và phụ thu, hoặc xóa dòng size còn trống.");
+                double extra=Double.parseDouble(extraText);
+                if(!Double.isFinite(extra)||extra<0||!names.add(sizeName.toLowerCase(Locale.ROOT)))
+                    throw new IllegalArgumentException("Tên size phải riêng biệt và phụ thu phải là số không âm.");
+                configured.add(new Drink.SizeOption(sizeName,extra));}
+            d.setSizes(configured);Drink.SizeOption legacyLarge=configured.stream().filter(s->"l".equalsIgnoreCase(s.getName())).findFirst().orElse(null);
+            d.setHasLargeSize(legacyLarge!=null);d.setLargeExtraPrice(legacyLarge==null?0:legacyLarge.getPrice());
+            return d;
+        }
+        List<model.Topping> selectedToppings(){
+            if(toppings.size()>3)throw new IllegalArgumentException("Mỗi món chỉ được thêm tối đa 3 topping.");
+            List<model.Topping> selected=new ArrayList<>();java.util.Set<String> names=new java.util.HashSet<>();
+            for(ToppingRow row:toppings){String toppingName=row.name.getText().trim();String priceText=row.price.getText().trim();
+                if(toppingName.isBlank()&&priceText.isBlank())continue;
+                if(toppingName.isBlank()||priceText.isBlank())throw new IllegalArgumentException("Hãy nhập đủ tên topping và giá, hoặc xóa dòng topping còn trống.");
+                double toppingPrice=Double.parseDouble(priceText);
+                if(!Double.isFinite(toppingPrice)||toppingPrice<0||!names.add(toppingName.toLowerCase(Locale.ROOT)))
+                    throw new IllegalArgumentException("Tên topping phải riêng biệt và giá phải hợp lệ.");
+                selected.add(new model.Topping(toppingName,toppingPrice));}
+            return selected;
+        }
+        final class SizeRow {
+            final JPanel panel=new JPanel(new FlowLayout(FlowLayout.LEFT,6,2));
+            final JTextField name=new JTextField(8),price=new JTextField(9);
+            SizeRow(Drink.SizeOption option){
+                name.setToolTipText("Tên size, ví dụ M hoặc L");price.setToolTipText("Khoản cộng thêm trên giá Size S");
+                if(option!=null){name.setText(option.getName());price.setText(String.valueOf(Math.max(0,option.getPrice()-DrinkForm.this.basePrice())));}
+                panel.add(new JLabel("Tên"));panel.add(name);panel.add(new JLabel("Phụ thu (đ)"));panel.add(price);
+                JButton remove=new JButton("Xóa");remove.addActionListener(e->{sizes.remove(this);sizeRows.remove(panel);updateSizeLimit();refreshFormLayout(DrinkForm.this.addSizeButton);});panel.add(remove);
+            }
+        }
+        double basePrice(){try{return Double.parseDouble(price.getText().trim());}catch(NumberFormatException ignored){return 0;}}
+        final class ToppingRow {
+            final JPanel panel=new JPanel(new FlowLayout(FlowLayout.LEFT,6,2));
+            final JTextField name=new JTextField(10),price=new JTextField(9);
+            ToppingRow(model.Topping topping){
+                name.setToolTipText("Tên topping");price.setToolTipText("Giá topping");
+                if(topping!=null){name.setText(topping.getName());price.setText(String.valueOf(topping.getPrice()));}
+                panel.add(new JLabel("Tên"));panel.add(name);panel.add(new JLabel("Giá (đ)"));panel.add(price);
+                JButton remove=new JButton("Xóa");remove.addActionListener(e->{toppings.remove(this);toppingRows.remove(panel);updateToppingLimit();refreshFormLayout(DrinkForm.this.addToppingButton);});panel.add(remove);
+            }
         }
     }
 
@@ -202,49 +324,60 @@ public class DrinkPanel extends JPanel implements RefreshablePanel {
             showApiError("Không thể tải đồ uống", exception);
             return;
         }
-        JTextField nameField = new JTextField((String) model.getValueAt(row, 1));
-        JTextField priceField = new JTextField(Double.toString(existingDrink.getPrice()));
-        JTextField quantityField = new JTextField(String.valueOf(model.getValueAt(row, 3)));
-        JTextField imageField = new JTextField(existingDrink.getImage() == null ? "" : existingDrink.getImage());
-
-        JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
-        form.add(new JLabel("Tên đồ uống:"));
-        form.add(nameField);
-        form.add(new JLabel("Giá:"));
-        form.add(priceField);
-        form.add(new JLabel("Tồn kho:"));
-        form.add(quantityField);
-        form.add(new JLabel("Ảnh (URL hoặc tệp):"));
-        form.add(imageInput(imageField));
-
-        int result = NotificationDialog.showConfirmDialog(
-                this, form, "Sửa đồ uống", NotificationDialog.OK_CANCEL_OPTION);
-        if (result != NotificationDialog.OK_OPTION) {
-            return;
-        }
-
         try {
-            Drink drink = new Drink();
-            drink.setId(id);
-            drink.setCategoryId(existingDrink.getCategoryId());
-            drink.setName(nameField.getText().trim());
-            drink.setPrice(Double.parseDouble(priceField.getText().trim()));
-            drink.setQuantity(Integer.parseInt(quantityField.getText().trim()));
-            drink.setActive("Đang bán".equals(model.getValueAt(row, 4).toString()));
-            drink.setImage(imageField.getText().trim());
-
-            if (drink.getName().isEmpty() || drink.getPrice() < 0 || drink.getQuantity() < 0) {
-                throw new IllegalArgumentException("Dữ liệu không hợp lệ");
+            String originalSnapshot = new com.google.gson.Gson().toJson(existingDrink);
+            DrinkForm editor=new DrinkForm(existingDrink);
+            int result=NotificationDialog.showConfirmDialog(this,editor.scrollPane(),"Sửa đồ uống",NotificationDialog.OK_CANCEL_OPTION);
+            if(result!=NotificationDialog.OK_OPTION)return;
+            Drink originalDrink = new com.google.gson.Gson().fromJson(originalSnapshot, Drink.class);
+            Drink drink=editor.read(existingDrink);
+            drink.setId(id);drink.setCategoryId(existingDrink.getCategoryId());drink.setActive(existingDrink.isActive());
+            validateDrink(drink);
+            List<model.Topping> toppingOptions=editor.selectedToppings();
+            boolean drinkChanged=!sameDrink(originalDrink,drink);
+            boolean toppingsChanged=!sameToppings(editor.originalToppings,toppingOptions);
+            if(!drinkChanged&&!toppingsChanged){
+                NotificationDialog.showMessageDialog(this,"Bạn chưa thay đổi thông tin đồ uống.","Không có thay đổi",NotificationDialog.INFORMATION_MESSAGE);
+                return;
             }
-
-            drinkService.update(drink);
+            try {
+                if(drinkChanged)drinkService.update(drink);
+                if(toppingsChanged)new ToppingService().setForDrink(id,toppingOptions);
+            } catch (Exception updateFailure) {
+                if(drinkChanged){
+                    try { drinkService.update(originalDrink); }
+                    catch (Exception rollbackFailure) { updateFailure.addSuppressed(rollbackFailure); }
+                }
+                throw updateFailure;
+            }
             loadDrinks();
-            NotificationDialog.showSuccess(this, "Đã cập nhật đồ uống.");
+            NotificationDialog.showSuccess(this, "Đã cập nhật đồ uống, size và topping.");
         } catch (IllegalArgumentException e) {
-            NotificationDialog.showError(this, "Giá và tồn kho phải là số không âm.");
+            NotificationDialog.showError(this,
+                    "Giá, tồn kho hoặc cấu hình topping không hợp lệ: " + e.getMessage());
         } catch (Exception e) {
             showApiError("Không thể cập nhật đồ uống", e);
         }
+    }
+
+    private boolean sameDrink(Drink left,Drink right){
+        if(left==null||right==null||!java.util.Objects.equals(left.getName(),right.getName())
+                ||Double.compare(left.getPrice(),right.getPrice())!=0||left.getQuantity()!=right.getQuantity()
+                ||left.getCategoryId()!=right.getCategoryId()||left.isActive()!=right.isActive()
+                ||!java.util.Objects.equals(left.getImage(),right.getImage())
+                ||!java.util.Objects.equals(left.getDescription(),right.getDescription()))return false;
+        List<Drink.SizeOption> a=left.getAvailableSizes(),b=right.getAvailableSizes();
+        if(a.size()!=b.size())return false;
+        for(int i=0;i<a.size();i++)if(!java.util.Objects.equals(a.get(i).getName(),b.get(i).getName())
+                ||Math.abs(a.get(i).getPrice()-b.get(i).getPrice())>0.001)return false;
+        return true;
+    }
+
+    private boolean sameToppings(List<model.Topping> left,List<model.Topping> right){
+        if(left.size()!=right.size())return false;
+        java.util.function.Function<model.Topping,String> key=topping->topping.getName().trim().toLowerCase(Locale.ROOT)
+                +"|"+java.math.BigDecimal.valueOf(topping.getPrice()).stripTrailingZeros().toPlainString();
+        return left.stream().map(key).sorted().toList().equals(right.stream().map(key).sorted().toList());
     }
 
     private void toggleDrinkStatus(int row) {

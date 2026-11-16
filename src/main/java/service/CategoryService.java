@@ -13,7 +13,4 @@ public class CategoryService {
         Type type = new TypeToken<List<Category>>() {}.getType();
         return gson.fromJson(ApiClient.get("/categories"), type);
     }
-    public void create(Category category) throws Exception {
-        ApiClient.post("/categories", gson.toJson(category));
-    }
 }

@@ -36,7 +36,8 @@ public class PaymentHistoryPanel extends JPanel implements RefreshablePanel {
     private final UserService userService = new UserService();
     private final DefaultTableModel model = new DefaultTableModel(new Object[]{
             "Mã đơn", "Khách hàng", "Loại đơn", "Nhân viên thanh toán", "Thời gian thanh toán",
-            "Phương thức", "Tổng tiền", "Trạng thái"
+            "Phương thức", "Tổng tiền", "Trạng thái", "Trạng thái hoàn tiền", "Nhân viên hoàn tiền",
+            "Thời gian hoàn tiền", "Tiền hoàn", "Lý do hoàn tiền"
     }, 0) { @Override public boolean isCellEditable(int r, int c) { return false; } };
     private final JTable table = new JTable(model);
     private final JTextField search = new JTextField(16);
@@ -132,26 +133,53 @@ public class PaymentHistoryPanel extends JPanel implements RefreshablePanel {
         String query = search.getText().trim().toLowerCase(Locale.ROOT);
         LocalDate today = LocalDate.now();
         List<Payment> visible = loadedPayments.stream()
-                .filter(p -> "SUCCESS".equalsIgnoreCase(p.getStatus()))
+                .filter(p -> "SUCCESS".equalsIgnoreCase(p.getStatus())
+                        || "REFUND_SUCCESS".equalsIgnoreCase(p.getStatus())
+                        || "ADDITIONAL_PAYMENT_SUCCESS".equalsIgnoreCase(p.getStatus()))
                 .filter(p -> p.getPaidAt() != null && !p.getPaidAt().isBlank())
-                .filter(p -> isAdmin() || p.getEmployeeId() == user.getId())
+                .filter(p -> isAdmin() || p.getEmployeeId() == user.getId()
+                        || (p.getRefundedByUserId()!=null && p.getRefundedByUserId()==user.getId()))
                 .filter(p -> !isAdmin() || selectedEmployee == null || selectedEmployee.id == 0
                         || p.getEmployeeId() == selectedEmployee.id)
                 .filter(p -> inPeriod(p.getPaidAt(), selectedPeriod, today))
-                .filter(p -> query.isEmpty() || ("#"+p.getOrderId()).contains(query)
+                .filter(p -> query.isEmpty() || paymentReference(p).toLowerCase(Locale.ROOT).contains(query)
                         || safe(p.getCustomerName()).toLowerCase(Locale.ROOT).contains(query)
                         || staffNames.getOrDefault(p.getEmployeeId(), "").toLowerCase(Locale.ROOT).contains(query))
                 .sorted(Comparator.comparing(Payment::getPaidAt).reversed()).toList();
+        java.util.Set<String> ordersWithRefundEntries = loadedPayments.stream()
+                .filter(p -> "REFUND_SUCCESS".equalsIgnoreCase(p.getStatus()))
+                .map(this::paymentReference)
+                .collect(Collectors.toSet());
         model.setRowCount(0);
         double total=0; int cash=0, transfer=0;
         for (Payment payment : visible) {
-            total += payment.getAmount();
+            String status = payment.getStatus() == null ? "" : payment.getStatus().toUpperCase(Locale.ROOT);
+            boolean refundEntry = "REFUND_SUCCESS".equals(status);
+            boolean legacyRefundedOriginal = "SUCCESS".equals(status)
+                    && "SUCCESS".equalsIgnoreCase(payment.getRefundStatus())
+                    && !ordersWithRefundEntries.contains(paymentReference(payment));
+            if (refundEntry) total -= payment.getAmount();
+            else if (!legacyRefundedOriginal && ("SUCCESS".equals(status)
+                    || "ADDITIONAL_PAYMENT_SUCCESS".equals(status))) total += payment.getAmount();
             if ("CASH".equalsIgnoreCase(payment.getPaymentMethod())) cash++;
             if ("TRANSFER".equalsIgnoreCase(payment.getPaymentMethod()) || "BANK".equalsIgnoreCase(payment.getPaymentMethod())) transfer++;
             String orderType = "TAKEAWAY".equalsIgnoreCase(payment.getOrderType()) ? "Mang đi" : "Tại bàn";
-            model.addRow(new Object[]{"#"+payment.getOrderId(), safe(payment.getCustomerName()), orderType,
+            String transactionLabel = refundEntry
+                    ? ("CHECKOUT_REQUEST".equalsIgnoreCase(payment.getRefundType()) ? "Đã hoàn yêu cầu thanh toán TMP"
+                            : "FULL_ORDER".equalsIgnoreCase(payment.getRefundType()) ? "Đã hoàn tiền toàn đơn" : "Đã hoàn chênh lệch")
+                    : "ADDITIONAL_PAYMENT_SUCCESS".equals(status) ? "Đã thu chênh lệch"
+                            : payment.getCheckoutRequestId() != null ? "Đã nhận tiền cho yêu cầu TMP" : "Đã thanh toán";
+            model.addRow(new Object[]{paymentReference(payment), safe(payment.getCustomerName()), orderType,
                     staffNames.getOrDefault(payment.getEmployeeId(), "Chưa ghi nhận"),
-                    format(payment.getPaidAt()), paymentLabel(payment.getPaymentMethod()), UITheme.formatVnd(payment.getAmount()), "Đã thanh toán"});
+                    format(payment.getPaidAt()), paymentLabel(payment.getPaymentMethod()), UITheme.formatVnd(payment.getAmount()),
+                    transactionLabel,
+                    (refundEntry || "SUCCESS".equalsIgnoreCase(payment.getRefundStatus())) ? "Đã hoàn tiền" : "Chưa hoàn tiền",
+                    payment.getRefundedByUserId()==null?"-":staffNames.getOrDefault(payment.getRefundedByUserId(),"Không rõ"),
+                    payment.getRefundedAt()==null?"-":format(payment.getRefundedAt()),
+                    (refundEntry || "SUCCESS".equalsIgnoreCase(payment.getRefundStatus()))?UITheme.formatVnd(payment.getAmount()):"-",
+                    refundEntry || "SUCCESS".equalsIgnoreCase(payment.getRefundStatus())
+                            ? (payment.getRefundReason() == null || payment.getRefundReason().isBlank() ? "-" : payment.getRefundReason())
+                            : "-"});
         }
         summary.setText("Số giao dịch: " + visible.size() + "    Tiền mặt: " + cash
                 + "    Chuyển khoản: " + transfer + "    Tổng doanh thu: " + UITheme.formatVnd(total));
@@ -167,6 +195,10 @@ public class PaymentHistoryPanel extends JPanel implements RefreshablePanel {
     }
     private String format(String value) { try { return LocalDateTime.parse(value).format(DISPLAY); } catch(Exception e) { return value; } }
     private String paymentLabel(String value) { return "CASH".equalsIgnoreCase(value)?"Tiền mặt":"Chuyển khoản"; }
+    private String paymentReference(Payment payment) {
+        return payment.getCheckoutRequestId() == null ? "#" + payment.getOrderId()
+                : "TMP" + payment.getCheckoutRequestId();
+    }
     private String safe(String v) { return v==null?"":v; }
     private record Employee(int id,String name) { @Override public String toString(){return name;} }
     private static final class HistoryData {

@@ -51,6 +51,20 @@ public class ApiClient {
         return response.body();
     }
 
+    public static String patch(String endpoint, String body) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + endpoint))
+                .header("Content-Type", "application/json")
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = sendWithRetry(request, "PATCH");
+
+        ensureSuccess(response);
+        DataChangeNotifier.publish();
+        return response.body();
+    }
+
     public static String post(String endpoint, String body) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + endpoint))
@@ -58,7 +72,15 @@ public class ApiClient {
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response;
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException connectionFailure) {
+            // Do not blindly replay POST: callers verify the resource before deciding whether
+            // an ambiguous write needs recovery, avoiding duplicate drinks/payments.
+            client = createClient();
+            throw connectionFailure;
+        }
 
         ensureSuccess(response);
         DataChangeNotifier.publish();
@@ -79,8 +101,10 @@ public class ApiClient {
 
     private static void ensureSuccess(HttpResponse<String> response) {
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
-            throw new IllegalStateException(
-                    "API trả về mã lỗi HTTP " + response.statusCode());
+            String body = response.body() == null ? "" : response.body().trim();
+            if (body.length() > 600) body = body.substring(0, 600) + "…";
+            throw new IllegalStateException("API " + response.uri() + " trả về HTTP "
+                    + response.statusCode() + (body.isBlank() ? " (server không gửi nội dung lỗi)." : ": " + body));
         }
     }
 

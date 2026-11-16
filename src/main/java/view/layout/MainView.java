@@ -12,7 +12,7 @@ import view.staff.DashboardPanel;
 import view.staff.DrinkPanel;
 import view.staff.OrderPanel;
 import view.staff.PaymentHistoryPanel;
-import service.OrderService;
+import view.staff.CashierRequestsPanel;
 import javax.swing.*;
 import java.awt.*;
 
@@ -27,8 +27,6 @@ public class MainView extends JFrame {
         public MainView(User user) {
                 this.user = user;
                 UITheme.install();
-                OrderService.startExpiryMonitor();
-
                 setTitle("Store Drink - " + user.getRole());
                 setSize(1200, 700);
                 setLocationRelativeTo(null);
@@ -53,6 +51,7 @@ public class MainView extends JFrame {
                 if (staff || admin) {
                         contentPanel.add(new OrderPanel(user), "ORDER");
                         contentPanel.add(new PaymentHistoryPanel(user), "PAYMENT_HISTORY");
+                        contentPanel.add(new CashierRequestsPanel(user), "CASHIER_REQUESTS");
                 }
                 if (admin) {
                         contentPanel.add(new DrinkPanel(), "DRINK");
@@ -133,6 +132,7 @@ public class MainView extends JFrame {
                 JButton tableButton = createMenuButton("  Bàn");
                 JButton orderButton = createMenuButton("  Đơn hàng");
                 JButton paymentHistoryButton = createMenuButton("  Lịch sử thanh toán");
+                JButton cashierRequestsButton = createMenuButton("  Quản lý thanh toán");
                 JButton counterOrderButton = createMenuButton("  Tạo đơn tại quầy");
                 JButton cartButton = createMenuButton("  Giỏ hàng");
 
@@ -143,6 +143,7 @@ public class MainView extends JFrame {
                 menuPanel.add(tableButton);
                 menuPanel.add(orderButton);
                 menuPanel.add(paymentHistoryButton);
+                menuPanel.add(cashierRequestsButton);
                 menuPanel.add(counterOrderButton);
                 menuPanel.add(cartButton);
 
@@ -164,6 +165,7 @@ public class MainView extends JFrame {
                         tableButton.setVisible(false);
                         counterOrderButton.setVisible(true);
                         paymentHistoryButton.setVisible(true);
+                        cashierRequestsButton.setVisible(true);
                         cartButton.setVisible(false);
                 } else if ("ADMIN".equalsIgnoreCase(user.getRole())) {
                         customerButton.setVisible(false);
@@ -206,6 +208,7 @@ public class MainView extends JFrame {
 
                 orderButton.addActionListener(e -> showPage("ORDER"));
                 paymentHistoryButton.addActionListener(e -> showPage("PAYMENT_HISTORY"));
+                cashierRequestsButton.addActionListener(e -> showPage("CASHIER_REQUESTS"));
                 counterOrderButton.addActionListener(e -> showPage(COUNTER_ORDER));
                 cartButton.addActionListener(e -> {
                         customerCartPanel.refresh();
@@ -291,6 +294,7 @@ public class MainView extends JFrame {
                         case "EMPLOYEE" -> "Nhân viên";
                         case "TABLE" -> "Bàn";
                         case "ORDER" -> "Đơn hàng";
+                        case "CASHIER_REQUESTS" -> "Quản lý thanh toán";
                         case COUNTER_ORDER -> "Tạo đơn tại quầy";
                         case "CART" -> "Giỏ hàng";
                         default -> "Khách hàng";

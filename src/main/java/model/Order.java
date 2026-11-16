@@ -8,6 +8,7 @@ public class Order {
     private int userId;
     private int createdByUserId;
     private int processedByUserId;
+    private Integer sourceCheckoutRequestId;
     private Integer tableId;
     private String customerName;
     private String customerPhone;
@@ -64,6 +65,7 @@ public class Order {
     public void setUserId(int userId) { this.userId = userId; }
     public void setCreatedByUserId(int createdByUserId) { this.createdByUserId = createdByUserId; }
     public void setProcessedByUserId(int processedByUserId) { this.processedByUserId = processedByUserId; }
+    public void setSourceCheckoutRequestId(Integer sourceCheckoutRequestId) { this.sourceCheckoutRequestId = sourceCheckoutRequestId; }
     public void setTotal(double total) { this.total = total; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
@@ -87,6 +89,7 @@ public class Order {
     public int getUserId() { return userId; }
     public int getCreatedByUserId() { return createdByUserId; }
     public int getProcessedByUserId() { return processedByUserId; }
+    public Integer getSourceCheckoutRequestId() { return sourceCheckoutRequestId; }
     public Boolean getStockDeducted() { return stockDeducted; }
     public Boolean getStockRestored() { return stockRestored; }
     public Map<Integer, Integer> getReservedStock() {

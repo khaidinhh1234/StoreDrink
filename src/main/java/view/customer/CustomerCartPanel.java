@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.text.NumberFormat;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -15,7 +16,7 @@ import javax.swing.table.DefaultTableModel;
 import model.OrderDetail;
 import model.User;
 import service.DrinkService;
-import service.OrderService;
+import service.CashierRequestService;
 import view.layout.NotificationDialog;
 import view.layout.UITheme;
 public class CustomerCartPanel extends JPanel {
@@ -25,7 +26,6 @@ public class CustomerCartPanel extends JPanel {
     private final JTable table = new JTable(model);
     private final JLabel total = new JLabel();
     private final NumberFormat currency = UITheme.newVndFormatter();
-    private final OrderService orders = new OrderService();
     private final DrinkService drinks = new DrinkService();
 
     public CustomerCartPanel(User user) {
@@ -43,7 +43,7 @@ public class CustomerCartPanel extends JPanel {
 
         JButton remove = new JButton("Xóa món");
         remove.addActionListener(e -> remove());
-        JButton pay = new JButton("Gửi order chờ duyệt");
+        JButton pay = new JButton("Thanh toán / Gửi yêu cầu");
         pay.addActionListener(e -> pay());
         total.setFont(new Font("Arial", Font.BOLD, 18));
         total.setForeground(UITheme.TEXT);
@@ -61,8 +61,8 @@ public class CustomerCartPanel extends JPanel {
     public void refresh() {
         model.setRowCount(0);
         for (CustomerCart.Item item : CustomerCart.items()) {
-            model.addRow(new Object[] {item.drink().getName(), item.quantity(),
-                    currency.format(item.drink().getPrice()) + " đ",
+            model.addRow(new Object[] {item.configurationLabel(), item.quantity(),
+                    currency.format(item.unitPrice()) + " đ",
                     currency.format(item.subtotal()) + " đ"});
         }
         total.setText("Tổng: " + currency.format(CustomerCart.total()) + " đ");
@@ -82,30 +82,83 @@ public class CustomerCartPanel extends JPanel {
         try {
             Map<Integer, model.Drink> currentDrinks = drinks.getAll().stream()
                     .collect(Collectors.toMap(drink -> drink.getId(), drink -> drink));
-            for (CustomerCart.Item item : CustomerCart.items()) {
-                model.Drink current = currentDrinks.get(item.drink().getId());
+            Map<Integer, Integer> requestedQuantities = CustomerCart.items().stream()
+                    .collect(Collectors.groupingBy(item -> item.drink().getId(),
+                            Collectors.summingInt(CustomerCart.Item::quantity)));
+            for (Map.Entry<Integer, Integer> requested : requestedQuantities.entrySet()) {
+                model.Drink current = currentDrinks.get(requested.getKey());
                 if (current == null || !current.isActive()) {
-                    NotificationDialog.showMessageDialog(this, item.drink().getName()
+                    NotificationDialog.showMessageDialog(this, "Đồ uống mã " + requested.getKey()
                             + " đã ngừng bán. Vui lòng xóa món này khỏi giỏ hàng.");
                     refresh();
                     return;
                 }
-                if (item.quantity() > current.getQuantity()) {
-                    NotificationDialog.showMessageDialog(this, item.drink().getName()
+                if (requested.getValue() > current.getQuantity()) {
+                    NotificationDialog.showMessageDialog(this, current.getName()
                             + " chỉ còn " + current.getQuantity() + " cốc trong kho.");
                     refresh();
                     return;
                 }
             }
             var details = CustomerCart.items().stream()
-                    .map(item -> new OrderDetail(0, 0, item.drink().getId(),
-                            item.quantity(), item.drink().getPrice())).toList();
-            orders.createOrder(user.getId(), CustomerCart.total(), "UNPAID", details);
+                    .map(item -> {
+                        OrderDetail detail = new OrderDetail(0, 0, item.drink().getId(),
+                                item.quantity(), item.unitPrice());
+                        detail.setDrinkName(item.drink().getName());
+                        detail.setSize(item.size);
+                        detail.setSizeExtraPrice(item.sizeExtraPrice);
+                        detail.setToppings(item.toppings);
+                        detail.setToppingTotal(item.toppings.stream().mapToDouble(topping -> topping.price).sum());
+                        detail.setNote(item.note);
+                        detail.setSubtotal(item.subtotal());
+                        return detail;
+                    }).toList();
+            Object[] methods = {"Tiền mặt tại quầy", "Chuyển khoản QR", "Hủy"};
+            int methodChoice = javax.swing.JOptionPane.showOptionDialog(this,
+                    "Tổng tiền: " + currency.format(CustomerCart.total()) + " đ\nChọn phương thức thanh toán:",
+                    "Thanh toán đơn hàng", javax.swing.JOptionPane.DEFAULT_OPTION,
+                    javax.swing.JOptionPane.QUESTION_MESSAGE, null, methods, methods[0]);
+            if (methodChoice < 0 || methodChoice == 2) return;
+
+            String method = methodChoice == 0 ? "CASH" : "TRANSFER";
+            String requestStatus = "WAITING_CASHIER";
+            if ("CASH".equals(method)) {
+                int confirm = javax.swing.JOptionPane.showConfirmDialog(this,
+                        "Vui lòng đến quầy thu ngân để thanh toán. Gửi yêu cầu cho nhân viên?",
+                        "Thanh toán tiền mặt", javax.swing.JOptionPane.YES_NO_OPTION,
+                        javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                if (confirm != javax.swing.JOptionPane.YES_OPTION) return;
+            } else {
+                javax.swing.JPanel qrPanel = new javax.swing.JPanel(new java.awt.BorderLayout(8, 8));
+                qrPanel.add(new javax.swing.JLabel("MÃ QR NGÂN HÀNG (mô phỏng)", javax.swing.SwingConstants.CENTER), java.awt.BorderLayout.CENTER);
+                qrPanel.add(new javax.swing.JLabel("Số tiền: " + currency.format(CustomerCart.total()) + " đ",
+                        javax.swing.SwingConstants.CENTER), java.awt.BorderLayout.SOUTH);
+                Object[] results = {"Tôi đã chuyển khoản", "Thanh toán thất bại", "Hủy"};
+                int result = javax.swing.JOptionPane.showOptionDialog(this, qrPanel, "Thanh toán bằng QR",
+                        javax.swing.JOptionPane.DEFAULT_OPTION, javax.swing.JOptionPane.PLAIN_MESSAGE,
+                        null, results, results[0]);
+                if (result != 0) {
+                    if (result == 1) NotificationDialog.showMessageDialog(this,
+                            "Thanh toán thất bại. Không tạo đơn và không trừ kho; bạn có thể thử lại.");
+                    return;
+                }
+                requestStatus = "WAITING_CONFIRMATION";
+            }
+
+            String customerName = user.getFullName() == null || user.getFullName().isBlank()
+                    ? user.getUsername() : user.getFullName().trim();
+            CashierRequestService.Request request = new CashierRequestService.Request(
+                    customerName, null, null, CustomerCart.total(), "TAKEAWAY", details,
+                    requestStatus, LocalDateTime.now().toString(), method);
+            request.customerUserId = user.getId();
+            int requestId = new CashierRequestService().create(new com.google.gson.Gson().toJson(request));
             CustomerCart.items().clear();
             refresh();
             NotificationDialog.showMessage(this,
-                    "Order đã được gửi và đang chờ nhân viên duyệt. Chưa trừ tồn kho.",
-                    "Đã gửi order", NotificationDialog.Type.SUCCESS);
+                    "Đã gửi yêu cầu TMP" + requestId + " đến nhân viên để "
+                            + ("CASH".equals(method) ? "nhận tiền mặt" : "kiểm tra chuyển khoản")
+                            + ". Đơn chính thức sẽ được tạo sau khi nhân viên xác nhận thanh toán.",
+                    "Đã gửi yêu cầu thanh toán", NotificationDialog.Type.SUCCESS);
         } catch (Exception exception) {
             exception.printStackTrace();
             NotificationDialog.showMessageDialog(this, "Không thể gửi order: " + exception.getMessage());

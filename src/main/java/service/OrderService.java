@@ -1,21 +1,13 @@
 package service;
 
 import java.lang.reflect.Type;
-import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -31,10 +23,8 @@ public class OrderService {
     private final Gson gson = new Gson();
     private static final Object ORDER_CREATION_LOCK = new Object();
     private static final Object STATUS_TRANSITION_LOCK = new Object();
-    private static final Duration DUPLICATE_WINDOW = Duration.ofSeconds(30);
-    private static final Duration PENDING_TIMEOUT = Duration.ofMinutes(30);
-    private static volatile ScheduledExecutorService expiryMonitor;
     private final PaymentService paymentService = new PaymentService();
+    private final InventoryService inventoryService = new InventoryService();
 
     public List<Order> getAll() throws Exception {
         String json = ApiClient.get("/orders");
@@ -45,186 +35,45 @@ public class OrderService {
     public void updateStatus(Order staleOrder, String status, User actor, String cancelReason) throws Exception {
         requireStaff(actor);
         String nextStatus = normalizeStatus(status);
+        if (!"CANCELLED".equals(nextStatus)) {
+            throw new IllegalArgumentException("Chỉ cho phép hủy đơn đang pha chế.");
+        }
         synchronized (STATUS_TRANSITION_LOCK) {
             Order current = getOrder(staleOrder.getId());
             String currentStatus = normalizeStatus(current.getStatus());
-            if ("CONFIRMED".equals(nextStatus)) {
-                if (!"PENDING".equals(currentStatus)) {
-                    throw new IllegalStateException("Đơn đã được nhân viên khác xử lý hoặc không còn chờ duyệt.");
-                }
-                if (isExpired(current)) {
-                    cancel(current, "SYSTEM", "Đơn tự động hủy do quá 30 phút chưa được duyệt");
-                    throw new OrderExpiredException("Đơn đã quá 30 phút và được hệ thống tự động hủy.");
-                }
-                confirm(current, actor);
-                copyStatus(current, staleOrder);
-                return;
-            }
-            if (!"CANCELLED".equals(nextStatus)) {
-                throw new IllegalArgumentException("Trạng thái chuyển đổi không hợp lệ: " + status);
-            }
-            if (!"PENDING".equals(currentStatus) && !"CONFIRMED".equals(currentStatus)) {
-                throw new IllegalStateException("Đơn đã được xử lý, không thể hủy.");
+            if (!"CONFIRMED".equals(currentStatus)) {
+                throw new IllegalStateException("Chỉ đơn đã duyệt, đang pha chế mới được hủy.");
             }
             if (cancelReason == null || cancelReason.isBlank()) {
                 throw new IllegalArgumentException("Cần nhập lý do hủy đơn.");
             }
+            model.Payment payment = paymentService.getAll().stream()
+                    .filter(p -> p.getOrderId() == current.getId()
+                            && "SUCCESS".equalsIgnoreCase(p.getStatus()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Chỉ hủy được đơn đã thanh toán thành công."));
+            // Persist the refund transaction first. If order cancellation later fails, retrying
+            // returns this same ledger entry and can finish cancellation without refunding twice.
+            paymentService.recordRefund(current.getId(), actor, cancelReason.trim());
             cancel(current, String.valueOf(actor.getId()), cancelReason.trim());
             copyStatus(current, staleOrder);
         }
     }
 
-    private void confirm(Order order, User actor) throws Exception {
-        Order latest = getOrder(order.getId());
-        if (!"PENDING".equals(normalizeStatus(latest.getStatus()))) {
-            throw new IllegalStateException("Đơn đã được xử lý bởi thao tác khác. Danh sách đã được làm mới.");
-        }
-        if (isExpired(latest)) {
-            cancel(latest, "SYSTEM", "Đơn tự động hủy do quá 30 phút chưa được duyệt");
-            throw new OrderExpiredException("Đơn đã quá 30 phút và được hệ thống tự động hủy.");
-        }
-
-        List<StockChange> legacyStockChanges = List.of();
-        if (!Boolean.TRUE.equals(latest.getStockDeducted())) {
-            Map<Integer, Integer> legacyReservation = aggregateQuantities(getDetails(order.getId()));
-            if (legacyReservation.isEmpty()) throw new IllegalStateException("Order không có món để duyệt.");
-            legacyStockChanges = applyStockAdjustments(negate(legacyReservation));
-            latest.setReservedStock(legacyReservation);
-            latest.setStockDeducted(true);
-            latest.setStockRestored(false);
-        }
-        try {
-            Order current = getOrder(order.getId());
-            if (!"PENDING".equals(normalizeStatus(current.getStatus())) || isExpired(current)) {
-                if (!legacyStockChanges.isEmpty()) {
-                    rollbackStock(legacyStockChanges, new IllegalStateException("Đơn đã thay đổi trong lúc duyệt."));
-                    legacyStockChanges = List.of();
-                }
-                if ("PENDING".equals(normalizeStatus(current.getStatus())) && isExpired(current)) {
-                    cancel(current, "SYSTEM", "Đơn tự động hủy do quá 30 phút chưa được duyệt");
-                    throw new OrderExpiredException("Đơn đã quá 30 phút và được hệ thống tự động hủy.");
-                }
-                throw new IllegalStateException("Đơn đã được xử lý bởi thao tác khác. Danh sách đã được làm mới.");
-            }
-            LocalDateTime now = LocalDateTime.now();
-            current.setStatus("CONFIRMED");
-            current.setProcessedByUserId(actor.getId());
-            current.setConfirmedBy(actor.getId());
-            current.setConfirmedAt(now.toString());
-            if (!legacyStockChanges.isEmpty()) {
-                current.setReservedStock(latest.getReservedStock());
-                current.setStockDeducted(true);
-                current.setStockRestored(false);
-            }
-            ApiClient.put("/orders/" + current.getId(), gson.toJson(current));
-            Order persisted = getOrder(current.getId());
-            if (!"CONFIRMED".equals(normalizeStatus(persisted.getStatus()))
-                    || persisted.getConfirmedBy() == null
-                    || persisted.getConfirmedBy() != actor.getId()) {
-                throw new IllegalStateException("Đơn hàng đã được nhân viên khác xử lý. Danh sách đã được làm mới.");
-            }
-            latest = persisted;
-        } catch (Exception exception) {
-            try {
-                Order persisted = getOrder(order.getId());
-                if ("CONFIRMED".equals(normalizeStatus(persisted.getStatus()))
-                        && persisted.getConfirmedBy() != null
-                        && persisted.getConfirmedBy() == actor.getId()) {
-                    copyStatus(persisted, order);
-                    return;
-                }
-            } catch (Exception verificationException) {
-                exception.addSuppressed(verificationException);
-            }
-            rollbackStock(legacyStockChanges, exception);
-            throw exception;
-        }
-        copyStatus(latest, order);
-    }
-
-    public void completePayment(Order staleOrder, String paymentMethod, User actor) throws Exception {
+    /** Marks an already-paid, in-preparation order as fulfilled without touching inventory. */
+    public void completeOrder(Order staleOrder, User actor) throws Exception {
         requireStaff(actor);
-        if (!"CASH".equalsIgnoreCase(paymentMethod) && !"TRANSFER".equalsIgnoreCase(paymentMethod)) {
-            throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ");
-        }
         synchronized (STATUS_TRANSITION_LOCK) {
-            Order current = getOrder(staleOrder.getId());
-            if (!"CONFIRMED".equals(normalizeStatus(current.getStatus()))) {
-                throw new IllegalStateException("Đơn không còn ở trạng thái đã duyệt để thanh toán.");
-            }
-            current.setPaymentMethod(paymentMethod);
+            Order current=getOrder(staleOrder.getId());
+            if(!"CONFIRMED".equals(normalizeStatus(current.getStatus())))
+                throw new IllegalStateException("Chỉ đơn đang pha chế mới được hoàn tất.");
+            current.setStatus("COMPLETED"); current.setCompletedBy(actor.getId());
             current.setCompletedAt(LocalDateTime.now().toString());
-            current.setCompletedBy(actor.getId());
-            current.setStatus("COMPLETED");
-            try {
-                ApiClient.put("/orders/" + current.getId(), gson.toJson(current));
-                Order persisted = getOrder(current.getId());
-                if (!"COMPLETED".equals(normalizeStatus(persisted.getStatus()))
-                        || persisted.getCompletedBy() == null
-                        || persisted.getCompletedBy() != actor.getId()
-                        || !paymentMethod.equalsIgnoreCase(persisted.getPaymentMethod())) {
-                    throw new IllegalStateException("Đơn hàng đã được nhân viên khác thanh toán. Danh sách đã được làm mới.");
-                }
-                current = persisted;
-            } catch (Exception exception) {
-                try {
-                    Order persisted = getOrder(current.getId());
-                    if ("COMPLETED".equals(normalizeStatus(persisted.getStatus()))
-                            && persisted.getCompletedBy() != null
-                            && persisted.getCompletedBy() == actor.getId()
-                            && paymentMethod.equalsIgnoreCase(persisted.getPaymentMethod())) {
-                        paymentService.recordCompletedOrder(persisted);
-                        copyStatus(persisted, staleOrder);
-                        return;
-                    }
-                } catch (Exception verificationException) {
-                    exception.addSuppressed(verificationException);
-                }
-                throw exception;
-            }
-            // Payment history is stored separately. This write is idempotent by orderId,
-            // so a retry after an interrupted response will not create a duplicate.
-            paymentService.recordCompletedOrder(current);
-            copyStatus(current, staleOrder);
-        }
-    }
-
-    public int cancelExpiredPendingOrders() throws Exception {
-        synchronized (STATUS_TRANSITION_LOCK) {
-            int cancelled = 0;
-            for (Order candidate : getAll()) {
-                if (!"PENDING".equals(normalizeStatus(candidate.getStatus())) || !isExpired(candidate)) continue;
-                try {
-                    Order current = getOrder(candidate.getId());
-                    if ("PENDING".equals(normalizeStatus(current.getStatus())) && isExpired(current)) {
-                        cancel(current, "SYSTEM", "Đơn tự động hủy do quá 30 phút chưa được duyệt");
-                        cancelled++;
-                    }
-                } catch (Exception exception) {
-                    System.err.println("Không thể tự hủy order #" + candidate.getId()
-                            + ": " + exception.getMessage());
-                }
-            }
-            return cancelled;
-        }
-    }
-
-    public static void startExpiryMonitor() {
-        if (expiryMonitor != null) return;
-        synchronized (STATUS_TRANSITION_LOCK) {
-            if (expiryMonitor != null) return;
-            expiryMonitor = Executors.newSingleThreadScheduledExecutor(task -> {
-                Thread thread = new Thread(task, "storedrink-order-expiry");
-                thread.setDaemon(true);
-                return thread;
-            });
-            expiryMonitor.scheduleWithFixedDelay(() -> {
-                try {
-                    new OrderService().cancelExpiredPendingOrders();
-                } catch (Exception exception) {
-                    System.err.println("Không thể kiểm tra order quá hạn: " + exception.getMessage());
-                }
-            }, 0, 45, TimeUnit.SECONDS);
+            ApiClient.put("/orders/"+current.getId(),gson.toJson(current));
+            Order saved=getOrder(current.getId());
+            if(!"COMPLETED".equals(normalizeStatus(saved.getStatus())) || saved.getCompletedBy()==null || saved.getCompletedBy()!=actor.getId())
+                throw new IllegalStateException("Không xác nhận được trạng thái hoàn tất.");
+            copyStatus(saved,staleOrder);
         }
     }
 
@@ -239,7 +88,8 @@ public class OrderService {
             if (reservation == null || reservation.isEmpty()) {
                 reservation = aggregateQuantities(getDetails(order.getId()));
             }
-            if (!reservation.isEmpty()) returnedStock = applyStockAdjustments(reservation);
+            if (!reservation.isEmpty()) returnedStock = applyStockAdjustments(
+                    reservation, "order:" + order.getId() + ":cancel-restore", null, null);
             order.setStockDeducted(false);
         }
         order.setStockRestored(true);
@@ -283,22 +133,6 @@ public class OrderService {
         return order;
     }
 
-    private boolean isExpired(Order order) {
-        LocalDateTime createdAt = parseDateTime(order.getCreatedAt());
-        return createdAt != null && Duration.between(createdAt, LocalDateTime.now()).compareTo(PENDING_TIMEOUT) > 0;
-    }
-
-    private LocalDateTime parseDateTime(String value) {
-        if (value == null || value.isBlank()) return null;
-        for (DateTimeFormatter formatter : List.of(DateTimeFormatter.ISO_LOCAL_DATE_TIME,
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))) {
-            try { return LocalDateTime.parse(value.trim(), formatter); }
-            catch (DateTimeParseException ignored) { }
-        }
-        return null;
-    }
-
     private void requireStaff(User actor) {
         if (actor == null || actor.getId() <= 0 || !"STAFF".equalsIgnoreCase(actor.getRole())) {
             throw new SecurityException("Chỉ nhân viên được phép xử lý đơn hàng.");
@@ -319,10 +153,6 @@ public class OrderService {
         target.setStockDeducted(source.getStockDeducted());
         target.setStockRestored(source.getStockRestored());
         target.setReservedStock(source.getReservedStock());
-    }
-
-    public static class OrderExpiredException extends IllegalStateException {
-        public OrderExpiredException(String message) { super(message); }
     }
 
     private String normalizeStatus(String status) {
@@ -346,100 +176,210 @@ public class OrderService {
     }
 
     private List<StockChange> applyStockAdjustments(Map<Integer, Integer> deltas) throws Exception {
+        return applyStockAdjustments(deltas, "stock:" + UUID.randomUUID(), null, null);
+    }
+
+    private List<StockChange> applyStockAdjustments(Map<Integer, Integer> deltas, String operationId,
+            Integer reservationId, Integer restoreReservationId) throws Exception {
         if (deltas.isEmpty()) return List.of();
-
-        Map<Integer, Drink> drinksById = new HashMap<>();
-        for (Drink drink : new DrinkService().getAll()) {
-            drinksById.put(drink.getId(), drink);
-        }
-
-        List<StockChange> changes = new ArrayList<>();
-        for (Map.Entry<Integer, Integer> entry : deltas.entrySet()) {
-            Drink drink = drinksById.get(entry.getKey());
-            if (drink == null) {
-                throw new IllegalStateException("Không tìm thấy đồ uống có mã " + entry.getKey());
-            }
-            int newQuantity = drink.getQuantity() + entry.getValue();
-            if (newQuantity < 0) {
-                throw new IllegalStateException(drink.getName() + " chỉ còn " + drink.getQuantity()
-                        + " cốc trong kho, không đủ cho order này");
-            }
-            changes.add(new StockChange(drink, drink.getQuantity(), newQuantity));
-        }
-
-        List<StockChange> applied = new ArrayList<>();
-        try {
-            for (StockChange change : changes) {
-                change.drink.setQuantity(change.newQuantity);
-                try {
-                    new DrinkService().update(change.drink);
-                } catch (Exception updateException) {
-                    try {
-                        Drink persisted = gson.fromJson(ApiClient.get("/drinks/" + change.drink.getId()), Drink.class);
-                        if (persisted == null || persisted.getQuantity() != change.newQuantity) throw updateException;
-                        change.drink.setQuantity(persisted.getQuantity());
-                    } catch (Exception verifyException) {
-                        if (verifyException != updateException) updateException.addSuppressed(verifyException);
-                        // Include the ambiguous write in compensation; writing the prior stock is idempotent here.
-                        applied.add(change);
-                        throw updateException;
-                    }
-                }
-                applied.add(change);
-            }
-        } catch (Exception exception) {
-            rollbackStock(applied, exception);
-            throw exception;
-        }
-        return applied;
+        inventoryService.adjust(operationId, deltas, reservationId, restoreReservationId);
+        Map<Integer, Integer> appliedDeltas = new HashMap<>(deltas);
+        appliedDeltas.entrySet().removeIf(entry -> entry.getValue() == null || entry.getValue() == 0);
+        if (appliedDeltas.isEmpty()) return List.of();
+        return List.of(new StockChange(appliedDeltas, reservationId, restoreReservationId));
     }
 
     private void rollbackStock(List<StockChange> changes, Exception originalException) {
         for (int index = changes.size() - 1; index >= 0; index--) {
             StockChange change = changes.get(index);
             try {
-                change.drink.setQuantity(change.previousQuantity);
-                try {
-                    new DrinkService().update(change.drink);
-                } catch (Exception updateException) {
-                    Drink persisted = gson.fromJson(ApiClient.get("/drinks/" + change.drink.getId()), Drink.class);
-                    if (persisted == null || persisted.getQuantity() != change.previousQuantity) throw updateException;
-                }
+                Map<Integer, Integer> inverse = new HashMap<>();
+                change.deltas().forEach((drinkId, delta) -> inverse.put(drinkId, -delta));
+                inventoryService.adjust("stock-compensation:" + UUID.randomUUID(), inverse,
+                        change.restoreReservationId(), change.reservationId());
             } catch (Exception rollbackException) {
                 originalException.addSuppressed(rollbackException);
             }
         }
     }
 
-    private record StockChange(Drink drink, int previousQuantity, int newQuantity) { }
+    private record StockChange(Map<Integer, Integer> deltas, Integer reservationId,
+            Integer restoreReservationId) { }
 
-    public Order createOrder(int userId, double total, String paymentMethod,
-            List<OrderDetail> details) throws Exception {
-        return createOrder(userId, null, null, null, total, paymentMethod, "DINE_IN", details);
-    }
-
-    public Order createOrder(int createdByUserId, Integer tableId, String customerName,
+    private Order createOrder(int createdByUserId, Integer tableId, String customerName,
             String customerPhone, double total, String paymentMethod, String orderType,
-            List<OrderDetail> details) throws Exception {
+            List<OrderDetail> details, Integer checkoutRequestId) throws Exception {
         synchronized (ORDER_CREATION_LOCK) {
             synchronized (STATUS_TRANSITION_LOCK) {
                 return createOrderLocked(createdByUserId, tableId, customerName, customerPhone,
-                        total, paymentMethod, orderType, details);
+                        total, paymentMethod, orderType, details, checkoutRequestId);
             }
+        }
+    }
+
+    /** Creates an internal payment-processing order and reserves inventory before final confirmation. */
+    public Order createCashierPaidOrder(Integer tableId, String customerName, String customerPhone,
+            double total, String paymentMethod, String orderType, List<OrderDetail> details) throws Exception {
+        return createCashierPaidOrder(tableId, customerName, customerPhone, total, paymentMethod,
+                orderType, details, null);
+    }
+
+    public Order createCashierPaidOrder(Integer tableId, String customerName, String customerPhone,
+            double total, String paymentMethod, String orderType, List<OrderDetail> details,
+            Integer checkoutRequestId) throws Exception {
+        synchronized (STATUS_TRANSITION_LOCK) {
+            Order order = createOrder(0, tableId, customerName, customerPhone, total,
+                    paymentMethod, orderType, details, checkoutRequestId);
+            List<StockChange> deducted = List.of();
+            try {
+                Map<Integer, Integer> quantities = aggregateQuantities(details);
+                deducted = applyStockAdjustments(negate(quantities),
+                        "order:" + order.getId() + ":deduct", checkoutRequestId, null);
+                order.setReservedStock(quantities);
+                order.setStockDeducted(true);
+                order.setStockRestored(false);
+                try {
+                    ApiClient.put("/orders/" + order.getId(), gson.toJson(order));
+                } catch (Exception writeFailure) {
+                    try {
+                        Order persisted = getOrder(order.getId());
+                        if (!Boolean.TRUE.equals(persisted.getStockDeducted())) {
+                            throw writeFailure;
+                        }
+                        order = persisted;
+                    } catch (Exception verifyFailure) {
+                        if (verifyFailure != writeFailure) writeFailure.addSuppressed(verifyFailure);
+                        throw writeFailure;
+                    }
+                }
+                Order persisted = getOrder(order.getId());
+                if (!Boolean.TRUE.equals(persisted.getStockDeducted()))
+                    throw new IllegalStateException("Không xác nhận được cập nhật tồn kho cho đơn.");
+                return persisted;
+            } catch (Exception exception) {
+                try {
+                    Order latest = getOrder(order.getId());
+                    if (!Boolean.TRUE.equals(latest.getStockDeducted()) && !deducted.isEmpty()) {
+                        rollbackStock(deducted, exception);
+                    }
+                    discardUnpaidCashierOrder(order.getId());
+                } catch (Exception cleanup) { exception.addSuppressed(cleanup); }
+                throw exception;
+            }
+        }
+    }
+
+    public Order findCashierOrderByRequestId(int requestId) throws Exception {
+        if (requestId <= 0) return null;
+        return getAll().stream().filter(order -> order.getSourceCheckoutRequestId() != null
+                && order.getSourceCheckoutRequestId() == requestId).findFirst().orElse(null);
+    }
+
+    public Order confirmCashierOrder(int orderId, User cashier, Integer customerUserId) throws Exception {
+        requireStaff(cashier);
+        synchronized (STATUS_TRANSITION_LOCK) {
+            Order order = getOrder(orderId);
+            boolean paid = paymentService.getAll().stream().anyMatch(payment -> payment.getOrderId() == orderId
+                    && "SUCCESS".equalsIgnoreCase(payment.getStatus()));
+            if (!paid) throw new IllegalStateException("Chưa ghi nhận thanh toán thành công cho đơn.");
+            if ("CONFIRMED".equals(normalizeStatus(order.getStatus()))) return order;
+            if (!"PAYMENT_PROCESSING".equals(normalizeStatus(order.getStatus()))) {
+                throw new IllegalStateException("Đơn không ở trạng thái chờ hoàn tất thanh toán.");
+            }
+            order.setStatus("CONFIRMED");
+            order.setConfirmedBy(cashier.getId());
+            order.setConfirmedAt(LocalDateTime.now().toString());
+            order.setProcessedByUserId(cashier.getId());
+            if (customerUserId != null && customerUserId > 0) order.setUserId(customerUserId);
+            ApiClient.put("/orders/" + orderId, gson.toJson(order));
+            Order saved = getOrder(orderId);
+            if (!"CONFIRMED".equals(normalizeStatus(saved.getStatus()))
+                    || saved.getConfirmedBy() == null || saved.getConfirmedBy() != cashier.getId()) {
+                throw new IllegalStateException("Không xác nhận được đơn đã thanh toán.");
+            }
+            return saved;
+        }
+    }
+
+    /** Deletes a cashier checkout draft and restores its reservation when payment was not recorded. */
+    public void discardUnpaidCashierOrder(int orderId) throws Exception {
+        synchronized (STATUS_TRANSITION_LOCK) {
+            Order order = getAll().stream().filter(item -> item.getId() == orderId).findFirst().orElse(null);
+            if (order == null) {
+                for (OrderDetail detail : getDetails(orderId)) ApiClient.delete("/orderDetails/" + detail.getId());
+                return;
+            }
+            if (!"PAYMENT_PROCESSING".equals(normalizeStatus(order.getStatus()))) {
+                throw new IllegalStateException("Chỉ có thể dọn order đang xử lý thanh toán.");
+            }
+            if (paymentService.getAll().stream().anyMatch(payment -> payment.getOrderId() == orderId
+                    && "SUCCESS".equalsIgnoreCase(payment.getStatus()))) {
+                throw new IllegalStateException("Đơn đã có thanh toán thành công, không thể xóa.");
+            }
+            if (Boolean.TRUE.equals(order.getStockDeducted()) && !Boolean.TRUE.equals(order.getStockRestored())) {
+                Map<Integer, Integer> reservation = order.getReservedStock();
+                if (reservation == null || reservation.isEmpty()) reservation = aggregateQuantities(getDetails(orderId));
+                List<StockChange> restored = applyStockAdjustments(reservation,
+                        "order:" + orderId + ":discard-restore", null, order.getSourceCheckoutRequestId());
+                order.setStockDeducted(false);
+                order.setStockRestored(true);
+                try {
+                    ApiClient.put("/orders/" + orderId, gson.toJson(order));
+                    Order persisted = getOrder(orderId);
+                    if (Boolean.TRUE.equals(persisted.getStockDeducted())
+                            || !Boolean.TRUE.equals(persisted.getStockRestored())) {
+                        throw new IllegalStateException("Không xác nhận được hoàn kho cho order tạm.");
+                    }
+                    order = persisted;
+                } catch (Exception exception) {
+                    try {
+                        Order persisted = getOrder(orderId);
+                        if (!Boolean.TRUE.equals(persisted.getStockDeducted())
+                                && Boolean.TRUE.equals(persisted.getStockRestored())) {
+                            order = persisted;
+                        } else {
+                            rollbackStock(restored, exception);
+                            throw exception;
+                        }
+                    } catch (Exception verificationFailure) {
+                        if (verificationFailure != exception) exception.addSuppressed(verificationFailure);
+                        throw exception;
+                    }
+                }
+            }
+            ApiClient.delete("/orders/" + orderId);
+            for (OrderDetail detail : getDetails(orderId)) ApiClient.delete("/orderDetails/" + detail.getId());
+        }
+    }
+
+    /** Staff-created counter orders are paid immediately and go straight to preparation. */
+    public Order createStaffCounterPaidOrder(String customerName,String customerPhone,double total,
+            String method,List<OrderDetail> details,User staff) throws Exception {
+        requireStaff(staff);
+        Order order=createCashierPaidOrder(null,customerName,customerPhone,total,method,"TAKEAWAY",details);
+        try {
+            paymentService.recordCashierPayment(order,staff,method);
+            return confirmCashierOrder(order.getId(), staff, null);
+        } catch(Exception exception) {
+            boolean paymentSaved = false;
+            try { paymentSaved = paymentService.getAll().stream().anyMatch(payment -> payment.getOrderId() == order.getId()
+                    && "SUCCESS".equalsIgnoreCase(payment.getStatus())); }
+            catch (Exception verificationFailure) { exception.addSuppressed(verificationFailure); }
+            if (paymentSaved) {
+                try { return confirmCashierOrder(order.getId(), staff, null); }
+                catch (Exception recoveryFailure) { exception.addSuppressed(recoveryFailure); }
+            } else {
+                try { discardUnpaidCashierOrder(order.getId()); }
+                catch(Exception cleanup){exception.addSuppressed(cleanup);}
+            }
+            throw exception;
         }
     }
 
     private Order createOrderLocked(int createdByUserId, Integer tableId, String customerName,
             String customerPhone, double total, String paymentMethod, String orderType,
-            List<OrderDetail> details) throws Exception {
+            List<OrderDetail> details, Integer checkoutRequestId) throws Exception {
         List<Order> orders = getAll();
-        Order duplicate = findRecentDuplicate(orders, tableId, customerName, customerPhone,
-                total, orderType, details);
-        if (duplicate != null) {
-            throw new IllegalStateException("Đơn tương tự vừa được gửi (mã #" + duplicate.getId()
-                    + "). Đơn đang chờ duyệt nên chưa tạo thêm order.");
-        }
-
         if (details == null || details.isEmpty()) throw new IllegalArgumentException("Order phải có ít nhất một đồ uống.");
         Map<Integer, Integer> reservation = aggregateQuantities(details);
         for (OrderDetail detail : details) {
@@ -452,17 +392,20 @@ public class OrderService {
             Drink drink = availableDrinks.get(drinkId);
             if (drink == null || !drink.isActive())
                 throw new IllegalStateException("Đồ uống mã " + drinkId + " không còn được bán.");
+            if (reservation.get(drinkId) > drink.getQuantity())
+                throw new IllegalStateException("Order cần tổng " + reservation.get(drinkId) + " cốc "
+                        + drink.getName() + " ở các size, nhưng kho chỉ còn " + drink.getQuantity() + " cốc.");
         }
         double computedTotal = details.stream().mapToDouble(d -> d.getQuantity() * d.getPrice()).sum();
         if (!Double.isFinite(computedTotal) || computedTotal < 0) throw new IllegalArgumentException("Tổng tiền order không hợp lệ.");
-        int orderId = nextId(orders, 1000);
-        List<StockChange> reserved = applyStockAdjustments(negate(reservation));
+        int orderId = nextOrderId(orders);
         Order order = new Order(orderId, tableId, customerName, customerPhone, total,
-                paymentMethod, "PENDING", orderType, LocalDateTime.now().withNano(0).toString(),
+                paymentMethod, "PAYMENT_PROCESSING", orderType, LocalDateTime.now().withNano(0).toString(),
                 createdByUserId);
+        order.setSourceCheckoutRequestId(checkoutRequestId);
         order.setUserId(createdByUserId);
         order.setTotal(computedTotal);
-        order.setStockDeducted(true);
+        order.setStockDeducted(false);
         order.setStockRestored(false);
         order.setReservedStock(reservation);
         try {
@@ -476,64 +419,11 @@ public class OrderService {
             }
         } catch (Exception exception) {
             try {
-                Order persisted = getOrder(orderId);
-                // A partial order is retained for audit and cancelled through the same idempotent refund path.
-                cancel(persisted, "SYSTEM", "Tạo order lỗi, hệ thống hoàn kho");
-            } catch (Exception compensationException) {
-                exception.addSuppressed(compensationException);
-                // If order creation did not persist, return the reservation directly.
-                try {
-                    getOrder(orderId);
-                } catch (Exception missingOrder) {
-                    rollbackStock(reserved, exception);
-                }
-            }
+                discardUnpaidCashierOrder(orderId);
+            } catch (Exception compensationException) { exception.addSuppressed(compensationException); }
             throw exception;
         }
         return order;
-    }
-
-    private Order findRecentDuplicate(List<Order> orders, Integer tableId, String customerName,
-            String customerPhone, double total, String orderType, List<OrderDetail> details)
-            throws Exception {
-        LocalDateTime now = LocalDateTime.now();
-        String items = detailsSignature(details);
-        for (Order existing : orders) {
-            if (!"PENDING".equalsIgnoreCase(existing.getStatus())
-                    || !Objects.equals(existing.getTableId(), tableId)
-                    || !normalize(existing.getCustomerName()).equals(normalize(customerName))
-                    || !normalize(existing.getCustomerPhone()).equals(normalize(customerPhone))
-                    || !normalize(existing.getOrderType()).equals(normalize(orderType))
-                    || BigDecimal.valueOf(existing.getTotal()).compareTo(BigDecimal.valueOf(total)) != 0) {
-                continue;
-            }
-            try {
-                LocalDateTime createdAt = LocalDateTime.parse(existing.getCreatedAt());
-                Duration age = Duration.between(createdAt, now);
-                if (!age.isNegative() && age.compareTo(DUPLICATE_WINDOW) <= 0
-                        && items.equals(detailsSignature(getDetails(existing.getId())))) {
-                    return existing;
-                }
-            } catch (RuntimeException ignored) {
-                // Ignore malformed dates or details on older records and continue checking.
-            }
-        }
-        return null;
-    }
-
-    private String detailsSignature(List<OrderDetail> details) {
-        return details.stream()
-                .sorted(Comparator.comparingInt(OrderDetail::getDrinkId)
-                        .thenComparingInt(OrderDetail::getQuantity)
-                        .thenComparingDouble(OrderDetail::getPrice))
-                .map(detail -> detail.getDrinkId() + ":" + detail.getQuantity() + ":"
-                        + BigDecimal.valueOf(detail.getPrice()).stripTrailingZeros().toPlainString())
-                .collect(Collectors.joining("|"));
-    }
-
-    private String normalize(String value) {
-        return value == null ? "" : value.trim().replaceAll("\\s+", " ")
-                .toLowerCase(java.util.Locale.ROOT);
     }
 
     private void postAndConfirm(String endpoint, String body, String resourceEndpoint) throws Exception {
@@ -554,6 +444,14 @@ public class OrderService {
         Type type = new TypeToken<List<OrderDetail>>() {}.getType();
         List<OrderDetail> details = gson.fromJson(json, type);
         return nextId(details, 0);
+    }
+
+    private int nextOrderId(List<Order> orders) throws Exception {
+        int max = orders.stream().mapToInt(Order::getId).max().orElse(1000);
+        Type type = new TypeToken<List<OrderDetail>>() {}.getType();
+        List<OrderDetail> details = gson.fromJson(ApiClient.get("/orderDetails"), type);
+        if (details != null) max = Math.max(max, details.stream().mapToInt(OrderDetail::getOrderId).max().orElse(0));
+        return Math.max(1001, max + 1);
     }
 
     private int nextId(List<?> items, int minimum) {
@@ -591,42 +489,74 @@ public class OrderService {
         return details == null ? new java.util.ArrayList<>() : details;
     }
 
-    public void updateDetail(OrderDetail detail, User actor) throws Exception {
+    /** Checks stock and product validity before the cashier collects or refunds an edit difference. */
+    public void validateOrderDetailsStock(int orderId, List<OrderDetail> requested, User actor) throws Exception {
         requireStaff(actor);
         synchronized (STATUS_TRANSITION_LOCK) {
-            List<OrderDetail> desired = getDetails(detail.getOrderId());
-            boolean found = false;
-            for (int i = 0; i < desired.size(); i++) if (desired.get(i).getId() == detail.getId()) {
-                desired.set(i, detail); found = true; break;
+            Order current = requirePaidConfirmedOrder(orderId);
+            if (requested == null || requested.isEmpty()) {
+                throw new IllegalArgumentException("Order phải còn ít nhất 1 đồ uống.");
             }
-            if (!found) throw new IllegalStateException("Không tìm thấy món trong order.");
-            saveOrderDetails(detail.getOrderId(), desired, actor);
-        }
-    }
+            List<OrderDetail> original = getDetails(orderId);
+            Map<Integer, OrderDetail> originalById = original.stream()
+                    .collect(Collectors.toMap(OrderDetail::getId, detail -> detail));
+            Map<Integer, Integer> newReservation = new HashMap<>();
+            for (OrderDetail line : requested) {
+                if (line.getQuantity() <= 0 || line.getDrinkId() <= 0
+                        || !Double.isFinite(line.getPrice()) || line.getPrice() < 0
+                        || (line.getToppings() != null && line.getToppings().size() > 3)) {
+                    throw new IllegalArgumentException("Số lượng, mã đồ uống hoặc giá không hợp lệ.");
+                }
+                if (line.getId() > 0 && (!originalById.containsKey(line.getId())
+                        || originalById.get(line.getId()).getDrinkId() != line.getDrinkId())) {
+                    throw new IllegalArgumentException("Chi tiết món không thuộc order đang sửa.");
+                }
+                newReservation.merge(line.getDrinkId(), line.getQuantity(), Integer::sum);
+            }
 
-    public void addDetail(OrderDetail detail, User actor) throws Exception {
-        requireStaff(actor);
-        synchronized (STATUS_TRANSITION_LOCK) {
-            List<OrderDetail> desired = getDetails(detail.getOrderId());
-            desired.add(detail);
-            saveOrderDetails(detail.getOrderId(), desired, actor);
-        }
-    }
+            Map<Integer, Integer> oldReservation = Boolean.TRUE.equals(current.getStockDeducted())
+                    ? current.getReservedStock() : new HashMap<>();
+            if (Boolean.TRUE.equals(current.getStockDeducted())
+                    && (oldReservation == null || oldReservation.isEmpty())) {
+                oldReservation = aggregateQuantities(original);
+            }
+            Map<Integer, Integer> stockDeltas = new HashMap<>(oldReservation);
+            newReservation.forEach((id, quantity) -> stockDeltas.merge(id, -quantity, Integer::sum));
+            stockDeltas.entrySet().removeIf(entry -> entry.getValue() == 0);
 
-    public void deleteDetail(OrderDetail detail, User actor) throws Exception {
-        requireStaff(actor);
-        synchronized (STATUS_TRANSITION_LOCK) {
-            List<OrderDetail> desired = getDetails(detail.getOrderId());
-            desired.removeIf(item -> item.getId() == detail.getId());
-            saveOrderDetails(detail.getOrderId(), desired, actor);
+            Map<Integer, Drink> catalog = new HashMap<>();
+            for (Drink drink : new DrinkService().getAll()) catalog.put(drink.getId(), drink);
+            for (Integer drinkId : newReservation.keySet()) {
+                Drink drink = catalog.get(drinkId);
+                boolean alreadyInOrder = original.stream().anyMatch(line -> line.getDrinkId() == drinkId);
+                if (drink == null || (!drink.isActive() && !alreadyInOrder)) {
+                    throw new IllegalStateException("Đồ uống mã " + drinkId + " không thể thêm vào order.");
+                }
+            }
+            for (Map.Entry<Integer, Integer> entry : stockDeltas.entrySet()) {
+                Drink drink = catalog.get(entry.getKey());
+                if (drink == null) {
+                    throw new IllegalStateException("Không tìm thấy đồ uống có mã " + entry.getKey());
+                }
+                if (drink.getQuantity() + entry.getValue() < 0) {
+                    throw new IllegalStateException(drink.getName() + " chỉ còn " + drink.getQuantity()
+                            + " cốc trong kho, không đủ cho order đã sửa.");
+                }
+            }
         }
     }
 
     /** Atomically-at-service-level updates an order's lines and inventory reservation with compensation. */
     public void saveOrderDetails(int orderId, List<OrderDetail> requested, User actor) throws Exception {
+        saveOrderDetails(orderId, requested, actor, null, null);
+    }
+
+    /** Saves the order, inventory changes, and the confirmed money adjustment as one compensated workflow. */
+    public void saveOrderDetails(int orderId, List<OrderDetail> requested, User actor,
+            Double confirmedAdjustment, String adjustmentReason) throws Exception {
         requireStaff(actor);
         synchronized (STATUS_TRANSITION_LOCK) {
-            Order current = requirePendingOrder(orderId);
+            Order current = requirePaidConfirmedOrder(orderId);
             Order originalOrder = gson.fromJson(gson.toJson(current), Order.class);
             if (requested == null || requested.isEmpty()) throw new IllegalArgumentException("Order phải còn ít nhất 1 đồ uống.");
             List<OrderDetail> original = getDetails(orderId);
@@ -637,24 +567,38 @@ public class OrderService {
             if (Boolean.TRUE.equals(current.getStockDeducted())
                     && (oldReservation == null || oldReservation.isEmpty())) oldReservation = aggregateQuantities(original);
             List<OrderDetail> desired = new ArrayList<>();
-            Map<Integer, Integer> idsByDrink = new HashMap<>();
+            java.util.Set<Integer> seenLineIds = new java.util.HashSet<>();
             Map<Integer, Integer> newReservation = new HashMap<>();
             double newTotal = 0;
             for (OrderDetail line : requested) {
-                if (line.getQuantity() <= 0 || line.getDrinkId() <= 0 || !Double.isFinite(line.getPrice()) || line.getPrice() < 0)
-                    throw new IllegalArgumentException("Số lượng, mã đồ uống hoặc giá không hợp lệ.");
-                if (idsByDrink.put(line.getDrinkId(), line.getId()) != null)
-                    throw new IllegalArgumentException("Mỗi đồ uống chỉ được có một dòng trong order.");
+                if (line.getQuantity() <= 0 || line.getDrinkId() <= 0 || !Double.isFinite(line.getPrice())
+                        || line.getPrice() < 0 || (line.getToppings() != null && line.getToppings().size() > 3))
+                    throw new IllegalArgumentException("Số lượng, mã đồ uống, giá hoặc số topping không hợp lệ.");
+                if(line.getId()>0&&!seenLineIds.add(line.getId()))
+                    throw new IllegalArgumentException("Chi tiết món bị trùng trong order.");
                 if (line.getId() > 0 && (!originalById.containsKey(line.getId())
                         || originalById.get(line.getId()).getDrinkId() != line.getDrinkId()))
                     throw new IllegalArgumentException("Chi tiết món không thuộc order đang sửa.");
                 OrderDetail copy = new OrderDetail(line.getId(), orderId, line.getDrinkId(), line.getQuantity(), line.getPrice());
                 copy.setSubtotal(copy.getQuantity() * copy.getPrice());
+                copy.setDrinkName(line.getDrinkName()); copy.setSize(line.getSize());
+                copy.setSizeExtraPrice(line.getSizeExtraPrice()); copy.setToppings(line.getToppings());
+                copy.setToppingTotal(line.getToppingTotal()); copy.setNote(line.getNote());
                 desired.add(copy);
                 newReservation.merge(copy.getDrinkId(), copy.getQuantity(), Integer::sum);
                 newTotal += copy.getSubtotal();
             }
             if (!Double.isFinite(newTotal)) throw new IllegalArgumentException("Tổng tiền order không hợp lệ.");
+            double actualAdjustment = newTotal - current.getTotal();
+            boolean hasAdjustment = Math.abs(actualAdjustment) > 0.0001;
+            if (hasAdjustment && (confirmedAdjustment == null
+                    || Math.abs(confirmedAdjustment - actualAdjustment) > 0.01
+                    || adjustmentReason == null || adjustmentReason.isBlank())) {
+                throw new IllegalStateException("Cần xác nhận và ghi rõ xử lý khoản chênh lệch trước khi lưu order.");
+            }
+            if (!hasAdjustment && confirmedAdjustment != null) {
+                throw new IllegalArgumentException("Order không có chênh lệch thanh toán để ghi nhận.");
+            }
             Map<Integer, Drink> catalog = new HashMap<>();
             for (Drink drink : new DrinkService().getAll()) catalog.put(drink.getId(), drink);
             for (OrderDetail line : desired) {
@@ -666,7 +610,8 @@ public class OrderService {
             Map<Integer, Integer> stockDeltas = new HashMap<>(oldReservation);
             newReservation.forEach((id, quantity) -> stockDeltas.merge(id, -quantity, Integer::sum));
             stockDeltas.entrySet().removeIf(entry -> entry.getValue() == 0);
-            List<StockChange> applied = applyStockAdjustments(stockDeltas);
+            List<StockChange> applied = Boolean.TRUE.equals(current.getStockDeducted())
+                    ? applyStockAdjustments(stockDeltas) : List.of();
             List<OrderDetail> toPersist = new ArrayList<>();
             try {
                 int nextId = nextDetailId();
@@ -684,9 +629,18 @@ public class OrderService {
                 }
                 current.setTotal(newTotal);
                 current.setReservedStock(newReservation);
-                current.setStockDeducted(true);
-                current.setStockRestored(false);
+                if (Boolean.TRUE.equals(current.getStockDeducted())) {
+                    current.setStockDeducted(true);
+                    current.setStockRestored(false);
+                } else {
+                    current.setStockDeducted(false);
+                    current.setStockRestored(false);
+                }
                 ApiClient.put("/orders/" + orderId, gson.toJson(current));
+                if (confirmedAdjustment != null) {
+                    paymentService.recordOrderAdjustment(current, actor, actualAdjustment,
+                            actualAdjustment < 0, adjustmentReason.trim());
+                }
                 for (int i = 0; i < requested.size(); i++) requested.get(i).setId(toPersist.get(i).getId());
             } catch (Exception exception) {
                 try { restoreDetails(orderId, original); } catch (Exception e) { exception.addSuppressed(e); }
@@ -708,15 +662,16 @@ public class OrderService {
         }
     }
 
-    private Order requirePendingOrder(int orderId) throws Exception {
+    private Order requirePaidConfirmedOrder(int orderId) throws Exception {
         Order current = getOrder(orderId);
-        if (!"PENDING".equals(normalizeStatus(current.getStatus()))) {
-            throw new IllegalStateException("Chỉ order đang chờ duyệt mới được sửa món hoặc tổng tiền.");
+        if (!"CONFIRMED".equals(normalizeStatus(current.getStatus()))) {
+            throw new IllegalStateException("Chỉ sửa được đơn đã thanh toán, đang pha chế.");
+        }
+        if (paymentService.getAll().stream().noneMatch(p -> p.getOrderId() == orderId
+                && "SUCCESS".equalsIgnoreCase(p.getStatus()))) {
+            throw new IllegalStateException("Không tìm thấy thanh toán thành công cho đơn đang pha chế.");
         }
         return current;
     }
 
-    public List<String> getStatuses() {
-        return Arrays.asList("PENDING", "CONFIRMED", "CANCELLED");
-    }
 }

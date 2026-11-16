@@ -167,7 +167,7 @@ public class DashboardReportService {
             LocalDate createdDate = parseDate(order.getCreatedAt());
             if (createdDate != null && !createdDate.isBefore(start) && !createdDate.isAfter(end)) {
                 metrics.ordersInPeriod++;
-                if ("PENDING".equalsIgnoreCase(order.getStatus())) metrics.pendingOrders++;
+                if ("CONFIRMED".equalsIgnoreCase(order.getStatus())) metrics.preparingOrders++;
             }
             if (!"COMPLETED".equalsIgnoreCase(order.getStatus())) {
                 continue;
@@ -316,7 +316,7 @@ public class DashboardReportService {
     public static class MetricStats {
         public double revenueInPeriod;
         public int ordersInPeriod;
-        public int pendingOrders;
+        public int preparingOrders;
         public int completedInPeriod;
         public double cash;
         public double transfer;

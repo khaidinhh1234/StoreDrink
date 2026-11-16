@@ -466,7 +466,7 @@ public class DashboardPanel extends JPanel implements RefreshablePanel {
         if (isAdmin()) {
             cards.add(createCard("Đơn hoàn thành trong " + periodName,
                     String.valueOf(stats.metrics.completedInPeriod), UITheme.SECONDARY));
-            cards.add(createCard("Đơn chờ duyệt", String.valueOf(stats.metrics.pendingOrders), UITheme.WARNING));
+            cards.add(createCard("Đơn đang pha chế", String.valueOf(stats.metrics.preparingOrders), UITheme.PRIMARY));
             if (stats.metrics.hasDrinkInventory) {
                 cards.add(createCard("Đồ uống sắp hết (≤ " + DashboardReportService.LOW_STOCK_THRESHOLD + ")",
                 String.valueOf(stats.metrics.lowStockDrinks), UITheme.DANGER));
@@ -967,8 +967,7 @@ public class DashboardPanel extends JPanel implements RefreshablePanel {
 
     private String statusLabel(String status) {
         return switch (status == null ? "" : status.toUpperCase(Locale.ROOT)) {
-            case "PENDING" -> "Chờ duyệt";
-            case "CONFIRMED" -> "Đã duyệt";
+            case "CONFIRMED" -> "Đã duyệt - đang pha chế";
             case "COMPLETED" -> "Hoàn thành";
             case "CANCELLED" -> "Đã hủy";
             default -> valueOrDash(status);

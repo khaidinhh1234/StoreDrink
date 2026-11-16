@@ -70,9 +70,8 @@ Nhân viên có thể:
 
 - Xem dashboard thống kê vận hành.
 - Xem danh sách đơn hàng.
-- Duyệt đơn đang chờ.
-- Hủy đơn và nhập lý do hủy.
-- Hoàn tất thanh toán bằng tiền mặt hoặc chuyển khoản.
+- Xác nhận yêu cầu thanh toán tại quầy hoặc chuyển khoản.
+- Sửa món, in bill, hoàn tất hoặc hủy và hoàn tiền cho đơn đang pha chế.
 - Tạo đơn mang về tại quầy.
 - Làm mới danh sách khi có dữ liệu mới.
 
@@ -84,7 +83,7 @@ Tài khoản khách hàng có thể:
 - Thêm hoặc xóa món trong giỏ hàng.
 - Điều chỉnh số lượng món.
 - Xem tổng tiền.
-- Gửi order ở trạng thái chờ duyệt.
+- Gửi yêu cầu thanh toán cho nhân viên xác nhận.
 
 File dữ liệu mẫu hiện có tài khoản `ADMIN` và `STAFF`. Muốn thử giao diện
 `CUSTOMER`, cần thêm một user có `role: "CUSTOMER"` vào
@@ -99,17 +98,25 @@ Từ màn hình đăng nhập, chọn **Khách đặt món tại bàn**:
 4. Có thể nhập thêm số điện thoại.
 5. Nhấn **Gửi order**.
 
-Đơn được tạo với:
+Yêu cầu thanh toán được lưu tạm riêng, chưa tạo đơn chính thức và chưa trừ kho.
+Chọn tiền mặt để nhân viên xác nhận đã nhận tiền, hoặc chuyển khoản để nhân viên
+kiểm tra giao dịch thực tế. Sau khi nhân viên xác nhận thành công, hệ thống tạo đơn
+`CONFIRMED`, ghi nhận thanh toán và trừ kho.
+
+Khi gửi yêu cầu, số lượng được giữ chỗ trong `inventoryReservations` để các phiên
+ứng dụng trên cùng máy không nhận đặt vượt tồn. Giữ chỗ không làm giảm số tồn kho;
+STAFF xác nhận thanh toán thì mới trừ kho, còn yêu cầu bị từ chối thì nhả giữ chỗ.
+
+Đơn chính thức sau khi thanh toán có:
 
 ```text
 orderType      = DINE_IN
-status         = PENDING
-paymentMethod  = UNPAID
+status         = CONFIRMED
+paymentMethod  = CASH hoặc TRANSFER
 tableId        = mã bàn đã chọn
 ```
 
-Chỉ những bàn đang hoạt động mới nhận được order. Nhân viên sẽ tiếp nhận,
-kiểm tra và duyệt đơn.
+Chỉ những bàn đang hoạt động mới nhận được yêu cầu đặt món.
 
 ## Công nghệ và yêu cầu
 
@@ -153,12 +160,11 @@ npm install
 Các package được khai báo trong [`package.json`](package.json):
 
 - `json-server@0.17.4`
-- `json-server-auth`
 
 Nếu chưa muốn dùng `package.json`, có thể cài trực tiếp:
 
 ```bash
-npm install json-server@0.17.4 json-server-auth
+npm install json-server@0.17.4
 ```
 
 ### 3. Tải dependency Java
@@ -189,13 +195,13 @@ Tại thư mục gốc dự án, mở terminal thứ nhất:
 npx json-server --watch database/db.json --host 127.0.0.1 --port 3000
 ```
 
-Nếu chạy thành công, JSON Server sẽ lắng nghe tại:
+JSON Server sẽ lắng nghe tại:
 
 ```text
 http://127.0.0.1:3000
 ```
 
-Kiểm tra nhanh bằng trình duyệt hoặc curl:
+Kiểm tra nhanh bằng trình duyệt:
 
 ```text
 http://127.0.0.1:3000/drinks
@@ -268,18 +274,17 @@ Các tài khoản hiện có trong [`database/db.json`](database/db.json):
 ```text
 Khách quét QR
     ↓
-Chọn món và gửi order
+Chọn món và gửi yêu cầu thanh toán
     ↓
-PENDING
-    ↓ nhân viên duyệt
 CONFIRMED
-    ↓ thanh toán
+đã thanh toán · đang pha chế
+    ↓ nhân viên hoàn tất
 COMPLETED
 ```
 
-Đơn `PENDING` quá 30 phút chưa được duyệt có thể bị hệ thống tự động hủy.
-Đơn `PENDING` hoặc `CONFIRMED` có thể được nhân viên hủy nếu nhập lý do
-hợp lệ.
+Đơn chính thức chỉ được tạo sau khi nhân viên xác nhận thanh toán. Đơn `CONFIRMED`
+có thể được sửa, in bill, hoàn tất hoặc hủy kèm hoàn tiền. Không có bước duyệt đơn
+lần hai và không tự hủy đơn theo thời hạn.
 
 ### Quy trình tạo đơn mang về
 
@@ -287,8 +292,9 @@ hợp lệ.
 2. Chọn **Tạo đơn tại quầy**.
 3. Chọn đồ uống và số lượng.
 4. Nhập tên khách hàng; số điện thoại là tùy chọn.
-5. Lưu order.
-6. Nhân viên duyệt và hoàn tất thanh toán.
+5. Chọn phương thức thanh toán.
+6. Nếu thanh toán thành công, đơn được tạo thẳng ở trạng thái `CONFIRMED` và trừ kho;
+   nếu thất bại hoặc hủy thanh toán thì không tạo đơn chính thức.
 
 Đơn mang về có:
 
@@ -299,19 +305,22 @@ tableId   = null
 
 ### Thanh toán
 
-Chỉ đơn ở trạng thái `CONFIRMED` mới được hoàn tất thanh toán. Hai phương thức
-được hỗ trợ:
+Yêu cầu tiền mặt và chuyển khoản đều cần nhân viên xác nhận trước khi tạo đơn.
+Hai phương thức được hỗ trợ:
 
 ```text
 CASH      - Tiền mặt
 TRANSFER  - Chuyển khoản
 ```
 
-Sau khi thanh toán thành công, trạng thái đơn chuyển thành `COMPLETED`.
+Sau khi thanh toán thành công, đơn được tạo ở trạng thái `CONFIRMED`. Nhân viên có
+thể in bill ngay, sửa món, hủy và hoàn tiền, hoặc chuyển đơn sang `COMPLETED` khi
+pha chế xong.
 
 ### Quản lý tồn kho
 
-Khi đơn được duyệt, số lượng đồ uống trong order được đối chiếu với tồn kho.
+Khi nhân viên xác nhận thanh toán và đơn chính thức được tạo, số lượng đồ uống
+trong order được đối chiếu với tồn kho và bị trừ.
 Hệ thống lưu thông tin số lượng đã giữ trong `reservedStock`, đồng thời theo
 dõi:
 

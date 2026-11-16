@@ -12,13 +12,19 @@ import java.text.NumberFormat;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import model.Drink;
+import model.OrderDetail;
 import service.DrinkService;
+import service.ToppingService;
 import view.layout.DataSync;
 import view.layout.NotificationDialog;
 import view.layout.RefreshablePanel;
@@ -91,11 +97,7 @@ public class CustomerDrinkPanel extends JPanel implements RefreshablePanel {
         price.setFont(new Font("Arial", Font.BOLD, 15));
         JButton add = new JButton("THÊM VÀO GIỎ");
         UITheme.styleButton(add, UITheme.Action.CREATE);
-        add.addActionListener(e -> {
-            CustomerCart.add(drink);
-            updateCartCount();
-            NotificationDialog.showSuccess(this, "Đã thêm " + drink.getName() + " vào giỏ.");
-        });
+        add.addActionListener(e -> customizeAndAdd(drink));
 
         JPanel info = new JPanel(new GridLayout(0, 1, 2, 2));
         info.setOpaque(false);
@@ -104,6 +106,73 @@ public class CustomerDrinkPanel extends JPanel implements RefreshablePanel {
         info.add(add);
         card.add(info, BorderLayout.SOUTH);
         return card;
+    }
+
+    private void customizeAndAdd(Drink drink) {
+        try {
+            List<Drink.SizeOption> sizes = drink.getAvailableSizes().stream().limit(3).toList();
+            JComboBox<Drink.SizeOption> size = new JComboBox<>(sizes.toArray(Drink.SizeOption[]::new));
+            List<model.Topping> available = new ToppingService().getForDrink(drink.getId()).stream().limit(3).toList();
+            JPanel toppingPanel = new JPanel(new GridLayout(0, 1, 5, 5));
+            List<JCheckBox> toppingChecks = new java.util.ArrayList<>();
+            for (model.Topping topping : available) {
+                JCheckBox check = new JCheckBox(topping.getName() + " · +" + currency.format(topping.getPrice()) + " đ");
+                check.putClientProperty("topping", topping);
+                toppingChecks.add(check);
+                toppingPanel.add(check);
+            }
+            if (available.isEmpty()) toppingPanel.add(new JLabel("Món này chưa có topping."));
+            JSpinner quantity = new JSpinner(new javax.swing.SpinnerNumberModel(1, 1,
+                    Math.max(1, drink.getQuantity()), 1));
+            JTextField note = new JTextField(22);
+            JLabel total = new JLabel();
+            total.setForeground(UITheme.SUCCESS);
+            total.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            Runnable updateTotal = () -> {
+                Drink.SizeOption selected = (Drink.SizeOption) size.getSelectedItem();
+                double unitPrice = selected == null ? drink.getPrice() : selected.getPrice();
+                for (JCheckBox check : toppingChecks) if (check.isSelected())
+                    unitPrice += ((model.Topping) check.getClientProperty("topping")).getPrice();
+                total.setText("Thành tiền: " + currency.format(unitPrice * (Integer) quantity.getValue()) + " đ");
+            };
+            size.addActionListener(event -> updateTotal.run());
+            quantity.addChangeListener(event -> updateTotal.run());
+            for (JCheckBox check : toppingChecks) check.addActionListener(event -> updateTotal.run());
+            updateTotal.run();
+
+            JPanel form = new JPanel(new GridLayout(0, 1, 8, 8));
+            form.add(new JLabel("Chọn size · giá Size S: " + currency.format(drink.getPrice()) + " đ"));
+            form.add(size);
+            form.add(new JLabel("Topping (tối đa 3)"));
+            form.add(new JScrollPane(toppingPanel));
+            form.add(new JLabel("Số lượng"));
+            form.add(quantity);
+            form.add(new JLabel("Ghi chú món"));
+            form.add(note);
+            form.add(total);
+            int choice = javax.swing.JOptionPane.showConfirmDialog(this, form,
+                    "Tùy chỉnh " + drink.getName(), javax.swing.JOptionPane.OK_CANCEL_OPTION,
+                    javax.swing.JOptionPane.PLAIN_MESSAGE);
+            if (choice != javax.swing.JOptionPane.OK_OPTION) return;
+
+            Drink.SizeOption selected = (Drink.SizeOption) size.getSelectedItem();
+            CustomerCart.Item item = new CustomerCart.Item(drink, (Integer) quantity.getValue());
+            item.size = selected == null ? "S" : selected.getName();
+            item.sizeExtraPrice = (selected == null ? drink.getPrice() : selected.getPrice()) - drink.getPrice();
+            item.note = note.getText().trim();
+            for (JCheckBox check : toppingChecks) if (check.isSelected()) {
+                model.Topping topping = (model.Topping) check.getClientProperty("topping");
+                item.toppings.add(new OrderDetail.ToppingSnapshot(topping.getId(), topping.getName(), topping.getPrice()));
+            }
+            if (!CustomerCart.add(item)) {
+                NotificationDialog.showMessageDialog(this, "Số lượng tổng của món vượt quá tồn kho còn lại.");
+                return;
+            }
+            updateCartCount();
+            NotificationDialog.showSuccess(this, "Đã thêm " + item.configurationLabel() + " vào giỏ.");
+        } catch (Exception exception) {
+            NotificationDialog.showMessageDialog(this, "Không thể tải tùy chọn món: " + exception.getMessage());
+        }
     }
 
     private void updateCartCount() {
