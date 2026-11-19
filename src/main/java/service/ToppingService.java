@@ -22,8 +22,12 @@ public class ToppingService {
     }
 
     public List<Topping> getActive() throws Exception {
+        return getAll().stream().filter(Topping::isActive).toList();
+    }
+
+    public List<Topping> getAll() throws Exception {
         Type type = new TypeToken<List<Topping>>() {}.getType();
-        List<Topping> toppings = gson.fromJson(ApiClient.get("/toppings?active=true"), type);
+        List<Topping> toppings = gson.fromJson(ApiClient.get("/toppings"), type);
         return toppings == null ? List.of() : toppings;
     }
 
@@ -35,7 +39,7 @@ public class ToppingService {
 
     public List<Topping> getForDrink(int drinkId) throws Exception {
         Set<Integer> ids = getIdsForDrink(drinkId);
-        return getActive().stream().filter(topping -> ids.contains(topping.getId())).toList();
+        return getAll().stream().filter(topping -> ids.contains(topping.getId())).toList();
     }
 
     public void setForDrink(int drinkId, List<Topping> selected) throws Exception {
@@ -51,13 +55,17 @@ public class ToppingService {
             }
         }
 
-        List<Topping> available = getActive();
+        List<Topping> available = getAll();
         List<Integer> requestedIds = new ArrayList<>();
         for (Topping option : requested) {
             Topping match = available.stream()
                     .filter(topping -> topping.getName().trim().equalsIgnoreCase(option.getName().trim())
                             && Math.abs(topping.getPrice() - option.getPrice()) < 0.001)
                     .findFirst().orElse(null);
+            if (match != null && !match.isActive()) {
+                match.setActive(true);
+                ApiClient.patch("/toppings/" + match.getId(), gson.toJson(java.util.Map.of("active", true)));
+            }
             if (match == null) {
                 option.setActive(true);
                 try {
@@ -65,14 +73,14 @@ public class ToppingService {
                     match = gson.fromJson(response, Topping.class);
                 } catch (Exception writeFailure) {
                     try {
-                        match = findActive(option);
+                        match = findMatching(option);
                     } catch (Exception verifyFailure) {
                         writeFailure.addSuppressed(verifyFailure);
                     }
                     if (match == null) throw writeFailure;
                 }
                 if (match == null || match.getId() <= 0) {
-                    match = findActive(option);
+                    match = findMatching(option);
                 }
                 if (match == null || match.getId() <= 0)
                     throw new IllegalStateException("Không lấy được mã topping vừa tạo.");
@@ -127,22 +135,30 @@ public class ToppingService {
     }
 
     private void createLink(int drinkId, int toppingId) throws Exception {
-        try {
-            ApiClient.post("/drinkToppings", gson.toJson(java.util.Map.of(
-                    "drinkId", drinkId, "toppingId", toppingId)));
-        } catch (Exception writeFailure) {
+        Exception lastFailure = null;
+        for (int attempt = 0; attempt < 3; attempt++) {
+            List<Link> current = getLinks(drinkId);
+            if (current.stream().anyMatch(link -> link.toppingId == toppingId)) return;
             try {
-                boolean persisted = getLinks(drinkId).stream().anyMatch(link -> link.toppingId == toppingId);
-                if (persisted) return;
-            } catch (Exception verifyFailure) {
-                writeFailure.addSuppressed(verifyFailure);
+                ApiClient.post("/drinkToppings", gson.toJson(java.util.Map.of(
+                        "drinkId", drinkId, "toppingId", toppingId)));
+            } catch (Exception writeFailure) {
+                lastFailure = writeFailure;
+                try {
+                    if (getLinks(drinkId).stream().anyMatch(link -> link.toppingId == toppingId)) return;
+                } catch (Exception verifyFailure) {
+                    writeFailure.addSuppressed(verifyFailure);
+                    throw writeFailure;
+                }
             }
-            throw writeFailure;
         }
+        if (lastFailure != null) throw lastFailure;
+        if (getLinks(drinkId).stream().noneMatch(link -> link.toppingId == toppingId))
+            throw new IllegalStateException("Không xác nhận được topping đã gắn vào đồ uống.");
     }
 
-    private Topping findActive(Topping requested) throws Exception {
-        return getActive().stream()
+    private Topping findMatching(Topping requested) throws Exception {
+        return getAll().stream()
                 .filter(topping -> topping.getName().trim().equalsIgnoreCase(requested.getName().trim())
                         && Math.abs(topping.getPrice() - requested.getPrice()) < 0.001)
                 .max(java.util.Comparator.comparingInt(Topping::getId)).orElse(null);

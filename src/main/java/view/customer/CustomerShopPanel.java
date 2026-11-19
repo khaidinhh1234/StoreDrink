@@ -425,7 +425,10 @@ public class CustomerShopPanel extends JPanel implements RefreshablePanel {
             var order=orderService.createStaffCounterPaidOrder(customerName,customerPhone,total(),method,details,user);
             receiptArea.setText(buildReceipt("ĐÃ THANH TOÁN · ĐƠN #"+order.getId()+" · ĐANG PHA CHẾ"));
             NotificationDialog.showMessageDialog(this,"Thanh toán thành công. Đơn #"+order.getId()+" đã được tạo, xác nhận và chuyển pha chế.","Tạo đơn thành công",NotificationDialog.INFORMATION_MESSAGE);
-            if(JOptionPane.showConfirmDialog(this,"In bill giao khách?","In bill",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)utils.ReceiptPrinter.print(order,orderService.getDetails(order.getId()));
+            if(JOptionPane.showConfirmDialog(this,"In bill giao khách?","In bill",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION) {
+                utils.ReceiptPrinter.printAsync(order, () -> orderService.getDetails(order.getId()),
+                        exception -> showError("Không thể in bill", exception), () -> {});
+            }
             cart.clear();customerNameField.setText("");customerPhoneField.setText("");updateCart();loadDrinks();
         } catch (Exception exception) {
             showError("Thanh toán thất bại", exception);

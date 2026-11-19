@@ -16,6 +16,7 @@ import view.layout.RefreshablePanel;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableRowSorter;
 import view.layout.UITheme;
 import java.awt.*;
 import java.text.NumberFormat;
@@ -35,9 +36,14 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
     private final UserService userService = new UserService();
     private final DefaultTableModel model;
     private final JTable table;
+    private final JTextField searchField = new JTextField(22);
+    private final JComboBox<String> statusFilter = new JComboBox<>(new String[] { "Tất cả trạng thái", "Đã duyệt - đang pha chế", "Hoàn thành", "Đã hủy" });
+    private final JComboBox<String> typeFilter = new JComboBox<>(new String[] { "Tất cả loại đơn", "Tại bàn", "Mang đi" });
+    private final TableRowSorter<DefaultTableModel> sorter;
     private final NumberFormat currency = UITheme.newVndFormatter();
     private final JProgressBar progress = new JProgressBar(0, 3);
     private Order selectedOrder;
+    private boolean invoicePrintInProgress;
 
     public OrderPanel(User user) {
         this.user = user;
@@ -64,6 +70,8 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
             }
         };
         table = new JTable(model);
+        sorter = new TableRowSorter<>(model);
+        table.setRowSorter(sorter);
         table.setRowHeight(44);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -90,8 +98,9 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                 if (column == 7) {
                     Rectangle cell = table.getCellRect(row, column, true);
                     int localX = event.getX() - cell.x;
+                    int modelRow = table.convertRowIndexToModel(row);
                     List<String> actions = actionLabels(statusCode(
-                            String.valueOf(model.getValueAt(row, 5))));
+                            String.valueOf(model.getValueAt(modelRow, 5))));
                     if (!actions.isEmpty()) {
                         int gap = 5;
                         int usableWidth = Math.max(1, cell.width - gap * (actions.size() - 1));
@@ -126,10 +135,31 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
         actions.add(progress);
         actions.add(refreshButton);
 
+        JPanel filterBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
+        filterBar.setOpaque(false);
+        searchField.setToolTipText("Tìm theo mã đơn, khách hàng hoặc bàn");
+        searchField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UITheme.BORDER),
+                BorderFactory.createEmptyBorder(6, 9, 6, 9)));
+        filterBar.add(new JLabel("Tìm kiếm"));
+        filterBar.add(searchField);
+        filterBar.add(statusFilter);
+        filterBar.add(typeFilter);
+        searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void apply() { applyOrderFilters(); }
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { apply(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { apply(); }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { apply(); }
+        });
+        statusFilter.addActionListener(e -> applyOrderFilters());
+        typeFilter.addActionListener(e -> applyOrderFilters());
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 16, 16, 16));
         add(actions, BorderLayout.SOUTH);
-        add(scrollPane, BorderLayout.CENTER);
+        JPanel content = new JPanel(new BorderLayout());
+        content.setOpaque(false);
+        content.add(filterBar, BorderLayout.NORTH);
+        content.add(scrollPane, BorderLayout.CENTER);
+        add(content, BorderLayout.CENTER);
         UITheme.styleTree(this);
         UITheme.styleButton(refreshButton, UITheme.Action.NEUTRAL);
         table.getColumnModel().getColumn(7).setCellRenderer(new OrderActionRenderer());
@@ -190,10 +220,12 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
                         actionLabel(order.getStatus())
                 });
             }
+            applyOrderFilters();
             if (selectedId != null) {
                 for (int row = 0; row < model.getRowCount(); row++) {
                     if (((Number) model.getValueAt(row, 0)).intValue() == selectedId) {
-                        table.setRowSelectionInterval(row, row);
+                        int viewRow = table.convertRowIndexToView(row);
+                        if (viewRow >= 0) table.setRowSelectionInterval(viewRow, viewRow);
                         break;
                     }
                 }
@@ -203,6 +235,27 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
             NotificationDialog.showMessageDialog(this, "Không tải được danh sách đơn hàng: "
                     + exception.getMessage(), "Lỗi", NotificationDialog.ERROR_MESSAGE);
         }
+    }
+
+    private void applyOrderFilters() {
+        if (sorter == null) return;
+        String query = searchField.getText().trim().toLowerCase(Locale.ROOT);
+        String status = String.valueOf(statusFilter.getSelectedItem());
+        String type = String.valueOf(typeFilter.getSelectedItem());
+        sorter.setRowFilter(new javax.swing.RowFilter<>() {
+            @Override public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
+                String rowStatus = String.valueOf(entry.getValue(5));
+                String rowType = String.valueOf(entry.getValue(1));
+                if (!"Tất cả trạng thái".equals(status) && !rowStatus.equals(status)) return false;
+                if ("Tại bàn".equals(type) && !"TẠI BÀN".equals(rowType)) return false;
+                if ("Mang đi".equals(type) && !rowType.endsWith("ORDER")) return false;
+                if (query.isEmpty()) return true;
+                for (int column = 0; column <= 6; column++) {
+                    if (String.valueOf(entry.getValue(column)).toLowerCase(Locale.ROOT).contains(query)) return true;
+                }
+                return false;
+            }
+        });
     }
 
     /** Finishes a staff-created counter order after a saved payment if the app was interrupted. */
@@ -273,13 +326,14 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
     }
 
     private void updateSelectedOrderInfo() {
-        int row = table.getSelectedRow();
-        if (row < 0) {
+        int viewRow = table.getSelectedRow();
+        if (viewRow < 0) {
             selectedOrder = null;
             progress.setValue(0);
             progress.setString("Chọn đơn hàng");
             return;
         }
+        int row = table.convertRowIndexToModel(viewRow);
         int id = (int) model.getValueAt(row, 0);
         try {
             selectedOrder = orderService.getAll().stream()
@@ -1135,6 +1189,7 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
     }
 
     private void printSelectedInvoice() {
+        if (invoicePrintInProgress) return;
         if (!"STAFF".equalsIgnoreCase(user.getRole())) {
             NotificationDialog.showMessageDialog(this, "Chỉ nhân viên thu ngân được phép in bill.",
                     "Không có quyền in bill", NotificationDialog.WARNING_MESSAGE);
@@ -1142,22 +1197,20 @@ public class OrderPanel extends JPanel implements RefreshablePanel {
         }
         if (!ensureSelectedOrder())
             return;
-        try {
-        boolean completed="COMPLETED".equalsIgnoreCase(selectedOrder.getStatus());
-        boolean confirmedPaid="CONFIRMED".equalsIgnoreCase(selectedOrder.getStatus())
-                && new service.PaymentService().getAll().stream().anyMatch(p->p.getOrderId()==selectedOrder.getId()
-                && "SUCCESS".equalsIgnoreCase(p.getStatus()));
-        if (!completed && !confirmedPaid) {
-            NotificationDialog.showMessageDialog(this,
-                    "Chỉ có thể in bill khi thanh toán đã thành công.",
-                    "Chưa thể in hóa đơn", NotificationDialog.INFORMATION_MESSAGE);
-            return;
-        }
-            List<OrderDetail> details = orderService.getDetails(selectedOrder.getId());
-            utils.ReceiptPrinter.print(selectedOrder,details);
-        } catch (Exception exception) {
-            showError("Không thể in hóa đơn", exception);
-        }
+        Order orderToPrint = selectedOrder;
+        invoicePrintInProgress = true;
+        utils.ReceiptPrinter.printAsync(orderToPrint, () -> {
+            boolean completed = "COMPLETED".equalsIgnoreCase(orderToPrint.getStatus());
+            boolean confirmedPaid = "CONFIRMED".equalsIgnoreCase(orderToPrint.getStatus())
+                    && new service.PaymentService().getAll().stream().anyMatch(payment ->
+                            payment.getOrderId() == orderToPrint.getId()
+                                    && "SUCCESS".equalsIgnoreCase(payment.getStatus()));
+            if (!completed && !confirmedPaid) {
+                throw new IllegalStateException("Chỉ có thể in bill khi thanh toán đã thành công.");
+            }
+            return orderService.getDetails(orderToPrint.getId());
+        }, exception -> showError("Không thể in hóa đơn", exception),
+                () -> invoicePrintInProgress = false);
     }
 
     private boolean ensureSelectedOrder() {

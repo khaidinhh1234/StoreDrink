@@ -1,0 +1,4868 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "123456",
+      "fullName": "Quản trị viên",
+      "role": "ADMIN",
+      "active": true
+    },
+    {
+      "id": 2,
+      "username": "staff01",
+      "password": "123456",
+      "fullName": "Nguyễn Văn Nhân",
+      "role": "STAFF",
+      "active": true
+    },
+    {
+      "id": 3,
+      "username": "staff02",
+      "password": "123456",
+      "fullName": "Trần Văn Nam",
+      "role": "STAFF",
+      "active": true
+    },
+    {
+      "id": 4,
+      "username": "admin2",
+      "password": "122223456",
+      "fullName": "Nguyễn Đình Khải",
+      "role": "ADMIN",
+      "active": true
+    },
+    {
+      "id": 5,
+      "username": "staff03",
+      "password": "123456",
+      "fullName": "Lê Thị Thu Hằng",
+      "role": "STAFF",
+      "active": true
+    },
+    {
+      "id": 6,
+      "username": "staff04",
+      "password": "123456",
+      "fullName": "Phạm Minh Tuấn",
+      "role": "STAFF",
+      "active": true
+    },
+    {
+      "id": 7,
+      "username": "staff05",
+      "password": "123456",
+      "fullName": "Trần Ngọc Mai",
+      "role": "STAFF",
+      "active": true
+    }
+  ],
+  "tables": [
+    {
+      "id": 1,
+      "name": "Bàn 01",
+      "qrCode": "TABLE-01",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 2,
+      "name": "Bàn 02",
+      "qrCode": "TABLE-02",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 3,
+      "name": "Bàn 03",
+      "qrCode": "TABLE-03",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 4,
+      "name": "Bàn 04",
+      "qrCode": "TABLE-04",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 5,
+      "name": "Bàn 05",
+      "qrCode": "TABLE-05",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 6,
+      "name": "Bàn 06",
+      "qrCode": "TABLE-06",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 7,
+      "name": "Bàn 07",
+      "qrCode": "TABLE-07",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 8,
+      "name": "Bàn 08",
+      "qrCode": "TABLE-08",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 9,
+      "name": "Bàn 09",
+      "qrCode": "TABLE-09",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 10,
+      "name": "Bàn 10",
+      "qrCode": "TABLE-10",
+      "status": "Đang hoạt động"
+    },
+    {
+      "id": 11,
+      "name": "TABLE-11",
+      "qrCode": "A1",
+      "status": "Đang hoạt động"
+    }
+  ],
+  "drinks": [
+    {
+      "id": 2,
+      "name": "Cà phê sữa",
+      "price": 25000,
+      "quantity": 57,
+      "active": true,
+      "categoryId": 0,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/t_caphesua/cach-pha-ca-phe-sua-tuoi-removebg-preview_dloyz1.png",
+      "hasLargeSize": true,
+      "largeExtraPrice": 10000,
+      "sizes": []
+    },
+    {
+      "id": 4,
+      "name": "Trà đào",
+      "price": 30000,
+      "quantity": 81,
+      "active": true,
+      "categoryId": 0,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/t_caphesua/TraDao-removebg-preview_f01tcg.png",
+      "hasLargeSize": true,
+      "largeExtraPrice": 10000,
+      "sizes": []
+    },
+    {
+      "id": 5,
+      "name": "Trà tắc",
+      "price": 20000,
+      "quantity": 74,
+      "active": true,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/t_caphesua/tra_tac-removebg-preview_h2j9wi.png",
+      "hasLargeSize": true,
+      "largeExtraPrice": 8000
+    },
+    {
+      "id": 6,
+      "name": "Trà chanh",
+      "price": 20000,
+      "quantity": 55,
+      "active": true,
+      "categoryId": 0,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/t_caphesua/nguyen-tac-pha-tra-chanh-co-ban-removebg-preview_pevfqu.png",
+      "hasLargeSize": false,
+      "largeExtraPrice": 0
+    },
+    {
+      "id": 7,
+      "name": "Nước cam",
+      "price": 35000,
+      "quantity": 97,
+      "active": true,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_500,w_500/cong-dung-cua-nuoc-cam-tuoi-va-cach-bao-quan-nuoc-cam-tot-nhat-6-removebg-preview_t5jl7r.png",
+      "hasLargeSize": true,
+      "largeExtraPrice": 10000
+    },
+    {
+      "id": 8,
+      "name": "Nước ép dưa hấu",
+      "price": 30000,
+      "quantity": 70,
+      "active": true,
+      "categoryId": 0,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_700,w_700/nuoc_ep_dua_hau_co_tac_dung_gi_1_a452bc1181-removebg-preview_in5sbx.png",
+      "hasLargeSize": false,
+      "largeExtraPrice": 0
+    },
+    {
+      "id": 9,
+      "name": "Nước ép thơm",
+      "price": 30000,
+      "quantity": 59,
+      "active": true,
+      "categoryId": 0,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/cach-lam-nuoc-ep-dua-thom-ngon-removebg-preview_pfdmxy.png",
+      "hasLargeSize": false,
+      "largeExtraPrice": 0
+    },
+    {
+      "id": 10,
+      "name": "Sinh tố xoài",
+      "price": 35000,
+      "quantity": 56,
+      "active": true,
+      "categoryId": 0,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_700,w_700/cach-lam-sinh-to-xoai-sua-dac-removebg-preview_jtkf5p.png",
+      "hasLargeSize": true,
+      "largeExtraPrice": 10000
+    },
+    {
+      "id": 11,
+      "name": "Sinh tố dâu",
+      "price": 35000,
+      "quantity": 82,
+      "active": true,
+      "categoryId": 0,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_700,w_700/pngtree-cherry-strawberry-vanilla-smoothie-with-a-solid-png-image_15781151-removebg-preview_svwsvj.png",
+      "hasLargeSize": false,
+      "largeExtraPrice": 0
+    },
+    {
+      "id": 12,
+      "name": "Sinh tố bơ",
+      "price": 40000,
+      "quantity": 29,
+      "active": true,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_600,w_600/images-removebg-preview_ymaq32.png",
+      "hasLargeSize": false,
+      "largeExtraPrice": 0
+    },
+    {
+      "id": 13,
+      "name": "Đá xay matcha",
+      "price": 45000,
+      "quantity": 18,
+      "active": true,
+      "categoryId": 0,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/c_auto,h_600,w_600/9e72797a32e724fcab79f17bc7764d5c-removebg-preview_l2iir8.png",
+      "hasLargeSize": false,
+      "largeExtraPrice": 0
+    },
+    {
+      "id": 14,
+      "name": "Đá xay chocolate",
+      "price": 45000,
+      "quantity": 82,
+      "active": true,
+      "categoryId": 0,
+      "image": "https://res.cloudinary.com/khaidinhh/image/upload/cong-thuc-socola-da-xay-removebg-preview_cirnnx.png",
+      "hasLargeSize": false,
+      "largeExtraPrice": 0
+    },
+    {
+      "id": 15,
+      "name": "test",
+      "price": 12000,
+      "quantity": 3,
+      "active": true,
+      "categoryId": 0,
+      "image": "",
+      "hasLargeSize": true,
+      "largeExtraPrice": -7000,
+      "description": "ádasd",
+      "sizes": [
+        {
+          "name": "S",
+          "price": 12000
+        },
+        {
+          "name": "L",
+          "price": 5000
+        },
+        {
+          "name": "XL",
+          "price": 10000
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "ádasd",
+      "price": 23423,
+      "quantity": 0,
+      "active": true,
+      "categoryId": 0,
+      "image": "",
+      "hasLargeSize": true,
+      "largeExtraPrice": 23333,
+      "description": "",
+      "sizes": [
+        {
+          "name": "S",
+          "price": 23423
+        },
+        {
+          "name": "L",
+          "price": 23333
+        },
+        {
+          "name": "zM",
+          "price": 12331
+        }
+      ]
+    }
+  ],
+  "orders": [
+    {
+      "id": 1301,
+      "userId": 0,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "tableId": null,
+      "customerName": "Hoàng Gia Huy",
+      "customerPhone": "0918765432",
+      "orderType": "TAKEAWAY",
+      "total": 155000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-02T17:10:00",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-02T17:14:00",
+      "completedBy": 2,
+      "completedAt": "2026-11-02T17:31:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "4": 1,
+        "7": 1,
+        "14": 2
+      }
+    },
+    {
+      "id": 1302,
+      "userId": 0,
+      "createdByUserId": 3,
+      "processedByUserId": 3,
+      "tableId": 4,
+      "customerName": "Trần Thị Lan",
+      "customerPhone": "0905123401",
+      "orderType": "DINE_IN",
+      "total": 85000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-03T10:20:00",
+      "confirmedBy": 3,
+      "confirmedAt": "2026-11-03T10:38:00",
+      "completedBy": 3,
+      "completedAt": "2026-11-03T10:58:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "2": 1,
+        "9": 2
+      }
+    },
+    {
+      "id": 1303,
+      "userId": 0,
+      "createdByUserId": 5,
+      "processedByUserId": 5,
+      "tableId": 7,
+      "customerName": "Mai Phương Thảo",
+      "customerPhone": "0967123450",
+      "orderType": "DINE_IN",
+      "total": 60000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-05T19:00:00",
+      "confirmedBy": 5,
+      "confirmedAt": "2026-11-05T19:15:00",
+      "completedBy": 5,
+      "completedAt": "2026-11-05T19:38:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "6": 3
+      }
+    },
+    {
+      "id": 1304,
+      "userId": 0,
+      "createdByUserId": 6,
+      "processedByUserId": 6,
+      "tableId": 10,
+      "customerName": "Bùi Thanh Trúc",
+      "customerPhone": "0981122334",
+      "orderType": "DINE_IN",
+      "total": 35000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-03T09:40:00",
+      "confirmedBy": 6,
+      "confirmedAt": "2026-11-03T09:47:00",
+      "completedBy": 6,
+      "completedAt": "2026-11-03T10:00:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "10": 1
+      }
+    },
+    {
+      "id": 1305,
+      "userId": 0,
+      "createdByUserId": 7,
+      "processedByUserId": 7,
+      "tableId": null,
+      "customerName": "Nguyễn Tuấn Kiệt",
+      "customerPhone": "0903221456",
+      "orderType": "TAKEAWAY",
+      "total": 20000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-07T13:00:00",
+      "confirmedBy": 7,
+      "confirmedAt": "2026-11-07T13:07:00",
+      "completedBy": 7,
+      "completedAt": "2026-11-07T13:13:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "5": 1
+      }
+    },
+    {
+      "id": 1306,
+      "userId": 0,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "tableId": 5,
+      "customerName": "Đỗ Khánh Linh",
+      "customerPhone": "0945123789",
+      "orderType": "DINE_IN",
+      "total": 25000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-11-07T02:00:00",
+      "cancelledBy": "SYSTEM",
+      "cancelledAt": "2026-11-07T14:56:19.789632",
+      "cancelReason": "Đơn tự động hủy do quá 30 phút chưa được duyệt",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {}
+    },
+    {
+      "id": 1307,
+      "userId": 0,
+      "createdByUserId": 3,
+      "processedByUserId": 3,
+      "tableId": 8,
+      "customerName": "Phan Mỹ Duyên",
+      "customerPhone": "0933123456",
+      "orderType": "DINE_IN",
+      "total": 70000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-11-04T10:10:00",
+      "confirmedBy": 3,
+      "confirmedAt": "2026-11-04T10:27:00",
+      "completedBy": null,
+      "completedAt": null,
+      "cancelledBy": "3",
+      "cancelledAt": "2026-11-04T10:41:00",
+      "cancelReason": "Khách đặt nhầm món",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {}
+    },
+    {
+      "id": 1308,
+      "userId": 0,
+      "createdByUserId": 5,
+      "processedByUserId": 5,
+      "tableId": 11,
+      "customerName": "Lê Minh Anh",
+      "customerPhone": "0912345602",
+      "orderType": "DINE_IN",
+      "total": 120000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-04T18:50:00",
+      "confirmedBy": 5,
+      "confirmedAt": "2026-11-04T18:53:00",
+      "completedBy": 5,
+      "completedAt": "2026-11-04T19:15:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "2": 3,
+        "13": 1
+      }
+    },
+    {
+      "id": 1309,
+      "userId": 0,
+      "createdByUserId": 6,
+      "processedByUserId": 6,
+      "customerName": "Võ Ngọc Hà",
+      "customerPhone": "0977123456",
+      "orderType": "TAKEAWAY",
+      "total": 35000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-11-06T16:10:00",
+      "cancelledBy": "SYSTEM",
+      "cancelledAt": "2026-11-07T14:56:19.9424866",
+      "cancelReason": "Đơn tự động hủy do quá 30 phút chưa được duyệt",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {}
+    },
+    {
+      "id": 1310,
+      "userId": 0,
+      "createdByUserId": 7,
+      "processedByUserId": 7,
+      "tableId": 6,
+      "customerName": "Nguyễn Đình Khải",
+      "customerPhone": "0987654327",
+      "orderType": "DINE_IN",
+      "total": 20000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-11-04T07:40:00",
+      "confirmedBy": 7,
+      "confirmedAt": "2026-11-04T07:58:00",
+      "cancelledBy": "2",
+      "cancelledAt": "2026-11-14T12:26:06.0003998",
+      "cancelReason": "khách hàng đổi ý",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {
+        "6": 1
+      }
+    },
+    {
+      "id": 1311,
+      "userId": 0,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "tableId": 9,
+      "customerName": "Đặng Hoàng Nam",
+      "customerPhone": "0908765432",
+      "orderType": "DINE_IN",
+      "total": 45000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-04T12:10:00",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-04T12:19:00",
+      "completedBy": 2,
+      "completedAt": "2026-11-04T12:30:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "13": 1
+      }
+    },
+    {
+      "id": 1312,
+      "userId": 0,
+      "createdByUserId": 3,
+      "processedByUserId": 3,
+      "tableId": 1,
+      "customerName": "Phạm Quốc Bảo",
+      "customerPhone": "0938456712",
+      "orderType": "DINE_IN",
+      "total": 35000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-03T20:10:00",
+      "confirmedBy": 3,
+      "confirmedAt": "2026-11-03T20:16:00",
+      "completedBy": 3,
+      "completedAt": "2026-11-03T20:22:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "11": 1
+      }
+    },
+    {
+      "id": 1313,
+      "userId": 0,
+      "createdByUserId": 5,
+      "processedByUserId": 5,
+      "tableId": null,
+      "customerName": "Hoàng Gia Huy",
+      "customerPhone": "0918765432",
+      "orderType": "TAKEAWAY",
+      "total": 80000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-03T10:10:00",
+      "confirmedBy": 5,
+      "confirmedAt": "2026-11-03T10:14:00",
+      "completedBy": 5,
+      "completedAt": "2026-11-03T10:21:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "12": 2
+      }
+    },
+    {
+      "id": 1314,
+      "userId": 0,
+      "createdByUserId": 6,
+      "processedByUserId": 6,
+      "tableId": 7,
+      "customerName": "Trần Thị Lan",
+      "customerPhone": "0905123401",
+      "orderType": "DINE_IN",
+      "total": 60000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-06T22:00:00",
+      "confirmedBy": 6,
+      "confirmedAt": "2026-11-06T22:03:00",
+      "completedBy": 6,
+      "completedAt": "2026-11-06T22:11:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "5": 1,
+        "6": 2
+      }
+    },
+    {
+      "id": 1315,
+      "userId": 0,
+      "createdByUserId": 7,
+      "processedByUserId": 7,
+      "tableId": 10,
+      "customerName": "Mai Phương Thảo",
+      "customerPhone": "0967123450",
+      "orderType": "DINE_IN",
+      "total": 105000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-05T10:15:00",
+      "confirmedBy": 7,
+      "confirmedAt": "2026-11-05T10:24:00",
+      "completedBy": 7,
+      "completedAt": "2026-11-05T10:46:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "7": 1,
+        "11": 2
+      }
+    },
+    {
+      "id": 1316,
+      "userId": 0,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "tableId": 2,
+      "customerName": "Bùi Thanh Trúc",
+      "customerPhone": "0981122334",
+      "orderType": "DINE_IN",
+      "total": 110000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-04T11:00:00",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-04T11:09:00",
+      "completedBy": 2,
+      "completedAt": "2026-11-04T11:17:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "2": 2,
+        "6": 3
+      }
+    },
+    {
+      "id": 1317,
+      "userId": 0,
+      "createdByUserId": 3,
+      "processedByUserId": 3,
+      "tableId": null,
+      "customerName": "Nguyễn Tuấn Kiệt",
+      "customerPhone": "0903221456",
+      "orderType": "TAKEAWAY",
+      "total": 45000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-11-02T10:00:00",
+      "confirmedBy": 3,
+      "confirmedAt": "2026-11-02T10:18:00",
+      "completedBy": null,
+      "completedAt": null,
+      "cancelledBy": "3",
+      "cancelledAt": "2026-11-02T10:23:00",
+      "cancelReason": "Khách đặt nhầm món",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {}
+    },
+    {
+      "id": 1318,
+      "userId": 0,
+      "createdByUserId": 5,
+      "processedByUserId": 5,
+      "tableId": 8,
+      "customerName": "Đỗ Khánh Linh",
+      "customerPhone": "0945123789",
+      "orderType": "DINE_IN",
+      "total": 60000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-07T14:10:00",
+      "confirmedBy": 5,
+      "confirmedAt": "2026-11-07T14:14:00",
+      "completedBy": 5,
+      "completedAt": "2026-11-07T14:31:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "9": 2
+      }
+    },
+    {
+      "id": 1319,
+      "userId": 0,
+      "createdByUserId": 6,
+      "processedByUserId": 6,
+      "tableId": 11,
+      "customerName": "Phan Mỹ Duyên",
+      "customerPhone": "0933123456",
+      "orderType": "DINE_IN",
+      "total": 75000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-03T15:40:00",
+      "confirmedBy": 6,
+      "confirmedAt": "2026-11-03T15:56:00",
+      "completedBy": 6,
+      "completedAt": "2026-11-03T16:16:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "7": 1,
+        "12": 1
+      }
+    },
+    {
+      "id": 1320,
+      "userId": 0,
+      "createdByUserId": 7,
+      "processedByUserId": 7,
+      "tableId": 3,
+      "customerName": "Lê Minh Anh",
+      "customerPhone": "0912345602",
+      "orderType": "DINE_IN",
+      "total": 50000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-03T18:50:00",
+      "confirmedBy": 7,
+      "confirmedAt": "2026-11-03T19:08:00",
+      "completedBy": 7,
+      "completedAt": "2026-11-03T19:20:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "4": 1,
+        "6": 1
+      }
+    },
+    {
+      "id": 1321,
+      "userId": 0,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "tableId": null,
+      "customerName": "Võ Ngọc Hà",
+      "customerPhone": "0977123456",
+      "orderType": "TAKEAWAY",
+      "total": 75000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-06T17:40:00",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-06T17:51:00",
+      "completedBy": 2,
+      "completedAt": "2026-11-06T18:02:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "9": 1,
+        "14": 1
+      }
+    },
+    {
+      "id": 1322,
+      "userId": 0,
+      "createdByUserId": 3,
+      "processedByUserId": 3,
+      "tableId": 9,
+      "customerName": "Nguyễn Đình Khải",
+      "customerPhone": "0987654327",
+      "orderType": "DINE_IN",
+      "total": 80000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-06T13:30:00",
+      "confirmedBy": 3,
+      "confirmedAt": "2026-11-06T13:37:00",
+      "completedBy": 3,
+      "completedAt": "2026-11-06T13:44:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "10": 1,
+        "13": 1
+      }
+    },
+    {
+      "id": 1323,
+      "userId": 0,
+      "createdByUserId": 5,
+      "processedByUserId": 5,
+      "tableId": 1,
+      "customerName": "Đặng Hoàng Nam",
+      "customerPhone": "0908765432",
+      "orderType": "DINE_IN",
+      "total": 75000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-11-05T11:20:00",
+      "cancelledBy": "SYSTEM",
+      "cancelledAt": "2026-11-07T14:56:19.989879",
+      "cancelReason": "Đơn tự động hủy do quá 30 phút chưa được duyệt",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {}
+    },
+    {
+      "id": 1324,
+      "userId": 0,
+      "createdByUserId": 6,
+      "processedByUserId": 6,
+      "tableId": 4,
+      "customerName": "Phạm Quốc Bảo",
+      "customerPhone": "0938456712",
+      "orderType": "DINE_IN",
+      "total": 110000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-01T17:50:00",
+      "confirmedBy": 6,
+      "confirmedAt": "2026-11-01T17:58:00",
+      "completedBy": 6,
+      "completedAt": "2026-11-01T18:12:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "8": 1,
+        "12": 2
+      }
+    },
+    {
+      "id": 1325,
+      "userId": 0,
+      "createdByUserId": 7,
+      "processedByUserId": 7,
+      "customerName": "Hoàng Gia Huy",
+      "customerPhone": "0918765432",
+      "orderType": "TAKEAWAY",
+      "total": 35000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-11-06T09:30:00",
+      "confirmedBy": 7,
+      "confirmedAt": "2026-11-06T09:40:00",
+      "cancelledBy": "2",
+      "cancelledAt": "2026-11-14T12:27:04.0340967",
+      "cancelReason": "khách hàng không mua",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {
+        "11": 1
+      }
+    },
+    {
+      "id": 1326,
+      "userId": 0,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "tableId": 10,
+      "customerName": "Trần Thị Lan",
+      "customerPhone": "0905123401",
+      "orderType": "DINE_IN",
+      "total": 70000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-03T19:50:00",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-03T20:06:00",
+      "completedBy": 2,
+      "completedAt": "2026-11-03T20:14:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "11": 2
+      }
+    },
+    {
+      "id": 1327,
+      "userId": 0,
+      "createdByUserId": 3,
+      "processedByUserId": 3,
+      "tableId": 2,
+      "customerName": "Mai Phương Thảo",
+      "customerPhone": "0967123450",
+      "orderType": "DINE_IN",
+      "total": 70000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-05T17:20:00",
+      "confirmedBy": 3,
+      "confirmedAt": "2026-11-05T17:34:00",
+      "completedBy": 3,
+      "completedAt": "2026-11-05T17:57:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "10": 2
+      }
+    },
+    {
+      "id": 1328,
+      "userId": 0,
+      "createdByUserId": 5,
+      "processedByUserId": 5,
+      "tableId": 5,
+      "customerName": "Bùi Thanh Trúc",
+      "customerPhone": "0981122334",
+      "orderType": "DINE_IN",
+      "total": 70000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-01T11:15:00",
+      "confirmedBy": 5,
+      "confirmedAt": "2026-11-01T11:17:00",
+      "completedBy": 5,
+      "completedAt": "2026-11-01T11:23:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "7": 2
+      }
+    },
+    {
+      "id": 1329,
+      "userId": 0,
+      "createdByUserId": 6,
+      "processedByUserId": 6,
+      "customerName": "Nguyễn Tuấn Kiệt",
+      "customerPhone": "0903221456",
+      "orderType": "TAKEAWAY",
+      "total": 90000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-11-01T17:00:00",
+      "cancelledBy": "SYSTEM",
+      "cancelledAt": "2026-11-07T14:56:20.0687606",
+      "cancelReason": "Đơn tự động hủy do quá 30 phút chưa được duyệt",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {}
+    },
+    {
+      "id": 1330,
+      "userId": 0,
+      "createdByUserId": 7,
+      "processedByUserId": 7,
+      "tableId": 11,
+      "customerName": "Đỗ Khánh Linh",
+      "customerPhone": "0945123789",
+      "orderType": "DINE_IN",
+      "total": 45000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-03T12:50:00",
+      "confirmedBy": 7,
+      "confirmedAt": "2026-11-03T12:52:00",
+      "completedBy": 7,
+      "completedAt": "2026-11-03T12:57:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "13": 1
+      }
+    },
+    {
+      "id": 1331,
+      "userId": 0,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "tableId": 3,
+      "customerName": "Phan Mỹ Duyên",
+      "customerPhone": "0933123456",
+      "orderType": "DINE_IN",
+      "total": 50000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-10-28T08:10:00",
+      "cancelledBy": "SYSTEM",
+      "cancelledAt": "2026-11-07T14:56:20.1130791",
+      "cancelReason": "Đơn tự động hủy do quá 30 phút chưa được duyệt",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {}
+    },
+    {
+      "id": 1332,
+      "userId": 0,
+      "createdByUserId": 3,
+      "processedByUserId": 3,
+      "tableId": 6,
+      "customerName": "Lê Minh Anh",
+      "customerPhone": "0912345602",
+      "orderType": "DINE_IN",
+      "total": 20000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-10T10:10:00",
+      "confirmedBy": 3,
+      "confirmedAt": "2026-10-10T10:18:00",
+      "completedBy": 3,
+      "completedAt": "2026-10-10T10:43:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "6": 1
+      }
+    },
+    {
+      "id": 1333,
+      "userId": 0,
+      "createdByUserId": 5,
+      "processedByUserId": 5,
+      "tableId": null,
+      "customerName": "Võ Ngọc Hà",
+      "customerPhone": "0977123456",
+      "orderType": "TAKEAWAY",
+      "total": 85000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-10-05T15:20:00",
+      "confirmedBy": 5,
+      "confirmedAt": "2026-10-05T15:36:00",
+      "completedBy": null,
+      "completedAt": null,
+      "cancelledBy": "5",
+      "cancelledAt": "2026-10-05T15:45:00",
+      "cancelReason": "Khách đổi ý",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {}
+    },
+    {
+      "id": 1334,
+      "userId": 0,
+      "createdByUserId": 6,
+      "processedByUserId": 6,
+      "tableId": 1,
+      "customerName": "Nguyễn Đình Khải",
+      "customerPhone": "0987654327",
+      "orderType": "DINE_IN",
+      "total": 95000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-30T18:00:00",
+      "confirmedBy": 6,
+      "confirmedAt": "2026-10-30T18:04:00",
+      "completedBy": 6,
+      "completedAt": "2026-10-30T18:19:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "4": 2,
+        "10": 1
+      }
+    },
+    {
+      "id": 1335,
+      "userId": 0,
+      "createdByUserId": 7,
+      "processedByUserId": 7,
+      "tableId": 4,
+      "customerName": "Đặng Hoàng Nam",
+      "customerPhone": "0908765432",
+      "orderType": "DINE_IN",
+      "total": 90000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-23T21:20:00",
+      "confirmedBy": 7,
+      "confirmedAt": "2026-10-23T21:35:00",
+      "completedBy": 7,
+      "completedAt": "2026-10-23T21:54:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "13": 2
+      }
+    },
+    {
+      "id": 1336,
+      "userId": 0,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "tableId": 7,
+      "customerName": "Phạm Quốc Bảo",
+      "customerPhone": "0938456712",
+      "orderType": "DINE_IN",
+      "total": 80000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-03T12:00:00",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-10-03T12:06:00",
+      "completedBy": 2,
+      "completedAt": "2026-10-03T12:29:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "12": 2
+      }
+    },
+    {
+      "id": 1337,
+      "userId": 0,
+      "createdByUserId": 3,
+      "processedByUserId": 3,
+      "tableId": null,
+      "customerName": "Hoàng Gia Huy",
+      "customerPhone": "0918765432",
+      "orderType": "TAKEAWAY",
+      "total": 30000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-17T13:20:00",
+      "confirmedBy": 3,
+      "confirmedAt": "2026-10-17T13:29:00",
+      "completedBy": 3,
+      "completedAt": "2026-10-17T13:36:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "8": 1
+      }
+    },
+    {
+      "id": 1338,
+      "userId": 0,
+      "createdByUserId": 5,
+      "processedByUserId": 5,
+      "tableId": 2,
+      "customerName": "Trần Thị Lan",
+      "customerPhone": "0905123401",
+      "orderType": "DINE_IN",
+      "total": 70000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-06T11:10:00",
+      "confirmedBy": 5,
+      "confirmedAt": "2026-10-06T11:15:00",
+      "completedBy": 5,
+      "completedAt": "2026-10-06T11:29:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "10": 2
+      }
+    },
+    {
+      "id": 1339,
+      "userId": 0,
+      "createdByUserId": 6,
+      "processedByUserId": 6,
+      "tableId": 5,
+      "customerName": "Mai Phương Thảo",
+      "customerPhone": "0967123450",
+      "orderType": "DINE_IN",
+      "total": 30000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-30T08:10:00",
+      "confirmedBy": 6,
+      "confirmedAt": "2026-10-30T08:13:00",
+      "completedBy": 6,
+      "completedAt": "2026-10-30T08:19:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "9": 1
+      }
+    },
+    {
+      "id": 1340,
+      "userId": 0,
+      "createdByUserId": 7,
+      "processedByUserId": 7,
+      "tableId": 8,
+      "customerName": "Bùi Thanh Trúc",
+      "customerPhone": "0981122334",
+      "orderType": "DINE_IN",
+      "total": 25000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-21T14:10:00",
+      "confirmedBy": 7,
+      "confirmedAt": "2026-10-21T14:18:00",
+      "completedBy": 7,
+      "completedAt": "2026-10-21T14:34:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "2": 1
+      }
+    },
+    {
+      "id": 1341,
+      "userId": 0,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "tableId": null,
+      "customerName": "Nguyễn Tuấn Kiệt",
+      "customerPhone": "0903221456",
+      "orderType": "TAKEAWAY",
+      "total": 45000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-24T18:15:00",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-10-24T18:24:00",
+      "completedBy": 2,
+      "completedAt": "2026-10-24T18:47:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "14": 1
+      }
+    },
+    {
+      "id": 1342,
+      "userId": 0,
+      "createdByUserId": 3,
+      "processedByUserId": 3,
+      "tableId": 3,
+      "customerName": "Đỗ Khánh Linh",
+      "customerPhone": "0945123789",
+      "orderType": "DINE_IN",
+      "total": 30000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-19T17:30:00",
+      "confirmedBy": 3,
+      "confirmedAt": "2026-10-19T17:46:00",
+      "completedBy": 3,
+      "completedAt": "2026-10-19T17:54:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "9": 1
+      }
+    },
+    {
+      "id": 1343,
+      "userId": 0,
+      "createdByUserId": 5,
+      "processedByUserId": 5,
+      "tableId": 6,
+      "customerName": "Phan Mỹ Duyên",
+      "customerPhone": "0933123456",
+      "orderType": "DINE_IN",
+      "total": 65000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-26T10:40:00",
+      "confirmedBy": 5,
+      "confirmedAt": "2026-10-26T10:43:00",
+      "completedBy": 5,
+      "completedAt": "2026-10-26T11:00:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "7": 1,
+        "8": 1
+      }
+    },
+    {
+      "id": 1344,
+      "userId": 0,
+      "createdByUserId": 6,
+      "processedByUserId": 6,
+      "tableId": 9,
+      "customerName": "Lê Minh Anh",
+      "customerPhone": "0912345602",
+      "orderType": "DINE_IN",
+      "total": 60000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-27T14:30:00",
+      "confirmedBy": 6,
+      "confirmedAt": "2026-10-27T14:39:00",
+      "completedBy": 6,
+      "completedAt": "2026-10-27T14:48:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "9": 2
+      }
+    },
+    {
+      "id": 1345,
+      "userId": 0,
+      "createdByUserId": 7,
+      "processedByUserId": 7,
+      "tableId": null,
+      "customerName": "Võ Ngọc Hà",
+      "customerPhone": "0977123456",
+      "orderType": "TAKEAWAY",
+      "total": 70000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-09T15:45:00",
+      "confirmedBy": 7,
+      "confirmedAt": "2026-10-09T16:01:00",
+      "completedBy": 7,
+      "completedAt": "2026-10-09T16:12:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "8": 1,
+        "12": 1
+      }
+    },
+    {
+      "id": 1346,
+      "userId": 0,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "tableId": 4,
+      "customerName": "Nguyễn Đình Khải",
+      "customerPhone": "0987654327",
+      "orderType": "DINE_IN",
+      "total": 30000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-02T15:45:00",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-10-02T15:55:00",
+      "completedBy": 2,
+      "completedAt": "2026-10-02T16:03:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "9": 1
+      }
+    },
+    {
+      "id": 1347,
+      "userId": 0,
+      "createdByUserId": 3,
+      "processedByUserId": 3,
+      "tableId": 7,
+      "customerName": "Đặng Hoàng Nam",
+      "customerPhone": "0908765432",
+      "orderType": "DINE_IN",
+      "total": 30000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-14T21:30:00",
+      "confirmedBy": 3,
+      "confirmedAt": "2026-10-14T21:33:00",
+      "completedBy": 3,
+      "completedAt": "2026-10-14T21:51:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "8": 1
+      }
+    },
+    {
+      "id": 1348,
+      "userId": 0,
+      "createdByUserId": 5,
+      "processedByUserId": 5,
+      "tableId": 10,
+      "customerName": "Phạm Quốc Bảo",
+      "customerPhone": "0938456712",
+      "orderType": "DINE_IN",
+      "total": 125000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-10-08T12:30:00",
+      "confirmedBy": 5,
+      "confirmedAt": "2026-10-08T12:43:00",
+      "completedBy": null,
+      "completedAt": null,
+      "cancelledBy": "5",
+      "cancelledAt": "2026-10-08T13:05:00",
+      "cancelReason": "Khách đổi ý",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {}
+    },
+    {
+      "id": 1349,
+      "userId": 0,
+      "createdByUserId": 6,
+      "processedByUserId": 6,
+      "tableId": null,
+      "customerName": "Hoàng Gia Huy",
+      "customerPhone": "0918765432",
+      "orderType": "TAKEAWAY",
+      "total": 45000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-18T17:20:00",
+      "confirmedBy": 6,
+      "confirmedAt": "2026-10-18T17:22:00",
+      "completedBy": 6,
+      "completedAt": "2026-10-18T17:43:00",
+      "cancelledBy": null,
+      "cancelledAt": null,
+      "cancelReason": null,
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "13": 1
+      }
+    },
+    {
+      "id": 1327,
+      "userId": 2,
+      "createdByUserId": 2,
+      "processedByUserId": 0,
+      "customerName": "sdfsdf",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 45000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-10-30T23:53:26",
+      "cancelledBy": "SYSTEM",
+      "cancelledAt": "2026-10-31T00:42:16.9513123",
+      "cancelReason": "Đơn tự động hủy do quá 30 phút chưa được duyệt",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {
+        "14": 1
+      }
+    },
+    {
+      "id": 1328,
+      "userId": 2,
+      "createdByUserId": 2,
+      "processedByUserId": 0,
+      "customerName": "ádasdasd",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 90000,
+      "paymentMethod": "UNPAID",
+      "status": "CANCELLED",
+      "createdAt": "2026-10-31T00:54:29",
+      "cancelledBy": "SYSTEM",
+      "cancelledAt": "2026-10-31T01:24:54.690756",
+      "cancelReason": "Đơn tự động hủy do quá 30 phút chưa được duyệt",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {
+        "4": 3
+      }
+    },
+    {
+      "id": 1329,
+      "userId": 2,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "customerName": "khai",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 290000,
+      "paymentMethod": "UNPAID",
+      "status": "CONFIRMED",
+      "createdAt": "2026-10-31T18:41:21",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-10-31T18:41:47.0595752",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "12": 5,
+        "13": 2
+      }
+    },
+    {
+      "id": 1350,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "tableId": 1,
+      "customerName": "khai bjdfbjsdf",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "total": 125000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-14T12:29:17",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-14T12:30:15.8200466",
+      "completedBy": 2,
+      "completedAt": "2026-11-14T14:58:11.876358800",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "8": 1,
+        "10": 2
+      }
+    },
+    {
+      "id": 1351,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "tableId": 1,
+      "customerName": "dfghfgdhfg",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "total": 176000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-14T15:07:03",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-14T15:07:04.031663500",
+      "completedBy": 2,
+      "completedAt": "2026-11-14T16:53:47.149105100",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "2": 3,
+        "13": 1
+      }
+    },
+    {
+      "id": 1352,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 0,
+      "tableId": 1,
+      "customerName": "hbyu",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "total": 30000,
+      "paymentMethod": "TRANSFER",
+      "status": "CANCELLED",
+      "createdAt": "2026-11-14T16:20:02",
+      "confirmedAt": "2026-11-14T16:20:02.634539400",
+      "cancelledBy": "2",
+      "cancelledAt": "2026-11-14T17:37:54.347196700",
+      "cancelReason": "ádasdasd",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {
+        "4": 1
+      }
+    },
+    {
+      "id": 1353,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "tableId": 1,
+      "customerName": "234235t",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "total": 30000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-14T16:30:39",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-14T16:30:39.395697",
+      "completedBy": 2,
+      "completedAt": "2026-11-14T16:53:43.717224300",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "8": 1
+      }
+    },
+    {
+      "id": 1354,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "tableId": 1,
+      "customerName": "hbyu",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "total": 20000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-14T16:30:49",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-14T16:30:49.835506800",
+      "completedBy": 2,
+      "completedAt": "2026-11-14T17:55:33.305800600",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "6": 1
+      }
+    },
+    {
+      "id": 1355,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 0,
+      "tableId": 1,
+      "customerName": "dfghfgdhfg",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "total": 267000,
+      "paymentMethod": "CASH",
+      "status": "CANCELLED",
+      "createdAt": "2026-11-14T16:31",
+      "cancelledBy": "SYSTEM",
+      "cancelledAt": "2026-11-14T16:31:00.335613800",
+      "cancelReason": "Tạo order lỗi, hệ thống hoàn kho",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {
+        "6": 5,
+        "13": 3
+      }
+    },
+    {
+      "id": 1356,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "tableId": 1,
+      "customerName": "dfghfgdhfg",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "total": 267000,
+      "paymentMethod": "CASH",
+      "status": "CANCELLED",
+      "createdAt": "2026-11-14T16:31:05",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-14T16:31:06.125384100",
+      "cancelledBy": "2",
+      "cancelledAt": "2026-11-14T16:44:26.448743500",
+      "cancelReason": "yggtygtyg",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {
+        "6": 5,
+        "13": 3
+      }
+    },
+    {
+      "id": 1357,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 0,
+      "tableId": 1,
+      "customerName": "ádasdasd",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "total": 241000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-14T17:45:17",
+      "confirmedAt": "2026-11-14T17:45:18.017919300",
+      "completedBy": 2,
+      "completedAt": "2026-11-14T17:55:30.378730700",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "2": 5
+      }
+    },
+    {
+      "id": 1358,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "tableId": 1,
+      "customerName": "ádasdasd345634tg3t",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "total": 225000,
+      "paymentMethod": "CASH",
+      "status": "CANCELLED",
+      "createdAt": "2026-11-14T17:48:23",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-14T17:48:24.220260700",
+      "cancelledBy": "2",
+      "cancelledAt": "2026-11-14T17:55:55.665066",
+      "cancelReason": "hủy",
+      "stockDeducted": false,
+      "stockRestored": true,
+      "reservedStock": {
+        "14": 5
+      }
+    },
+    {
+      "id": 1359,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "tableId": 1,
+      "customerName": "ádasdasd",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "total": 30000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-14T17:55:14",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-14T17:55:14.386750",
+      "completedBy": 2,
+      "completedAt": "2026-11-14T17:55:23.232048400",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "8": 1
+      }
+    },
+    {
+      "id": 1360,
+      "userId": 2,
+      "createdByUserId": 2,
+      "processedByUserId": 2,
+      "customerName": "NAM OTT",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 135000,
+      "paymentMethod": "UNPAID",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-14T22:19:51",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-14T22:20:08.903208800",
+      "completedBy": 2,
+      "completedAt": "2026-11-16T03:15:02.898682800",
+      "stockDeducted": false,
+      "stockRestored": false,
+      "reservedStock": {
+        "2": 3
+      }
+    },
+    {
+      "id": 1361,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "tableId": 1,
+      "customerName": "1234234",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "total": 137000,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-15T02:12:59",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-15T02:12:59.933399900",
+      "completedBy": 2,
+      "completedAt": "2026-11-16T03:14:59.413200600",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "2": 1,
+        "9": 3
+      }
+    },
+    {
+      "id": 1362,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "customerName": "minh",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 177000,
+      "paymentMethod": "CASH",
+      "status": "CONFIRMED",
+      "createdAt": "2026-11-16T04:08:36",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-16T04:08:36.443116400",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "2": 4,
+        "4": 1
+      }
+    },
+    {
+      "id": 1363,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "customerName": "sdfsdf",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 47000,
+      "paymentMethod": "TRANSFER",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-16T04:39:12",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-16T04:39:12.571707300",
+      "completedBy": 2,
+      "completedAt": "2026-11-16T15:18:30.648359300",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "2": 1
+      }
+    },
+    {
+      "id": 1365,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "sourceCheckoutRequestId": 10,
+      "tableId": 3,
+      "customerName": "Nguyễn Văn Nghĩa",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "total": 667677,
+      "paymentMethod": "CASH",
+      "status": "COMPLETED",
+      "createdAt": "2026-11-16T15:18:05",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-16T15:18:06.065162500",
+      "completedBy": 2,
+      "completedAt": "2026-11-16T15:18:27.070847900",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "15": 5,
+        "16": 8
+      }
+    },
+    {
+      "id": 1366,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "customerName": "nam",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 103165,
+      "paymentMethod": "TRANSFER",
+      "status": "CONFIRMED",
+      "createdAt": "2026-11-16T15:20:24",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-16T15:20:24.531136100",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "2": 1,
+        "15": 5
+      }
+    },
+    {
+      "id": 1368,
+      "userId": 0,
+      "createdByUserId": 0,
+      "processedByUserId": 2,
+      "customerName": "khaiasd",
+      "customerPhone": "",
+      "orderType": "TAKEAWAY",
+      "total": 210000,
+      "paymentMethod": "TRANSFER",
+      "status": "CONFIRMED",
+      "createdAt": "2026-11-16T15:26:32",
+      "confirmedBy": 2,
+      "confirmedAt": "2026-11-16T15:26:33.131135300",
+      "stockDeducted": true,
+      "stockRestored": false,
+      "reservedStock": {
+        "5": 1,
+        "11": 5
+      }
+    }
+  ],
+  "orderDetails": [
+    {
+      "id": 1,
+      "orderId": 1301,
+      "drinkId": 14,
+      "quantity": 2,
+      "price": 45000,
+      "subtotal": 90000
+    },
+    {
+      "id": 2,
+      "orderId": 1301,
+      "drinkId": 4,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 3,
+      "orderId": 1301,
+      "drinkId": 7,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 4,
+      "orderId": 1302,
+      "drinkId": 9,
+      "quantity": 2,
+      "price": 30000,
+      "subtotal": 60000
+    },
+    {
+      "id": 5,
+      "orderId": 1302,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 25000,
+      "subtotal": 25000
+    },
+    {
+      "id": 6,
+      "orderId": 1303,
+      "drinkId": 6,
+      "quantity": 1,
+      "price": 20000,
+      "subtotal": 20000
+    },
+    {
+      "id": 7,
+      "orderId": 1303,
+      "drinkId": 6,
+      "quantity": 2,
+      "price": 20000,
+      "subtotal": 40000
+    },
+    {
+      "id": 8,
+      "orderId": 1304,
+      "drinkId": 10,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 9,
+      "orderId": 1305,
+      "drinkId": 5,
+      "quantity": 1,
+      "price": 20000,
+      "subtotal": 20000
+    },
+    {
+      "id": 10,
+      "orderId": 1306,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 25000,
+      "subtotal": 25000
+    },
+    {
+      "id": 11,
+      "orderId": 1307,
+      "drinkId": 11,
+      "quantity": 2,
+      "price": 35000,
+      "subtotal": 70000
+    },
+    {
+      "id": 12,
+      "orderId": 1308,
+      "drinkId": 2,
+      "quantity": 2,
+      "price": 25000,
+      "subtotal": 50000
+    },
+    {
+      "id": 13,
+      "orderId": 1308,
+      "drinkId": 13,
+      "quantity": 1,
+      "price": 45000,
+      "subtotal": 45000
+    },
+    {
+      "id": 14,
+      "orderId": 1308,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 25000,
+      "subtotal": 25000
+    },
+    {
+      "id": 15,
+      "orderId": 1309,
+      "drinkId": 7,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 16,
+      "orderId": 1310,
+      "drinkId": 6,
+      "quantity": 1,
+      "price": 20000,
+      "subtotal": 20000
+    },
+    {
+      "id": 17,
+      "orderId": 1311,
+      "drinkId": 13,
+      "quantity": 1,
+      "price": 45000,
+      "subtotal": 45000
+    },
+    {
+      "id": 18,
+      "orderId": 1312,
+      "drinkId": 11,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 19,
+      "orderId": 1313,
+      "drinkId": 12,
+      "quantity": 2,
+      "price": 40000,
+      "subtotal": 80000
+    },
+    {
+      "id": 20,
+      "orderId": 1314,
+      "drinkId": 5,
+      "quantity": 1,
+      "price": 20000,
+      "subtotal": 20000
+    },
+    {
+      "id": 21,
+      "orderId": 1314,
+      "drinkId": 6,
+      "quantity": 2,
+      "price": 20000,
+      "subtotal": 40000
+    },
+    {
+      "id": 22,
+      "orderId": 1315,
+      "drinkId": 11,
+      "quantity": 2,
+      "price": 35000,
+      "subtotal": 70000
+    },
+    {
+      "id": 23,
+      "orderId": 1315,
+      "drinkId": 7,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 24,
+      "orderId": 1316,
+      "drinkId": 6,
+      "quantity": 3,
+      "price": 20000,
+      "subtotal": 60000
+    },
+    {
+      "id": 25,
+      "orderId": 1316,
+      "drinkId": 2,
+      "quantity": 2,
+      "price": 25000,
+      "subtotal": 50000
+    },
+    {
+      "id": 26,
+      "orderId": 1317,
+      "drinkId": 14,
+      "quantity": 1,
+      "price": 45000,
+      "subtotal": 45000
+    },
+    {
+      "id": 27,
+      "orderId": 1318,
+      "drinkId": 9,
+      "quantity": 2,
+      "price": 30000,
+      "subtotal": 60000
+    },
+    {
+      "id": 28,
+      "orderId": 1319,
+      "drinkId": 12,
+      "quantity": 1,
+      "price": 40000,
+      "subtotal": 40000
+    },
+    {
+      "id": 29,
+      "orderId": 1319,
+      "drinkId": 7,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 30,
+      "orderId": 1320,
+      "drinkId": 4,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 31,
+      "orderId": 1320,
+      "drinkId": 6,
+      "quantity": 1,
+      "price": 20000,
+      "subtotal": 20000
+    },
+    {
+      "id": 32,
+      "orderId": 1321,
+      "drinkId": 14,
+      "quantity": 1,
+      "price": 45000,
+      "subtotal": 45000
+    },
+    {
+      "id": 33,
+      "orderId": 1321,
+      "drinkId": 9,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 34,
+      "orderId": 1322,
+      "drinkId": 13,
+      "quantity": 1,
+      "price": 45000,
+      "subtotal": 45000
+    },
+    {
+      "id": 35,
+      "orderId": 1322,
+      "drinkId": 10,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 36,
+      "orderId": 1323,
+      "drinkId": 2,
+      "quantity": 3,
+      "price": 25000,
+      "subtotal": 75000
+    },
+    {
+      "id": 37,
+      "orderId": 1324,
+      "drinkId": 8,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 38,
+      "orderId": 1324,
+      "drinkId": 12,
+      "quantity": 2,
+      "price": 40000,
+      "subtotal": 80000
+    },
+    {
+      "id": 39,
+      "orderId": 1325,
+      "drinkId": 11,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 40,
+      "orderId": 1326,
+      "drinkId": 11,
+      "quantity": 2,
+      "price": 35000,
+      "subtotal": 70000
+    },
+    {
+      "id": 41,
+      "orderId": 1327,
+      "drinkId": 10,
+      "quantity": 2,
+      "price": 35000,
+      "subtotal": 70000
+    },
+    {
+      "id": 42,
+      "orderId": 1328,
+      "drinkId": 7,
+      "quantity": 2,
+      "price": 35000,
+      "subtotal": 70000
+    },
+    {
+      "id": 43,
+      "orderId": 1329,
+      "drinkId": 9,
+      "quantity": 3,
+      "price": 30000,
+      "subtotal": 90000
+    },
+    {
+      "id": 44,
+      "orderId": 1330,
+      "drinkId": 13,
+      "quantity": 1,
+      "price": 45000,
+      "subtotal": 45000
+    },
+    {
+      "id": 45,
+      "orderId": 1331,
+      "drinkId": 6,
+      "quantity": 1,
+      "price": 20000,
+      "subtotal": 20000
+    },
+    {
+      "id": 46,
+      "orderId": 1331,
+      "drinkId": 9,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 47,
+      "orderId": 1332,
+      "drinkId": 6,
+      "quantity": 1,
+      "price": 20000,
+      "subtotal": 20000
+    },
+    {
+      "id": 48,
+      "orderId": 1333,
+      "drinkId": 8,
+      "quantity": 2,
+      "price": 30000,
+      "subtotal": 60000
+    },
+    {
+      "id": 49,
+      "orderId": 1333,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 25000,
+      "subtotal": 25000
+    },
+    {
+      "id": 50,
+      "orderId": 1334,
+      "drinkId": 4,
+      "quantity": 2,
+      "price": 30000,
+      "subtotal": 60000
+    },
+    {
+      "id": 51,
+      "orderId": 1334,
+      "drinkId": 10,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 52,
+      "orderId": 1335,
+      "drinkId": 13,
+      "quantity": 2,
+      "price": 45000,
+      "subtotal": 90000
+    },
+    {
+      "id": 53,
+      "orderId": 1336,
+      "drinkId": 12,
+      "quantity": 1,
+      "price": 40000,
+      "subtotal": 40000
+    },
+    {
+      "id": 54,
+      "orderId": 1336,
+      "drinkId": 12,
+      "quantity": 1,
+      "price": 40000,
+      "subtotal": 40000
+    },
+    {
+      "id": 55,
+      "orderId": 1337,
+      "drinkId": 8,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 56,
+      "orderId": 1338,
+      "drinkId": 10,
+      "quantity": 2,
+      "price": 35000,
+      "subtotal": 70000
+    },
+    {
+      "id": 57,
+      "orderId": 1339,
+      "drinkId": 9,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 58,
+      "orderId": 1340,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 25000,
+      "subtotal": 25000
+    },
+    {
+      "id": 59,
+      "orderId": 1341,
+      "drinkId": 14,
+      "quantity": 1,
+      "price": 45000,
+      "subtotal": 45000
+    },
+    {
+      "id": 60,
+      "orderId": 1342,
+      "drinkId": 9,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 61,
+      "orderId": 1343,
+      "drinkId": 8,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 62,
+      "orderId": 1343,
+      "drinkId": 7,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 63,
+      "orderId": 1344,
+      "drinkId": 9,
+      "quantity": 2,
+      "price": 30000,
+      "subtotal": 60000
+    },
+    {
+      "id": 64,
+      "orderId": 1345,
+      "drinkId": 12,
+      "quantity": 1,
+      "price": 40000,
+      "subtotal": 40000
+    },
+    {
+      "id": 65,
+      "orderId": 1345,
+      "drinkId": 8,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 66,
+      "orderId": 1346,
+      "drinkId": 9,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 67,
+      "orderId": 1347,
+      "drinkId": 8,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 68,
+      "orderId": 1348,
+      "drinkId": 7,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 69,
+      "orderId": 1348,
+      "drinkId": 4,
+      "quantity": 3,
+      "price": 30000,
+      "subtotal": 90000
+    },
+    {
+      "id": 70,
+      "orderId": 1349,
+      "drinkId": 13,
+      "quantity": 1,
+      "price": 45000,
+      "subtotal": 45000
+    },
+    {
+      "id": 71,
+      "orderId": 1350,
+      "drinkId": 8,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000
+    },
+    {
+      "id": 72,
+      "orderId": 1350,
+      "drinkId": 10,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 73,
+      "orderId": 1350,
+      "drinkId": 10,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000
+    },
+    {
+      "id": 74,
+      "orderId": 1351,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 47000,
+      "subtotal": 47000,
+      "drinkName": "Cà phê sữa",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 22000,
+      "toppings": [
+        {
+          "toppingId": 3,
+          "name": "Kem muối",
+          "price": 10000
+        },
+        {
+          "toppingId": 4,
+          "name": "Shot espresso",
+          "price": 12000
+        }
+      ]
+    },
+    {
+      "id": 75,
+      "orderId": 1351,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 37000,
+      "subtotal": 37000,
+      "drinkName": "Cà phê sữa",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 12000,
+      "toppings": [
+        {
+          "toppingId": 4,
+          "name": "Shot espresso",
+          "price": 12000
+        }
+      ]
+    },
+    {
+      "id": 76,
+      "orderId": 1351,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 47000,
+      "subtotal": 47000,
+      "drinkName": "Cà phê sữa",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 22000,
+      "toppings": [
+        {
+          "toppingId": 3,
+          "name": "Kem muối",
+          "price": 10000
+        },
+        {
+          "toppingId": 4,
+          "name": "Shot espresso",
+          "price": 12000
+        }
+      ]
+    },
+    {
+      "id": 77,
+      "orderId": 1351,
+      "drinkId": 13,
+      "quantity": 1,
+      "price": 45000,
+      "subtotal": 45000,
+      "drinkName": "Đá xay matcha",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 0,
+      "toppings": []
+    },
+    {
+      "id": 78,
+      "orderId": 1352,
+      "drinkId": 4,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000,
+      "drinkName": "Trà đào",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 0,
+      "toppings": []
+    },
+    {
+      "id": 79,
+      "orderId": 1353,
+      "drinkId": 8,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000,
+      "drinkName": "Nước ép dưa hấu",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 0,
+      "toppings": []
+    },
+    {
+      "id": 80,
+      "orderId": 1354,
+      "drinkId": 6,
+      "quantity": 1,
+      "price": 20000,
+      "subtotal": 20000,
+      "drinkName": "Trà chanh",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 0,
+      "toppings": []
+    },
+    {
+      "id": 81,
+      "orderId": 1355,
+      "drinkId": 6,
+      "quantity": 4,
+      "price": 28000,
+      "subtotal": 112000,
+      "drinkName": "Trà chanh",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 8000,
+      "toppings": [
+        {
+          "toppingId": 2,
+          "name": "Thạch phô mai",
+          "price": 8000
+        }
+      ]
+    },
+    {
+      "id": 82,
+      "orderId": 1356,
+      "drinkId": 6,
+      "quantity": 4,
+      "price": 28000,
+      "subtotal": 112000,
+      "drinkName": "Trà chanh",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 8000,
+      "toppings": [
+        {
+          "toppingId": 2,
+          "name": "Thạch phô mai",
+          "price": 8000
+        }
+      ]
+    },
+    {
+      "id": 83,
+      "orderId": 1356,
+      "drinkId": 6,
+      "quantity": 1,
+      "price": 20000,
+      "subtotal": 20000,
+      "drinkName": "Trà chanh",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 0,
+      "toppings": []
+    },
+    {
+      "id": 84,
+      "orderId": 1356,
+      "drinkId": 13,
+      "quantity": 3,
+      "price": 45000,
+      "subtotal": 135000,
+      "drinkName": "Đá xay matcha",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 0,
+      "toppings": []
+    },
+    {
+      "id": 85,
+      "orderId": 1357,
+      "drinkId": 2,
+      "quantity": 3,
+      "price": 57000,
+      "subtotal": 171000,
+      "drinkName": "Cà phê sữa",
+      "size": "L",
+      "note": "",
+      "sizeExtraPrice": 10000,
+      "toppingTotal": 22000,
+      "toppings": [
+        {
+          "toppingId": 3,
+          "name": "Kem muối",
+          "price": 10000
+        },
+        {
+          "toppingId": 4,
+          "name": "Shot espresso",
+          "price": 12000
+        }
+      ]
+    },
+    {
+      "id": 86,
+      "orderId": 1357,
+      "drinkId": 2,
+      "quantity": 2,
+      "price": 35000,
+      "subtotal": 70000,
+      "drinkName": "Cà phê sữa",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 10000,
+      "toppings": [
+        {
+          "toppingId": 3,
+          "name": "Kem muối",
+          "price": 10000
+        }
+      ]
+    },
+    {
+      "id": 87,
+      "orderId": 1358,
+      "drinkId": 14,
+      "quantity": 5,
+      "price": 45000,
+      "subtotal": 225000,
+      "drinkName": "Đá xay chocolate",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 0,
+      "toppings": []
+    },
+    {
+      "id": 88,
+      "orderId": 1359,
+      "drinkId": 8,
+      "quantity": 1,
+      "price": 30000,
+      "subtotal": 30000,
+      "drinkName": "Nước ép dưa hấu",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 0,
+      "toppings": []
+    },
+    {
+      "id": 89,
+      "orderId": 1360,
+      "drinkId": 2,
+      "quantity": 3,
+      "price": 45000,
+      "subtotal": 135000,
+      "drinkName": "Cà phê sữa",
+      "size": "L",
+      "note": "",
+      "sizeExtraPrice": 10000,
+      "toppingTotal": 10000,
+      "toppings": [
+        {
+          "toppingId": 3,
+          "name": "Kem muối",
+          "price": 10000
+        }
+      ]
+    },
+    {
+      "id": 90,
+      "orderId": 1361,
+      "drinkId": 9,
+      "quantity": 3,
+      "price": 30000,
+      "subtotal": 90000,
+      "drinkName": "Nước ép thơm",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 0,
+      "toppings": []
+    },
+    {
+      "id": 91,
+      "orderId": 1362,
+      "drinkId": 2,
+      "quantity": 4,
+      "price": 35000,
+      "subtotal": 140000,
+      "drinkName": "Cà phê sữa",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 10000,
+      "toppings": [
+        {
+          "toppingId": 3,
+          "name": "Kem muối",
+          "price": 10000
+        }
+      ]
+    },
+    {
+      "id": 93,
+      "orderId": 1363,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 47000,
+      "subtotal": 47000,
+      "drinkName": "Cà phê sữa",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 22000,
+      "toppings": [
+        {
+          "toppingId": 3,
+          "name": "Kem muối",
+          "price": 10000
+        },
+        {
+          "toppingId": 4,
+          "name": "Shot espresso",
+          "price": 12000
+        }
+      ]
+    },
+    {
+      "id": 94,
+      "orderId": 1364,
+      "drinkId": 16,
+      "quantity": 4,
+      "price": 91301,
+      "subtotal": 365204,
+      "drinkName": "ádasd",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 67878,
+      "toppings": [
+        {
+          "toppingId": 12,
+          "name": "223",
+          "price": 23323
+        },
+        {
+          "toppingId": 13,
+          "name": "666",
+          "price": 44555
+        }
+      ]
+    },
+    {
+      "id": 95,
+      "orderId": 1365,
+      "drinkId": 16,
+      "quantity": 4,
+      "price": 91301,
+      "subtotal": 365204,
+      "drinkName": "ádasd",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 67878,
+      "toppings": [
+        {
+          "toppingId": 12,
+          "name": "223",
+          "price": 23323
+        },
+        {
+          "toppingId": 13,
+          "name": "666",
+          "price": 44555
+        }
+      ]
+    },
+    {
+      "id": 96,
+      "orderId": 1365,
+      "drinkId": 16,
+      "quantity": 4,
+      "price": 59077,
+      "subtotal": 236308,
+      "drinkName": "ádasd",
+      "size": "zM",
+      "note": "",
+      "sizeExtraPrice": 12331,
+      "toppingTotal": 23323,
+      "toppings": [
+        {
+          "toppingId": 12,
+          "name": "223",
+          "price": 23323
+        }
+      ]
+    },
+    {
+      "id": 97,
+      "orderId": 1365,
+      "drinkId": 15,
+      "quantity": 5,
+      "price": 13233,
+      "subtotal": 66165,
+      "drinkName": "test",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 1233,
+      "toppings": [
+        {
+          "toppingId": 6,
+          "name": "ắdad",
+          "price": 1233
+        }
+      ]
+    },
+    {
+      "id": 98,
+      "orderId": 1366,
+      "drinkId": 15,
+      "quantity": 5,
+      "price": 13233,
+      "subtotal": 66165,
+      "drinkName": "test",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 1233,
+      "toppings": [
+        {
+          "toppingId": 6,
+          "name": "ắdad",
+          "price": 1233
+        }
+      ]
+    },
+    {
+      "id": 92,
+      "orderId": 1362,
+      "drinkId": 4,
+      "quantity": 1,
+      "price": 37000,
+      "subtotal": 37000,
+      "drinkName": "Trà đào",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 7000,
+      "toppings": [
+        {
+          "toppingId": 1,
+          "name": "Trân châu đen",
+          "price": 7000
+        }
+      ]
+    },
+    {
+      "id": 99,
+      "orderId": 1366,
+      "drinkId": 2,
+      "quantity": 1,
+      "price": 37000,
+      "subtotal": 37000,
+      "drinkName": "Cà phê sữa",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 12000,
+      "toppings": [
+        {
+          "toppingId": 4,
+          "name": "Shot espresso",
+          "price": 12000
+        }
+      ]
+    },
+    {
+      "id": 100,
+      "orderId": 1367,
+      "drinkId": 5,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000,
+      "drinkName": "Trà tắc",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 15000,
+      "toppings": [
+        {
+          "toppingId": 1,
+          "name": "Trân châu đen",
+          "price": 7000
+        },
+        {
+          "toppingId": 2,
+          "name": "Thạch phô mai",
+          "price": 8000
+        }
+      ]
+    },
+    {
+      "id": 101,
+      "orderId": 1367,
+      "drinkId": 11,
+      "quantity": 7,
+      "price": 35000,
+      "subtotal": 245000,
+      "drinkName": "Sinh tố dâu",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 0,
+      "toppings": []
+    },
+    {
+      "id": 102,
+      "orderId": 1368,
+      "drinkId": 5,
+      "quantity": 1,
+      "price": 35000,
+      "subtotal": 35000,
+      "drinkName": "Trà tắc",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 15000,
+      "toppings": [
+        {
+          "toppingId": 1,
+          "name": "Trân châu đen",
+          "price": 7000
+        },
+        {
+          "toppingId": 2,
+          "name": "Thạch phô mai",
+          "price": 8000
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "orderId": 1368,
+      "drinkId": 11,
+      "quantity": 5,
+      "price": 35000,
+      "subtotal": 175000,
+      "drinkName": "Sinh tố dâu",
+      "size": "S",
+      "note": "",
+      "sizeExtraPrice": 0,
+      "toppingTotal": 0,
+      "toppings": []
+    }
+  ],
+  "payments": [
+    {
+      "id": 1,
+      "orderId": 1301,
+      "customerName": "Hoàng Gia Huy",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 155000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-02T17:31:00"
+    },
+    {
+      "id": 2,
+      "orderId": 1302,
+      "customerName": "Trần Thị Lan",
+      "orderType": "DINE_IN",
+      "employeeId": 3,
+      "amount": 85000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-03T10:58:00"
+    },
+    {
+      "id": 3,
+      "orderId": 1303,
+      "customerName": "Mai Phương Thảo",
+      "orderType": "DINE_IN",
+      "employeeId": 5,
+      "amount": 60000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-05T19:38:00"
+    },
+    {
+      "id": 4,
+      "orderId": 1304,
+      "customerName": "Bùi Thanh Trúc",
+      "orderType": "DINE_IN",
+      "employeeId": 6,
+      "amount": 35000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-03T10:00:00"
+    },
+    {
+      "id": 5,
+      "orderId": 1305,
+      "customerName": "Nguyễn Tuấn Kiệt",
+      "orderType": "TAKEAWAY",
+      "employeeId": 7,
+      "amount": 20000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-07T13:13:00"
+    },
+    {
+      "id": 6,
+      "orderId": 1308,
+      "customerName": "Lê Minh Anh",
+      "orderType": "DINE_IN",
+      "employeeId": 5,
+      "amount": 120000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-04T19:15:00"
+    },
+    {
+      "id": 7,
+      "orderId": 1311,
+      "customerName": "Đặng Hoàng Nam",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 45000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-04T12:30:00"
+    },
+    {
+      "id": 8,
+      "orderId": 1312,
+      "customerName": "Phạm Quốc Bảo",
+      "orderType": "DINE_IN",
+      "employeeId": 3,
+      "amount": 35000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-03T20:22:00"
+    },
+    {
+      "id": 9,
+      "orderId": 1313,
+      "customerName": "Hoàng Gia Huy",
+      "orderType": "TAKEAWAY",
+      "employeeId": 5,
+      "amount": 80000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-03T10:21:00"
+    },
+    {
+      "id": 10,
+      "orderId": 1314,
+      "customerName": "Trần Thị Lan",
+      "orderType": "DINE_IN",
+      "employeeId": 6,
+      "amount": 60000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-06T22:11:00"
+    },
+    {
+      "id": 11,
+      "orderId": 1315,
+      "customerName": "Mai Phương Thảo",
+      "orderType": "DINE_IN",
+      "employeeId": 7,
+      "amount": 105000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-05T10:46:00"
+    },
+    {
+      "id": 12,
+      "orderId": 1316,
+      "customerName": "Bùi Thanh Trúc",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 110000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-04T11:17:00"
+    },
+    {
+      "id": 13,
+      "orderId": 1318,
+      "customerName": "Đỗ Khánh Linh",
+      "orderType": "DINE_IN",
+      "employeeId": 5,
+      "amount": 60000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-07T14:31:00"
+    },
+    {
+      "id": 14,
+      "orderId": 1319,
+      "customerName": "Phan Mỹ Duyên",
+      "orderType": "DINE_IN",
+      "employeeId": 6,
+      "amount": 75000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-03T16:16:00"
+    },
+    {
+      "id": 15,
+      "orderId": 1320,
+      "customerName": "Lê Minh Anh",
+      "orderType": "DINE_IN",
+      "employeeId": 7,
+      "amount": 50000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-03T19:20:00"
+    },
+    {
+      "id": 16,
+      "orderId": 1321,
+      "customerName": "Võ Ngọc Hà",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 75000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-06T18:02:00"
+    },
+    {
+      "id": 17,
+      "orderId": 1322,
+      "customerName": "Nguyễn Đình Khải",
+      "orderType": "DINE_IN",
+      "employeeId": 3,
+      "amount": 80000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-06T13:44:00"
+    },
+    {
+      "id": 18,
+      "orderId": 1324,
+      "customerName": "Phạm Quốc Bảo",
+      "orderType": "DINE_IN",
+      "employeeId": 6,
+      "amount": 110000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-01T18:12:00"
+    },
+    {
+      "id": 19,
+      "orderId": 1326,
+      "customerName": "Trần Thị Lan",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 70000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-03T20:14:00"
+    },
+    {
+      "id": 20,
+      "orderId": 1327,
+      "customerName": "Mai Phương Thảo",
+      "orderType": "DINE_IN",
+      "employeeId": 3,
+      "amount": 70000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-05T17:57:00"
+    },
+    {
+      "id": 21,
+      "orderId": 1328,
+      "customerName": "Bùi Thanh Trúc",
+      "orderType": "DINE_IN",
+      "employeeId": 5,
+      "amount": 70000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-01T11:23:00"
+    },
+    {
+      "id": 22,
+      "orderId": 1330,
+      "customerName": "Đỗ Khánh Linh",
+      "orderType": "DINE_IN",
+      "employeeId": 7,
+      "amount": 45000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-03T12:57:00"
+    },
+    {
+      "id": 23,
+      "orderId": 1332,
+      "customerName": "Lê Minh Anh",
+      "orderType": "DINE_IN",
+      "employeeId": 3,
+      "amount": 20000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-10T10:43:00"
+    },
+    {
+      "id": 24,
+      "orderId": 1334,
+      "customerName": "Nguyễn Đình Khải",
+      "orderType": "DINE_IN",
+      "employeeId": 6,
+      "amount": 95000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-30T18:19:00"
+    },
+    {
+      "id": 25,
+      "orderId": 1335,
+      "customerName": "Đặng Hoàng Nam",
+      "orderType": "DINE_IN",
+      "employeeId": 7,
+      "amount": 90000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-23T21:54:00"
+    },
+    {
+      "id": 26,
+      "orderId": 1336,
+      "customerName": "Phạm Quốc Bảo",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 80000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-03T12:29:00"
+    },
+    {
+      "id": 27,
+      "orderId": 1337,
+      "customerName": "Hoàng Gia Huy",
+      "orderType": "TAKEAWAY",
+      "employeeId": 3,
+      "amount": 30000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-17T13:36:00"
+    },
+    {
+      "id": 28,
+      "orderId": 1338,
+      "customerName": "Trần Thị Lan",
+      "orderType": "DINE_IN",
+      "employeeId": 5,
+      "amount": 70000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-06T11:29:00"
+    },
+    {
+      "id": 3268,
+      "orderId": 1328,
+      "drinkId": 4,
+      "quantity": 3,
+      "price": 30000,
+      "subtotal": 90000
+    },
+    {
+      "id": 3269,
+      "orderId": 1329,
+      "drinkId": 13,
+      "quantity": 2,
+      "price": 45000,
+      "subtotal": 90000
+    },
+    {
+      "id": 3270,
+      "orderId": 1329,
+      "drinkId": 12,
+      "quantity": 5,
+      "price": 40000,
+      "subtotal": 200000
+    },
+    {
+      "id": 3271,
+      "orderId": 1350,
+      "customerName": "khai bjdfbjsdf",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 125000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-14T14:58:11.876358800"
+    },
+    {
+      "id": 3272,
+      "orderId": 1351,
+      "customerName": "dfghfgdhfg",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 176000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-14T15:07:04.000414"
+    },
+    {
+      "id": 3273,
+      "orderId": 1352,
+      "customerName": "hbyu",
+      "orderType": "DINE_IN",
+      "employeeId": 0,
+      "amount": 30000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-14T16:20:02.732385800",
+      "refundStatus": "SUCCESS",
+      "refundedByUserId": 2,
+      "refundedAt": "2026-11-14T17:37:54.393137700",
+      "refundReason": "ádasdasd"
+    },
+    {
+      "id": 3274,
+      "orderId": 1353,
+      "customerName": "234235t",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 30000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-14T16:30:39.366645100"
+    },
+    {
+      "id": 3275,
+      "orderId": 1354,
+      "customerName": "hbyu",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 20000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-14T16:30:49.801266900"
+    },
+    {
+      "id": 3276,
+      "orderId": 1356,
+      "customerName": "dfghfgdhfg",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 267000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-14T16:31:06.092794900"
+    },
+    {
+      "id": 3277,
+      "orderId": 1357,
+      "customerName": "ádasdasd",
+      "orderType": "DINE_IN",
+      "employeeId": 0,
+      "amount": 45000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-14T17:45:18.123304400"
+    },
+    {
+      "id": 3278,
+      "orderId": 1357,
+      "customerName": "ádasdasd",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 196000,
+      "paymentMethod": "TRANSFER",
+      "status": "ADDITIONAL_PAYMENT_SUCCESS",
+      "paidAt": "2026-11-14T17:47:11.433419200"
+    },
+    {
+      "id": 3279,
+      "orderId": 1358,
+      "customerName": "ádasdasd345634tg3t",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 225000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-14T17:48:24.190850300",
+      "refundStatus": "SUCCESS",
+      "refundedByUserId": 2,
+      "refundedAt": "2026-11-14T17:55:55.713080100",
+      "refundReason": "hủy"
+    },
+    {
+      "id": 3280,
+      "orderId": 1359,
+      "customerName": "ádasdasd",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 30000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-14T17:55:14.353472100"
+    },
+    {
+      "id": 3281,
+      "orderId": 1361,
+      "customerName": "1234234",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 137000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-15T02:12:59.904223600"
+    },
+    {
+      "id": 3282,
+      "orderId": 1362,
+      "customerName": "minh",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 105000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-16T04:08:36.366610600"
+    },
+    {
+      "id": 3283,
+      "orderId": 1362,
+      "customerName": "minh",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 72000,
+      "paymentMethod": "CASH",
+      "status": "ADDITIONAL_PAYMENT_SUCCESS",
+      "paidAt": "2026-11-16T04:09:21.055264900"
+    },
+    {
+      "id": 3284,
+      "orderId": 1363,
+      "customerName": "sdfsdf",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 47000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-16T04:39:12.507709600"
+    },
+    {
+      "id": 3285,
+      "orderId": 1363,
+      "customerName": "sdfsdf",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 94000,
+      "paymentMethod": "TRANSFER",
+      "status": "ADDITIONAL_PAYMENT_SUCCESS",
+      "paidAt": "2026-11-16T04:39:26.285973400"
+    },
+    {
+      "id": 3286,
+      "orderId": 1363,
+      "customerName": "sdfsdf",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 47000,
+      "paymentMethod": "TRANSFER",
+      "status": "REFUND_SUCCESS",
+      "paidAt": "2026-11-16T04:39:35.018483700",
+      "refundStatus": "SUCCESS",
+      "refundType": "ADJUSTMENT",
+      "refundedByUserId": 2,
+      "refundedAt": "2026-11-16T04:39:35.018483700",
+      "refundReason": "Hoàn tiền phần chênh lệch khi sửa món đơn #1363"
+    },
+    {
+      "id": 3287,
+      "orderId": 1363,
+      "customerName": "sdfsdf",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 47000,
+      "paymentMethod": "TRANSFER",
+      "status": "REFUND_SUCCESS",
+      "paidAt": "2026-11-16T04:39:45.027177600",
+      "refundStatus": "SUCCESS",
+      "refundType": "ADJUSTMENT",
+      "refundedByUserId": 2,
+      "refundedAt": "2026-11-16T04:39:45.027177600",
+      "refundReason": "Hoàn tiền phần chênh lệch khi sửa món đơn #1363"
+    },
+    {
+      "id": 3288,
+      "orderId": 1365,
+      "customerName": "Nguyễn Văn Nghĩa",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 667677,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-16T15:18:06.001163300"
+    },
+    {
+      "id": 3289,
+      "orderId": 1366,
+      "customerName": "nam",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 39699,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-16T15:20:24.454135900"
+    },
+    {
+      "id": 3290,
+      "orderId": 1366,
+      "customerName": "nam",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 63466,
+      "paymentMethod": "TRANSFER",
+      "status": "ADDITIONAL_PAYMENT_SUCCESS",
+      "paidAt": "2026-11-16T15:22:30.192468900"
+    },
+    {
+      "id": 3291,
+      "orderId": 1368,
+      "customerName": "khaiasd",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 280000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-11-16T15:26:33.067135900"
+    },
+    {
+      "id": 3292,
+      "orderId": 1368,
+      "customerName": "khaiasd",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 70000,
+      "paymentMethod": "TRANSFER",
+      "status": "REFUND_SUCCESS",
+      "paidAt": "2026-11-16T15:26:52.869281900",
+      "refundStatus": "SUCCESS",
+      "refundType": "ADJUSTMENT",
+      "refundedByUserId": 2,
+      "refundedAt": "2026-11-16T15:26:52.869281900",
+      "refundReason": "Hoàn tiền phần chênh lệch khi sửa món đơn #1368"
+    },
+    {
+      "id": 3293,
+      "orderId": 1368,
+      "customerName": "khaiasd",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 105000,
+      "paymentMethod": "TRANSFER",
+      "status": "ADDITIONAL_PAYMENT_SUCCESS",
+      "paidAt": "2026-11-16T15:27:03.847004"
+    },
+    {
+      "id": 3294,
+      "orderId": 1368,
+      "customerName": "khaiasd",
+      "orderType": "TAKEAWAY",
+      "employeeId": 2,
+      "amount": 105000,
+      "paymentMethod": "TRANSFER",
+      "status": "REFUND_SUCCESS",
+      "paidAt": "2026-11-16T15:27:29.667791",
+      "refundStatus": "SUCCESS",
+      "refundType": "ADJUSTMENT",
+      "refundedByUserId": 2,
+      "refundedAt": "2026-11-16T15:27:29.667791",
+      "refundReason": "Hoàn tiền phần chênh lệch khi sửa món đơn #1368"
+    }
+  ],
+  "customers": [
+    {
+      "id": 1,
+      "name": "Bùi Thanh Trúc",
+      "phone": "0981122334",
+      "email": "khach01@example.com"
+    },
+    {
+      "id": 2,
+      "name": "Đặng Hoàng Nam",
+      "phone": "0908765432",
+      "email": "khach02@example.com"
+    },
+    {
+      "id": 33,
+      "orderId": 1343,
+      "customerName": "Phan Mỹ Duyên",
+      "orderType": "DINE_IN",
+      "employeeId": 5,
+      "amount": 65000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-26T11:00:00"
+    },
+    {
+      "id": 34,
+      "orderId": 1344,
+      "customerName": "Lê Minh Anh",
+      "orderType": "DINE_IN",
+      "employeeId": 6,
+      "amount": 60000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-27T14:48:00"
+    },
+    {
+      "id": 35,
+      "orderId": 1345,
+      "customerName": "Võ Ngọc Hà",
+      "orderType": "TAKEAWAY",
+      "employeeId": 7,
+      "amount": 70000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-09T16:12:00"
+    },
+    {
+      "id": 36,
+      "orderId": 1346,
+      "customerName": "Nguyễn Đình Khải",
+      "orderType": "DINE_IN",
+      "employeeId": 2,
+      "amount": 30000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-02T16:03:00"
+    },
+    {
+      "id": 37,
+      "orderId": 1347,
+      "customerName": "Đặng Hoàng Nam",
+      "orderType": "DINE_IN",
+      "employeeId": 3,
+      "amount": 30000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-14T21:51:00"
+    },
+    {
+      "id": 38,
+      "orderId": 1349,
+      "customerName": "Hoàng Gia Huy",
+      "orderType": "TAKEAWAY",
+      "employeeId": 6,
+      "amount": 45000,
+      "paymentMethod": "TRANSFER",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-18T17:43:00"
+    },
+    {
+      "id": 39,
+      "orderId": 1350,
+      "customerName": "Trần Thị Lan",
+      "orderType": "DINE_IN",
+      "employeeId": 7,
+      "amount": 65000,
+      "paymentMethod": "CASH",
+      "status": "SUCCESS",
+      "paidAt": "2026-10-05T13:05:00"
+    }
+  ],
+  "checkoutRequests": [
+    {
+      "id": 1,
+      "customerName": "kháidf",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "status": "FAILED",
+      "createdAt": "2026-11-14T13:19:34.7729856",
+      "rejectedAt": "2026-11-16T03:46:45.310480300",
+      "rejectedReason": "ịnbiuhb",
+      "tableId": 1,
+      "rejectedByUserId": 2,
+      "total": 55000,
+      "details": [
+        {
+          "id": 0,
+          "orderId": 0,
+          "drinkId": 4,
+          "quantity": 1,
+          "price": 30000,
+          "subtotal": 30000,
+          "size": "S",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 0,
+          "toppings": []
+        },
+        {
+          "id": 0,
+          "orderId": 0,
+          "drinkId": 2,
+          "quantity": 1,
+          "price": 25000,
+          "subtotal": 25000,
+          "size": "S",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 0,
+          "toppings": []
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "customerName": "dfghfgdhfg",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "status": "SUCCESS",
+      "createdAt": "2026-11-14T14:48:18.768086700",
+      "paymentMethod": "CASH",
+      "paidAt": "2026-11-14T15:07:04.041663500",
+      "tableId": 1,
+      "receivedByUserId": 2,
+      "orderId": 1351,
+      "total": 176000,
+      "details": [
+        {
+          "id": 74,
+          "orderId": 1351,
+          "drinkId": 2,
+          "quantity": 1,
+          "price": 47000,
+          "subtotal": 47000,
+          "drinkName": "Cà phê sữa",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 22000,
+          "toppings": [
+            {
+              "toppingId": 3,
+              "name": "Kem muối",
+              "price": 10000
+            },
+            {
+              "toppingId": 4,
+              "name": "Shot espresso",
+              "price": 12000
+            }
+          ]
+        },
+        {
+          "id": 75,
+          "orderId": 1351,
+          "drinkId": 2,
+          "quantity": 1,
+          "price": 37000,
+          "subtotal": 37000,
+          "drinkName": "Cà phê sữa",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 12000,
+          "toppings": [
+            {
+              "toppingId": 4,
+              "name": "Shot espresso",
+              "price": 12000
+            }
+          ]
+        },
+        {
+          "id": 76,
+          "orderId": 1351,
+          "drinkId": 2,
+          "quantity": 1,
+          "price": 47000,
+          "subtotal": 47000,
+          "drinkName": "Cà phê sữa",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 22000,
+          "toppings": [
+            {
+              "toppingId": 3,
+              "name": "Kem muối",
+              "price": 10000
+            },
+            {
+              "toppingId": 4,
+              "name": "Shot espresso",
+              "price": 12000
+            }
+          ]
+        },
+        {
+          "id": 77,
+          "orderId": 1351,
+          "drinkId": 13,
+          "quantity": 1,
+          "price": 45000,
+          "subtotal": 45000,
+          "drinkName": "Đá xay matcha",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 0,
+          "toppings": []
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "customerName": "dfghfgdhfg",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "status": "SUCCESS",
+      "createdAt": "2026-11-14T15:47:12.204493300",
+      "paymentMethod": "CASH",
+      "paidAt": "2026-11-14T16:31:06.327620800",
+      "tableId": 1,
+      "receivedByUserId": 2,
+      "orderId": 1356,
+      "total": 267000,
+      "details": [
+        {
+          "id": 82,
+          "orderId": 1356,
+          "drinkId": 6,
+          "quantity": 4,
+          "price": 28000,
+          "subtotal": 112000,
+          "drinkName": "Trà chanh",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 8000,
+          "toppings": [
+            {
+              "toppingId": 2,
+              "name": "Thạch phô mai",
+              "price": 8000
+            }
+          ]
+        },
+        {
+          "id": 83,
+          "orderId": 1356,
+          "drinkId": 6,
+          "quantity": 1,
+          "price": 20000,
+          "subtotal": 20000,
+          "drinkName": "Trà chanh",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 0,
+          "toppings": []
+        },
+        {
+          "id": 84,
+          "orderId": 1356,
+          "drinkId": 13,
+          "quantity": 3,
+          "price": 45000,
+          "subtotal": 135000,
+          "drinkName": "Đá xay matcha",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 0,
+          "toppings": []
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "customerName": "234235t",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "status": "SUCCESS",
+      "createdAt": "2026-11-14T16:10:28.944499200",
+      "paymentMethod": "TRANSFER",
+      "paidAt": "2026-11-14T16:30:39.406693100",
+      "tableId": 1,
+      "receivedByUserId": 2,
+      "orderId": 1353,
+      "total": 30000,
+      "details": [
+        {
+          "id": 79,
+          "orderId": 1353,
+          "drinkId": 8,
+          "quantity": 1,
+          "price": 30000,
+          "subtotal": 30000,
+          "drinkName": "Nước ép dưa hấu",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 0,
+          "toppings": []
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "customerName": "hbyu",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "status": "SUCCESS",
+      "createdAt": "2026-11-14T16:26:59.809887800",
+      "paymentMethod": "CASH",
+      "paidAt": "2026-11-14T16:30:50.037328700",
+      "tableId": 1,
+      "receivedByUserId": 2,
+      "orderId": 1354,
+      "total": 20000,
+      "details": [
+        {
+          "id": 80,
+          "orderId": 1354,
+          "drinkId": 6,
+          "quantity": 1,
+          "price": 20000,
+          "subtotal": 20000,
+          "drinkName": "Trà chanh",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 0,
+          "toppings": []
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "customerName": "ádasdasd",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "status": "SUCCESS",
+      "createdAt": "2026-11-14T17:47:35.615342900",
+      "paymentMethod": "CASH",
+      "paidAt": "2026-11-14T17:55:14.403907400",
+      "tableId": 1,
+      "receivedByUserId": 2,
+      "orderId": 1359,
+      "total": 30000,
+      "details": [
+        {
+          "id": 88,
+          "orderId": 1359,
+          "drinkId": 8,
+          "quantity": 1,
+          "price": 30000,
+          "subtotal": 30000,
+          "drinkName": "Nước ép dưa hấu",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 0,
+          "toppings": []
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "customerName": "ádasdasd345634tg3t",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "status": "SUCCESS",
+      "createdAt": "2026-11-14T17:48:04.509046900",
+      "paymentMethod": "CASH",
+      "paidAt": "2026-11-14T17:48:24.232434200",
+      "tableId": 1,
+      "receivedByUserId": 2,
+      "orderId": 1358,
+      "total": 225000,
+      "details": [
+        {
+          "id": 87,
+          "orderId": 1358,
+          "drinkId": 14,
+          "quantity": 5,
+          "price": 45000,
+          "subtotal": 225000,
+          "drinkName": "Đá xay chocolate",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 0,
+          "toppings": []
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "customerName": "1234234",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "status": "SUCCESS",
+      "createdAt": "2026-11-15T02:12:37.198652900",
+      "paymentMethod": "CASH",
+      "paidAt": "2026-11-15T02:12:59.943407500",
+      "tableId": 1,
+      "receivedByUserId": 2,
+      "orderId": 1361,
+      "total": 137000,
+      "details": [
+        {
+          "id": 90,
+          "orderId": 1361,
+          "drinkId": 9,
+          "quantity": 3,
+          "price": 30000,
+          "subtotal": 90000,
+          "drinkName": "Nước ép thơm",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 0,
+          "toppings": []
+        },
+        {
+          "id": 91,
+          "orderId": 1361,
+          "drinkId": 2,
+          "quantity": 1,
+          "price": 47000,
+          "subtotal": 47000,
+          "drinkName": "Cà phê sữa",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 22000,
+          "toppings": [
+            {
+              "toppingId": 3,
+              "name": "Kem muối",
+              "price": 10000
+            },
+            {
+              "toppingId": 4,
+              "name": "Shot espresso",
+              "price": 12000
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "customerName": "Nấmdasdasd",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "status": "FAILED",
+      "createdAt": "2026-11-16T03:44:47.045107900",
+      "paymentMethod": "TRANSFER",
+      "inventoryReserved": false,
+      "rejectedAt": "2026-11-16T03:46:18.666393200",
+      "rejectedReason": "hết đồ uống",
+      "refundStatus": "NOT_RECEIVED",
+      "refundCheckAt": "2026-11-16T15:17:32.435365600",
+      "tableId": 1,
+      "rejectedByUserId": 2,
+      "refundCheckedByUserId": 2,
+      "total": 34000,
+      "details": [
+        {
+          "id": 0,
+          "orderId": 0,
+          "drinkId": 15,
+          "quantity": 1,
+          "price": 10000,
+          "subtotal": 10000,
+          "drinkName": "test",
+          "size": "XL",
+          "note": "",
+          "sizeExtraPrice": -2000,
+          "toppingTotal": 0,
+          "toppings": []
+        },
+        {
+          "id": 0,
+          "orderId": 0,
+          "drinkId": 15,
+          "quantity": 2,
+          "price": 12000,
+          "subtotal": 24000,
+          "drinkName": "test",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 0,
+          "toppings": []
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "customerName": "Nguyễn Văn Nghĩa",
+      "customerPhone": "",
+      "orderType": "DINE_IN",
+      "status": "SUCCESS",
+      "createdAt": "2026-11-16T15:16:24.315599",
+      "paymentMethod": "CASH",
+      "paidAt": "2026-11-16T15:18:06.092182",
+      "creationToken": "84264654-57fd-482b-8f48-e1b2ec5141ed",
+      "inventoryReserved": false,
+      "tableId": 3,
+      "receivedByUserId": 2,
+      "orderId": 1365,
+      "total": 667677,
+      "details": [
+        {
+          "id": 95,
+          "orderId": 1365,
+          "drinkId": 16,
+          "quantity": 4,
+          "price": 91301,
+          "subtotal": 365204,
+          "drinkName": "ádasd",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 67878,
+          "toppings": [
+            {
+              "toppingId": 12,
+              "name": "223",
+              "price": 23323
+            },
+            {
+              "toppingId": 13,
+              "name": "666",
+              "price": 44555
+            }
+          ]
+        },
+        {
+          "id": 96,
+          "orderId": 1365,
+          "drinkId": 16,
+          "quantity": 4,
+          "price": 59077,
+          "subtotal": 236308,
+          "drinkName": "ádasd",
+          "size": "zM",
+          "note": "",
+          "sizeExtraPrice": 12331,
+          "toppingTotal": 23323,
+          "toppings": [
+            {
+              "toppingId": 12,
+              "name": "223",
+              "price": 23323
+            }
+          ]
+        },
+        {
+          "id": 97,
+          "orderId": 1365,
+          "drinkId": 15,
+          "quantity": 5,
+          "price": 13233,
+          "subtotal": 66165,
+          "drinkName": "test",
+          "size": "S",
+          "note": "",
+          "sizeExtraPrice": 0,
+          "toppingTotal": 1233,
+          "toppings": [
+            {
+              "toppingId": 6,
+              "name": "ắdad",
+              "price": 1233
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "toppings": [
+    {
+      "active": true,
+      "price": 7000,
+      "name": "Trân châu đen",
+      "id": 1
+    },
+    {
+      "active": true,
+      "price": 8000,
+      "name": "Thạch phô mai",
+      "id": 2
+    },
+    {
+      "active": true,
+      "price": 10000,
+      "name": "Kem muối",
+      "id": 3
+    },
+    {
+      "active": true,
+      "price": 12000,
+      "name": "Shot espresso",
+      "id": 4
+    },
+    {
+      "active": false,
+      "price": 6000,
+      "name": "Thạch đào",
+      "id": 5
+    },
+    {
+      "id": 6,
+      "name": "ắdad",
+      "price": 1233,
+      "active": true
+    },
+    {
+      "id": 7,
+      "name": "ádasf",
+      "price": 2321,
+      "active": true
+    },
+    {
+      "id": 8,
+      "name": "2134fgw",
+      "price": 4442,
+      "active": true
+    },
+    {
+      "id": 9,
+      "name": "345ergfer34",
+      "price": 5345,
+      "active": true
+    },
+    {
+      "id": 10,
+      "name": "344gewrt34",
+      "price": 10332,
+      "active": true
+    },
+    {
+      "id": 11,
+      "name": "12342134",
+      "price": 23423,
+      "active": true
+    },
+    {
+      "id": 12,
+      "name": "223",
+      "price": 23323,
+      "active": true
+    },
+    {
+      "id": 13,
+      "name": "666",
+      "price": 44555,
+      "active": true
+    }
+  ],
+  "drinkToppings": [
+    {
+      "drinkId": 2,
+      "toppingId": 3,
+      "id": 1
+    },
+    {
+      "drinkId": 2,
+      "toppingId": 4,
+      "id": 2
+    },
+    {
+      "drinkId": 4,
+      "toppingId": 1,
+      "id": 3
+    },
+    {
+      "drinkId": 4,
+      "toppingId": 2,
+      "id": 4
+    },
+    {
+      "drinkId": 5,
+      "toppingId": 1,
+      "id": 5
+    },
+    {
+      "drinkId": 5,
+      "toppingId": 2,
+      "id": 6
+    },
+    {
+      "drinkId": 6,
+      "toppingId": 2,
+      "id": 7
+    },
+    {
+      "toppingId": 6,
+      "drinkId": 15,
+      "id": 8
+    },
+    {
+      "toppingId": 12,
+      "drinkId": 16,
+      "id": 9
+    },
+    {
+      "toppingId": 13,
+      "drinkId": 16,
+      "id": 10
+    }
+  ],
+  "inventoryReservations": [
+    {
+      "id": 10,
+      "requestId": 10,
+      "quantities": {
+        "15": 5,
+        "16": 8
+      },
+      "status": "CONSUMED",
+      "createdAt": "2026-11-16T15:16:24.495614300",
+      "consumedAt": "2026-11-16T15:18:05.702872500"
+    }
+  ],
+  "inventoryOperations": [
+    {
+      "id": "order:1363:deduct",
+      "operationId": "order:1363:deduct",
+      "signature": "null|null|{2=-1}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T04:39:12.428259800",
+      "changes": [
+        {
+          "drinkId": 2,
+          "delta": -1,
+          "previousQuantity": 58,
+          "newQuantity": 57,
+          "drinkName": "Cà phê sữa"
+        }
+      ]
+    },
+    {
+      "id": "stock:a9f8a8f0-d6ed-4c38-b92e-e14f67edb017",
+      "operationId": "stock:a9f8a8f0-d6ed-4c38-b92e-e14f67edb017",
+      "signature": "null|null|{2=-2}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T04:39:26.194624300",
+      "changes": [
+        {
+          "drinkId": 2,
+          "delta": -2,
+          "previousQuantity": 57,
+          "newQuantity": 55,
+          "drinkName": "Cà phê sữa"
+        }
+      ]
+    },
+    {
+      "id": "stock:442831a9-8c2a-46f2-89ba-556ed9858662",
+      "operationId": "stock:442831a9-8c2a-46f2-89ba-556ed9858662",
+      "signature": "null|null|{2=1}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T04:39:34.573208400",
+      "changes": [
+        {
+          "drinkId": 2,
+          "delta": 1,
+          "previousQuantity": 55,
+          "newQuantity": 56,
+          "drinkName": "Cà phê sữa"
+        }
+      ]
+    },
+    {
+      "id": "stock:242eac16-869f-414e-ad78-4f98f0d341e6",
+      "operationId": "stock:242eac16-869f-414e-ad78-4f98f0d341e6",
+      "signature": "null|null|{2=1}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T04:39:44.950954300",
+      "changes": [
+        {
+          "drinkId": 2,
+          "delta": 1,
+          "previousQuantity": 56,
+          "newQuantity": 57,
+          "drinkName": "Cà phê sữa"
+        }
+      ]
+    },
+    {
+      "id": "order:1366:deduct",
+      "operationId": "order:1366:deduct",
+      "signature": "null|null|{15=-3}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:20:24.230135700",
+      "changes": [
+        {
+          "drinkId": 15,
+          "delta": -3,
+          "previousQuantity": 5,
+          "newQuantity": 2,
+          "drinkName": "test"
+        }
+      ]
+    },
+    {
+      "id": "stock:2b8ff2d1-fdb6-4b1a-82e6-433a7b531865",
+      "operationId": "stock:2b8ff2d1-fdb6-4b1a-82e6-433a7b531865",
+      "signature": "null|null|{2=-1, 15=-2}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:22:30.107529",
+      "changes": [
+        {
+          "drinkId": 2,
+          "delta": -1,
+          "previousQuantity": 57,
+          "newQuantity": 56,
+          "drinkName": "Cà phê sữa"
+        },
+        {
+          "drinkId": 15,
+          "delta": -2,
+          "previousQuantity": 2,
+          "newQuantity": 0,
+          "drinkName": "test"
+        }
+      ]
+    },
+    {
+      "id": "stock:6faf76e9-91a0-4cad-89c6-e8bea415f8e6",
+      "operationId": "stock:6faf76e9-91a0-4cad-89c6-e8bea415f8e6",
+      "signature": "null|null|{2=1, 15=3}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:22:53.140173100",
+      "changes": [
+        {
+          "drinkId": 2,
+          "delta": 1,
+          "previousQuantity": 56,
+          "newQuantity": 57,
+          "drinkName": "Cà phê sữa"
+        },
+        {
+          "drinkId": 15,
+          "delta": 3,
+          "previousQuantity": 0,
+          "newQuantity": 3,
+          "drinkName": "test"
+        }
+      ]
+    },
+    {
+      "id": "stock:ddbe12b0-ce41-4637-8ada-eff4f9e697a1",
+      "operationId": "stock:ddbe12b0-ce41-4637-8ada-eff4f9e697a1",
+      "signature": "null|null|{2=1, 15=3}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:23:30.624061300",
+      "changes": [
+        {
+          "drinkId": 2,
+          "delta": 1,
+          "previousQuantity": 57,
+          "newQuantity": 58,
+          "drinkName": "Cà phê sữa"
+        },
+        {
+          "drinkId": 15,
+          "delta": 3,
+          "previousQuantity": 3,
+          "newQuantity": 6,
+          "drinkName": "test"
+        }
+      ]
+    },
+    {
+      "id": "stock-compensation:e3230d55-2952-4c3b-8dbe-1b1592c7118d",
+      "operationId": "stock-compensation:e3230d55-2952-4c3b-8dbe-1b1592c7118d",
+      "signature": "null|null|{2=-1, 15=-3}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:23:31.407772900",
+      "changes": [
+        {
+          "drinkId": 2,
+          "delta": -1,
+          "previousQuantity": 58,
+          "newQuantity": 57,
+          "drinkName": "Cà phê sữa"
+        },
+        {
+          "drinkId": 15,
+          "delta": -3,
+          "previousQuantity": 6,
+          "newQuantity": 3,
+          "drinkName": "test"
+        }
+      ]
+    },
+    {
+      "id": "stock-compensation:e546dc57-2554-47ca-a02b-ff9491609299",
+      "operationId": "stock-compensation:e546dc57-2554-47ca-a02b-ff9491609299",
+      "signature": "null|null|{2=-1, 15=-2}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:23:41.051396400",
+      "changes": [
+        {
+          "drinkId": 2,
+          "delta": -1,
+          "previousQuantity": 58,
+          "newQuantity": 57,
+          "drinkName": "Cà phê sữa"
+        },
+        {
+          "drinkId": 15,
+          "delta": -2,
+          "previousQuantity": 5,
+          "newQuantity": 3,
+          "drinkName": "test"
+        }
+      ]
+    },
+    {
+      "id": "stock:b8290c81-5dba-4034-9ef5-771777230750",
+      "operationId": "stock:b8290c81-5dba-4034-9ef5-771777230750",
+      "signature": "null|null|{4=1}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:24:14.853258300",
+      "changes": [
+        {
+          "drinkId": 4,
+          "delta": 1,
+          "previousQuantity": 81,
+          "newQuantity": 82,
+          "drinkName": "Trà đào"
+        }
+      ]
+    },
+    {
+      "id": "stock-compensation:524b302d-346a-4b0f-b62e-3e5ca0b273b0",
+      "operationId": "stock-compensation:524b302d-346a-4b0f-b62e-3e5ca0b273b0",
+      "signature": "null|null|{4=-1}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:24:15.257985100",
+      "changes": [
+        {
+          "drinkId": 4,
+          "delta": -1,
+          "previousQuantity": 82,
+          "newQuantity": 81,
+          "drinkName": "Trà đào"
+        }
+      ]
+    },
+    {
+      "id": "stock:b3c7ed9b-7722-4c71-8eaf-212c19687dbb",
+      "operationId": "stock:b3c7ed9b-7722-4c71-8eaf-212c19687dbb",
+      "signature": "null|null|{2=1}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:25:52.745627200",
+      "changes": [
+        {
+          "drinkId": 2,
+          "delta": 1,
+          "previousQuantity": 57,
+          "newQuantity": 58,
+          "drinkName": "Cà phê sữa"
+        }
+      ]
+    },
+    {
+      "id": "stock-compensation:c34170d2-19ce-4f6c-aa49-51037ab7ec53",
+      "operationId": "stock-compensation:c34170d2-19ce-4f6c-aa49-51037ab7ec53",
+      "signature": "null|null|{2=-1}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:25:53.056941300",
+      "changes": [
+        {
+          "drinkId": 2,
+          "delta": -1,
+          "previousQuantity": 58,
+          "newQuantity": 57,
+          "drinkName": "Cà phê sữa"
+        }
+      ]
+    },
+    {
+      "id": "stock:c1f4e2a7-e169-43a5-8506-6fb65cad145f",
+      "operationId": "stock:c1f4e2a7-e169-43a5-8506-6fb65cad145f",
+      "signature": "null|null|{11=2}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:26:52.598959",
+      "changes": [
+        {
+          "drinkId": 11,
+          "delta": 2,
+          "previousQuantity": 80,
+          "newQuantity": 82,
+          "drinkName": "Sinh tố dâu"
+        }
+      ]
+    },
+    {
+      "id": "stock:3ce23adc-98f0-41fa-b6c8-73fa03fe417a",
+      "operationId": "stock:3ce23adc-98f0-41fa-b6c8-73fa03fe417a",
+      "signature": "null|null|{5=-1, 11=-2}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:27:03.391186200",
+      "changes": [
+        {
+          "drinkId": 5,
+          "delta": -1,
+          "previousQuantity": 74,
+          "newQuantity": 73,
+          "drinkName": "Trà tắc"
+        },
+        {
+          "drinkId": 11,
+          "delta": -2,
+          "previousQuantity": 82,
+          "newQuantity": 80,
+          "drinkName": "Sinh tố dâu"
+        }
+      ]
+    },
+    {
+      "id": "stock:3111027a-9fd1-4a11-93b6-b627eb92ea30",
+      "operationId": "stock:3111027a-9fd1-4a11-93b6-b627eb92ea30",
+      "signature": "null|null|{5=1, 11=2}",
+      "status": "SUCCESS",
+      "appliedAt": "2026-11-16T15:27:29.050260100",
+      "changes": [
+        {
+          "drinkId": 5,
+          "delta": 1,
+          "previousQuantity": 73,
+          "newQuantity": 74,
+          "drinkName": "Trà tắc"
+        },
+        {
+          "drinkId": 11,
+          "delta": 2,
+          "previousQuantity": 80,
+          "newQuantity": 82,
+          "drinkName": "Sinh tố dâu"
+        }
+      ]
+    }
+  ]
+}

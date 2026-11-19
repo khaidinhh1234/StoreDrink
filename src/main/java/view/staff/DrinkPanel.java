@@ -182,7 +182,8 @@ public class DrinkPanel extends JPanel implements RefreshablePanel {
                 quantity=new JTextField(8),image=new JTextField(24);
         final JTextArea description=new JTextArea(3,24);
         final JPanel sizeRows=new JPanel(), toppingRows=new JPanel();
-        final JButton addSizeButton=new JButton("+ Thêm size"), addToppingButton=new JButton("+ Thêm topping");
+        final JButton addSizeButton=new JButton("+ Thêm size"), addToppingButton=new JButton("+ Tạo topping mới"),
+                chooseToppingButton=new JButton("Chọn topping đã tạo");
         final List<SizeRow> sizes=new ArrayList<>();
         final List<ToppingRow> toppings=new ArrayList<>();
         final List<model.Topping> originalToppings;
@@ -199,7 +200,10 @@ public class DrinkPanel extends JPanel implements RefreshablePanel {
             sectionLabel("TOPPING ÁP DỤNG CHO MÓN (TÙY CHỌN)");
             toppingRows.setLayout(new BoxLayout(toppingRows,BoxLayout.Y_AXIS));
             panel.add(toppingRows); addToppingButton.addActionListener(e->addToppingRow(null));
-            panel.add(addToppingButton);
+            chooseToppingButton.addActionListener(e->chooseExistingTopping());
+            JPanel toppingActions=new JPanel(new FlowLayout(FlowLayout.LEFT,6,2));
+            toppingActions.setOpaque(false);toppingActions.add(addToppingButton);toppingActions.add(chooseToppingButton);
+            panel.add(toppingActions);
             if(existing!=null){
                 name.setText(existing.getName());price.setText(String.valueOf(existing.getPrice()));quantity.setText(String.valueOf(existing.getQuantity()));
                 image.setText(existing.getImage()==null?"":existing.getImage());description.setText(existing.getDescription()==null?"":existing.getDescription());
@@ -225,6 +229,28 @@ public class DrinkPanel extends JPanel implements RefreshablePanel {
         void addToppingRow(model.Topping topping){
             if(toppings.size()>=3)return;
             ToppingRow row=new ToppingRow(topping);toppings.add(row);toppingRows.add(row.panel);updateToppingLimit();refreshFormLayout(row.panel);
+        }
+        void chooseExistingTopping(){
+            if(toppings.size()>=3){
+                NotificationDialog.showMessageDialog(panel,"Mỗi món chỉ được thêm tối đa 3 topping.","Đã đủ topping",NotificationDialog.INFORMATION_MESSAGE);
+                return;
+            }
+            try{
+                List<model.Topping> available=new ToppingService().getAll().stream()
+                        .filter(option->toppings.stream().noneMatch(row->row.name.getText().trim().equalsIgnoreCase(option.getName())
+                                && row.price.getText().trim().equals(String.valueOf(option.getPrice()))))
+                        .toList();
+                if(available.isEmpty()){
+                    NotificationDialog.showMessageDialog(panel,"Không còn topping nào khác để chọn.","Danh sách topping",NotificationDialog.INFORMATION_MESSAGE);
+                    return;
+                }
+                List<String> labels=available.stream().map(option->option.getName()+" · "+UITheme.formatVnd(option.getPrice())
+                        +(option.isActive()?"":" (đang ẩn, sẽ bật lại khi lưu)")).toList();
+                Object selected=JOptionPane.showInputDialog(panel,"Chọn topping đã có trong hệ thống:","Chọn topping",
+                        JOptionPane.PLAIN_MESSAGE,null,labels.toArray(),labels.get(0));
+                int index=labels.indexOf(selected);
+                if(index>=0)addToppingRow(available.get(index));
+            }catch(Exception exception){showApiError("Không tải được danh sách topping",exception);}
         }
         void refreshFormLayout(JComponent addedRow){
             sizeRows.revalidate();sizeRows.repaint();toppingRows.revalidate();toppingRows.repaint();

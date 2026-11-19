@@ -219,7 +219,11 @@ public class CashierRequestsPanel extends JPanel implements RefreshablePanel {
                     + "; tồn kho đã trừ.");
             if (JOptionPane.showConfirmDialog(this, "In bill giao khách ngay?", "In hóa đơn",
                     JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                utils.ReceiptPrinter.print(order, new service.OrderService().getDetails(order.getId()));
+                service.OrderService orderService = new service.OrderService();
+                utils.ReceiptPrinter.printAsync(order, () -> orderService.getDetails(order.getId()),
+                        exception -> JOptionPane.showMessageDialog(this,
+                                "Không thể in hóa đơn: " + exception.getMessage(), "Lỗi",
+                                JOptionPane.ERROR_MESSAGE), () -> {});
             }
             refreshData();
         } catch (Exception exception) {
